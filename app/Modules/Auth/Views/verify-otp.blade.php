@@ -10,7 +10,7 @@
 
         <!-- Sheet -->
         <div class="relative -mt-10 flex-1 min-h-0 bg-white rounded-t-[36px] overflow-y-auto">
-            <div class="px-6 pt-9 pb-6">
+            <div class="px-6 pt-6 pb-6">
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <h1 class="text-[27px] font-black text-[#1a153a] tracking-tight font-poppins leading-tight">Verify phone number</h1>
@@ -41,7 +41,7 @@
                 <form id="verify-otp-form" method="POST" action="{{ route('login.verify-otp.submit') }}" class="flex flex-col gap-6 mt-7">
                     @csrf
 
-                    <x-pin-input name="otp" :length="6" :autofocus="true" aria-label="6-digit OTP" />
+                    <x-pin-input name="otp" :length="6" :autofocus="true" aria-label="6-digit OTP" :auto-submit="true" />
                     @error('otp')
                         <p class="text-[12px] font-semibold text-red-500 -mt-3">{{ $message }}</p>
                     @enderror
@@ -49,14 +49,14 @@
 
                 <form method="POST" action="{{ route('login.resend-otp') }}" class="mt-4 text-center">
                     @csrf
-                    <button type="submit" class="text-[14px] font-bold text-[#0A5C66] hover:underline">Resend OTP</button>
+                    <button type="submit" data-loading-text="Resending..." class="text-[14px] font-bold text-[#0A5C66] hover:underline">Resend OTP</button>
                 </form>
             </div>
         </div>
 
         <!-- Bottom action bar -->
         <div class="shrink-0 bg-white border-t border-slate-100 px-6 pt-4 pb-6">
-            <button type="submit" form="verify-otp-form" class="btn-shimmer-cta w-full h-[56px] rounded-full bg-[#0A5C66] text-white font-bold text-[16px] hover:bg-[#0E7481] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+            <button type="submit" form="verify-otp-form" data-loading-text="Verifying OTP..." class="btn-shimmer-cta w-full h-[56px] rounded-full bg-[#0A5C66] text-white font-bold text-[16px] hover:bg-[#0E7481] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
                 Verify OTP <i class="fa-solid fa-arrow-right text-[14px]"></i>
             </button>
         </div>

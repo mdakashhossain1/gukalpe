@@ -4,7 +4,7 @@
      faint grid texture, back button, and the real logo mark. Every screen
      in the flow renders this identically; only the back-button destination
      changes per screen. --}}
-<div class="relative overflow-hidden shrink-0 h-[300px] bg-gradient-to-br from-[#0A5C66] via-[#0A5C66] to-[#04242F]">
+<div class="relative overflow-hidden shrink-0 h-[220px] bg-gradient-to-br from-[#0A5C66] via-[#0A5C66] to-[#04242F]">
     <div class="absolute inset-0 opacity-[0.07]" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 48px 48px;"></div>
     <div class="absolute -top-16 -right-10 w-[220px] h-[220px] bg-[#3FEA8A]/[0.12] rounded-full blur-[60px] pointer-events-none"></div>
 

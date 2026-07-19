@@ -10,7 +10,7 @@
 
         <!-- Sheet -->
         <div class="relative -mt-10 flex-1 min-h-0 bg-white rounded-t-[36px] overflow-y-auto">
-            <div class="px-6 pt-9 pb-6">
+            <div class="px-6 pt-6 pb-6">
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <h1 class="text-[27px] font-black text-[#1a153a] tracking-tight font-poppins leading-tight">{{ $isNewUser ? 'Complete your account' : 'Set a new MPIN' }}</h1>
@@ -51,7 +51,7 @@
 
                     <div>
                         <span class="block text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-2">Re-enter MPIN</span>
-                        <x-pin-input name="mpin_confirmation" :length="4" aria-label="Re-enter MPIN" />
+                        <x-pin-input name="mpin_confirmation" :length="4" aria-label="Re-enter MPIN" :auto-submit="true" />
                     </div>
                     @error('mpin')
                         <p class="text-[12px] font-semibold text-red-500 -mt-3">{{ $message }}</p>
@@ -67,7 +67,7 @@
 
         <!-- Bottom action bar -->
         <div class="shrink-0 bg-white border-t border-slate-100 px-6 pt-4 pb-6">
-            <button type="submit" form="set-mpin-form" class="btn-shimmer-cta w-full h-[56px] rounded-full bg-[#0A5C66] text-white font-bold text-[16px] hover:bg-[#0E7481] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+            <button type="submit" form="set-mpin-form" data-loading-text="{{ $isNewUser ? 'Setting up...' : 'Saving...' }}" class="btn-shimmer-cta w-full h-[56px] rounded-full bg-[#0A5C66] text-white font-bold text-[16px] hover:bg-[#0E7481] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
                 {{ $isNewUser ? 'Complete Setup' : 'Save New MPIN' }} <i class="fa-solid fa-arrow-right text-[14px]"></i>
             </button>
         </div>

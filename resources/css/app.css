@@ -47,6 +47,29 @@
   }
 }
 
+/* Auth PIN input (MPIN/OTP) - brief confirm pulse on the last box filled,
+   right before pin-input.blade.php's autoSubmit fires the form. Purely a
+   "got it, continuing..." signal - the button loading state (below) is
+   what actually communicates the request in flight. */
+@keyframes pin-box-complete {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+[data-pin-group].pin-group-complete [data-pin-box] {
+  animation: pin-box-complete 0.28s ease-out;
+  background-color: rgba(10, 92, 102, 0.08);
+}
+
+/* Auth submit buttons - swapped to a spinner + status label while a form
+   is in flight (auth-hero.blade.php wires this up for every form on the
+   phone/OTP/MPIN screens). Real full-page POSTs, not fetch, so the loading
+   state only needs to last until the next page renders. */
+.auth-btn-loading {
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+
 @layer components {
 /* Base Body Styles */
 body {

@@ -1,6 +1,37 @@
 # MEMORY.md — Project Log
 
+## 2026-07-19 (47) — Auth flow: auto-submit + button loading animation on MPIN/OTP entry
+
+User wanted a "little bit of animation" across all 5 auth screens (`phone`, `verify-otp`, `mpin`, `set-mpin`, `forgot-mpin`): typing the last digit of an MPIN/OTP should visibly kick off "verifying", and clicking any auth "next" button should show it's working, not just sit there until the next full-page load arrives.
+
+- **`resources/views/components/pin-input.blade.php`**: new `autoSubmit` prop → renders `data-auto-submit` on the group. Component's existing delegated `input`/`paste` listeners now also call `maybeAutoSubmit(group)` after syncing: once the hidden value's length equals box count, adds a `.pin-group-complete` class (triggers a brief scale-pulse, see app.css `pin-box-complete` keyframe) and calls `form.requestSubmit()` ~220ms later. Not applied blindly to every pin group - `set-mpin.blade.php` has two groups (new MPIN, confirm MPIN) and only the second (`mpin_confirmation`) auto-submits, since filling the first is only half the form.
+- **`resources/views/layouts/auth-hero.blade.php`** (shared by all 5 screens): added a delegated `submit` listener - on any form submit (manual click or the above `requestSubmit()`), finds that form's submit button(s) (nested, or elsewhere via `form="<id>"` - this app puts action buttons in a separate bottom bar, not nested), disables them and swaps their content to a spinner (`fa-circle-notch fa-spin`) + a `data-loading-text` label (e.g. "Verifying...", "Sending OTP...", "Please wait..."). No reset-on-failure path needed - these are real full-page POSTs, so a validation failure just reloads the page fresh.
+- Applied `:auto-submit="true"` to: `verify-otp` (6-digit OTP), `mpin` (login MPIN), `set-mpin`'s confirmation group only. Added `data-loading-text` to every submit button across all 5 pages, including the separate "Resend OTP" form.
+- Verified: full test suite still green (25 passed), rebuilt assets, and confirmed via a real HTTP request to `/login` that the script and `data-loading-text` attribute render correctly in the live page.
+
+## 2026-07-19 (46) — Removed redundant top toast on phone/OTP/MPIN auth screens
+
+User pointed out the top-of-screen toast on the login flow duplicated the validation error already shown inline under the input (`@error` message beneath the phone/OTP/MPIN field), so the extra toast added nothing.
+
+- **Fix**: removed `<x-toast />` from `resources/views/layouts/auth-hero.blade.php` only - the shared layout for `phone`/`verify-otp`/`mpin`/`set-mpin`/`forgot-mpin`. Left `<x-toast />` in place on `layouts/app.blade.php`, `layouts/simple.blade.php`, and `layouts/admin.blade.php`, which don't have inline error equivalents and still depend on it for `session('success')`/`session('error')` flashes (e.g. Deposits, Withdrawals).
+- **Checked before removing**: `PhoneAuthController::resendOtp()` flashes `session('success', 'A new OTP has been generated.')` on the resend-OTP action - the only success-toast usage on these screens. Confirmed it's not the only feedback for that action: `verify-otp.blade.php` already renders a separate always-visible `session('demo_otp')` banner with the fresh code in demo mode, so nothing goes silently unconfirmed.
+- Rebuilt assets (`npm run build`) and `php artisan view:clear`, then verified via a real HTTP request to `/login` that `toast-item`/`x-toast` no longer appears in the rendered markup.
+
+## 2026-07-19 (45) — Stale `public/hot` file was serving dead Vite dev-server URLs
+
+User rebuilt CSS (`npm run build`) after editing several Auth view/component blade files, but the site still showed no styling. Build itself was fine (manifest + hashed `app-*.css` regenerated correctly) - the actual cause was a leftover `public/hot` file from an earlier `composer run dev` / `npm run dev` session that hadn't been cleaned up. Laravel's `@vite()` directive checks for that file's existence to decide dev-server-mode vs manifest-mode; with it present, every layout emitted `<link>`/`<script>` tags pointing at `http://[::1]:5173/...` (the Vite dev server) instead of `public/build/assets/...` - and since nothing was listening on 5173, all CSS/JS silently failed to load with no console-visible 404 pattern most people think to check first.
+
+- **Fix**: deleted `public/hot`, re-verified via a real HTTP request (curl/`Invoke-WebRequest` against the running site, not Tinker) that the rendered `<link rel="stylesheet">` now points at the hashed `public/build/assets/app-*.css` file.
+- **Gotcha for next time**: if `composer run dev`/`npm run dev` ever exits uncleanly (killed process, terminal closed without Ctrl+C), `public/hot` can survive the process and keep pointing production traffic at a dev server that's no longer running. If a `npm run build` doesn't seem to take effect, check for `public/hot` before suspecting the build itself.
+
+## 2026-07-19 (44) — Reduced login page top vertical space
+
+The user requested reducing the space from the top on the login page.
+- **Component**: Modified [auth-hero.blade.php](file:///C:/xampp_8.2/htdocs/gullakpe/resources/views/components/auth-hero.blade.php) to reduce the header height from `h-[300px]` to `h-[220px]`. This applies across all full-bleed auth screens (phone login, OTP verification, and MPIN forms), bringing the white card sheet up and resulting in a much tighter, more balanced, and premium design on mobile devices.
+- **Assets**: Rebuilt client production assets via `npm run build` to compile the new `h-[220px]` class.
+
 ## 2026-07-19 (43) — SIP-style top-up pots: cumulative investment, one shared maturity date
+
 
 Follow-up correction to entry (42). User clarified the flexible-amount slider (42) only covers a *one-time* purchase - what they actually meant, matching the earlier reference screenshot's "Setup SIP" tab (as opposed to its "One Time" tab, which is what (42) built): a user should be able to make repeated contributions into the SAME plan over time (invest ₹2000, later add another ₹2000 or ₹4000, etc.) up to an admin-configured max, and get one return at the end computed on whatever the cumulative total turned out to be - "not like just a one-time investment... just ended, not like this." Confirmed the exact mechanics via 3 clarifying questions before touching code (all "Recommended" answers): one shared maturity date for the whole pot (not per-contribution), top-ups simply stop once the max is hit (pot keeps accruing to maturity, doesn't close early), and this is a separate admin-toggled mode alongside (not replacing) the one-time flexible slider from (42).
 

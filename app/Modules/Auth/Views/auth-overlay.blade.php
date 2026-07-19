@@ -123,7 +123,7 @@
                 <div id="step-otp"
                     class="hidden h-full flex-col flex-1 animate-slide-up pb-safe overflow-y-auto overflow-x-hidden custom-scrollbar relative">
 
-                    <div class="w-full px-2 sm:px-0 mt-4 mb-8 text-left flex flex-col items-start">
+                    <div class="w-full px-2 sm:px-0 mt-2 mb-5 text-left flex flex-col items-start">
 
                         <h2
                             class="text-[30px] sm:text-[32px] text-[#1a153a] font-black mb-1.5 tracking-tight leading-tight w-full">
@@ -191,7 +191,7 @@
 
                 <div id="step-mpin" class="hidden h-full flex-col flex-1 animate-slide-up pb-safe overflow-y-auto overflow-x-hidden custom-scrollbar relative">
                 
-                <div class="w-full px-2 sm:px-0 mt-4 mb-6 text-left flex flex-col items-start">
+                <div class="w-full px-2 sm:px-0 mt-2 mb-4 text-left flex flex-col items-start">
                     <h2 class="text-[30px] sm:text-[32px] text-[#1a153a] font-black mb-1.5 tracking-tight leading-tight w-full">Set New MPIN</h2>
                     <p class="text-[15px] sm:text-[16px] text-slate-500 font-medium w-full leading-relaxed">
                         Set a 4-digit MPIN for fast and secure login without entering an OTP every time.
@@ -255,7 +255,7 @@
             </div>
 
             <div id="step-login-mpin" class="hidden h-full flex-col flex-1 animate-slide-up pb-safe overflow-y-auto overflow-x-hidden custom-scrollbar relative">
-                <div class="w-full px-2 sm:px-0 mt-4 mb-6 text-left flex flex-col items-start">
+                <div class="w-full px-2 sm:px-0 mt-2 mb-4 text-left flex flex-col items-start">
                     <h2 class="text-[30px] sm:text-[32px] text-[#1a153a] font-black mb-1.5 tracking-tight leading-tight w-full">Enter MPIN</h2>
                     <p class="text-[15px] sm:text-[16px] text-slate-500 font-medium w-full leading-relaxed">Enter your 4-digit MPIN to log in safely.</p>
                     <div class="flex items-center gap-3 mt-3 w-full">
