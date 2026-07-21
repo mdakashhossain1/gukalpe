@@ -427,26 +427,30 @@ colors: {
   bg: '#F4F7F8',           // app background
 }
 fontFamily: {
-  sans:       ['Roboto', 'sans-serif'],           // default body text
-  poppins:    ['Roboto', 'sans-serif'],           // headings, labels, buttons — utility kept the `poppins` name to avoid touching every blade file, but it resolves to Roboto now
-  devanagari: ['Roboto', 'sans-serif'],           // Hindi text
+  sans:       ['Inter', 'sans-serif'],           // default body text
+  poppins:    ['Inter', 'sans-serif'],           // headings, labels, buttons — utility kept the `poppins` name to avoid touching every blade file, but it resolves to Inter now
+  devanagari: ['Inter', 'sans-serif'],           // Hindi text
 }
 ```
 
-**Updated 2026-07-18: Roboto-only, site-wide.** Self-hosted from the two
-files the user supplied (`resources/fonts/roboto/Roboto-Regular.ttf` 400,
-`Roboto-Light.ttf` 300 — no other weight/style file exists), declared via
-`@font-face` in `resources/css/app.css` and wired into `--font-sans`,
-`--font-poppins`, `--font-devanagari` (all three point at the same face now).
-All Google/Bunny Fonts `<link>` tags were removed from every layout
-(`layouts/app.blade.php`, `layouts/simple.blade.php`, `layouts/admin.blade.php`)
-so nothing else can load a competing font. Two known tradeoffs, accepted
-per explicit instruction ("no other fonts allowed"): (1) heavier weights used
-throughout (`font-bold`/`font-black` etc.) are browser-synthesized faux-bold
-since no true bold/black cut was supplied; (2) Roboto has no Devanagari
-glyphs, so Hindi text silently falls back to the browser's default system
-font for those characters — this is unavoidable without a Devanagari-capable
-font file and is a browser behavior, not a second font being loaded.
+**Updated 2026-07-21: Inter-only, site-wide (replaces the 2026-07-18 Roboto-only setup).**
+Self-hosted as the real Inter variable font (`resources/fonts/inter/Inter-Variable-latin.woff2`
++ `Inter-Variable-latin-ext.woff2`, sourced from Google Fonts' own static CDN files and
+committed into the repo — not a live Google Fonts `<link>`), declared via `@font-face`
+in `resources/css/app.css` with `font-weight: 100 900` and wired into `--font-sans`,
+`--font-poppins`, `--font-devanagari` (all three still point at the same face). Every
+hardcoded `font-family: 'Poppins'`/`'Roboto'` reference left in `app.css` and
+`auth-overlay.blade.php` was switched to `Inter`/`var(--font-sans)` so nothing else
+renders in a different family. All Google/Bunny Fonts `<link>` tags remain removed from
+every layout so nothing loads a competing font at request time.
+
+Because this is a true variable font (not single-weight static files like the old
+Roboto setup), `font-medium`/`font-semibold`/`font-bold`/`font-extrabold` etc. all now
+render as real distinct weights — no more browser-synthesized faux-bold. One tradeoff
+carries over unchanged: Inter has no Devanagari glyphs, so Hindi text still silently
+falls back to the browser's default system font for those characters — unavoidable
+without a Devanagari-capable font file, and a browser behavior, not a second font
+being loaded.
 
 Other recurring raw values seen throughout the prototype (not in the config,
 but used directly as Tailwind arbitrary values): text color `#1a153a` (dark

@@ -1,5 +1,16 @@
 # MEMORY.md — Project Log
 
+## 2026-07-21 (48) — Site-wide font swapped from Roboto to Inter (still self-hosted, single-font policy)
+
+User supplied an exact typography spec (Inter, weights 400/500/600/700/800) for a plan/investment screen and asked to use it as the only font site-wide, then said to source the files from Google Fonts. Replaces the 2026-07-18 (entry 44-ish) Roboto-only setup — same "no other fonts, no CDN link" policy, different font.
+
+- Fetched Google Fonts' `css2` API for `Inter:wght@400;500;600;700;800` to discover the actual `fonts.gstatic.com` file URLs, then downloaded the two files it resolved to (`latin` + `latin-ext` subsets) — these are Inter's *variable* font files (a single file serves the whole `100 900` weight axis; Google's CSS just repeats `@font-face` blocks with the same `src` per weight for older-browser compatibility). Saved as `resources/fonts/inter/Inter-Variable-latin.woff2` and `Inter-Variable-latin-ext.woff2`; deleted the old `resources/fonts/roboto/` files entirely.
+- `resources/css/app.css`: replaced the Roboto `@font-face` pair with two Inter `@font-face` rules (`font-weight: 100 900`, one per unicode-range subset), repointed `--font-sans`/`--font-poppins`/`--font-devanagari` and `body`'s `font-family` at `'Inter'`, and replaced the 8 hardcoded `font-family: 'Poppins', sans-serif` declarations (Plan Details buy-bar/stat-card/slide-invest styles) with `var(--font-sans)`.
+- `app/Modules/Auth/Views/auth-overlay.blade.php`: two inline `style="font-family: 'Roboto', sans-serif"` swapped to `'Inter'`.
+- Because Inter's files are a true variable font (unlike Roboto's single static weight/style cuts), `font-medium`/`font-semibold`/`font-bold`/`font-extrabold` now render as real distinct weights instead of the browser's faux-bold synthesis the old Roboto setup had — a tradeoff called out and accepted in DESIGN.md that no longer applies. Devanagari/Hindi fallback-to-system-font tradeoff is unchanged (Inter has no Devanagari glyphs either).
+- Ran `npm run build`; confirmed the compiled `public/build/assets/app-*.css` has zero `Roboto` references and pulls in the two Inter woff2 files.
+- Updated DESIGN.md's font section to match.
+
 ## 2026-07-19 (47) — Auth flow: auto-submit + button loading animation on MPIN/OTP entry
 
 User wanted a "little bit of animation" across all 5 auth screens (`phone`, `verify-otp`, `mpin`, `set-mpin`, `forgot-mpin`): typing the last digit of an MPIN/OTP should visibly kick off "verifying", and clicking any auth "next" button should show it's working, not just sit there until the next full-page load arrives.

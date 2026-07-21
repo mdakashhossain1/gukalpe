@@ -8,7 +8,7 @@
     "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DKHjwkYe.css",
+    "file": "assets/app-CrFHOuac.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -16,12 +16,12 @@
       "app.css"
     ]
   },
-  "resources/fonts/roboto/Roboto-Light.ttf": {
-    "file": "assets/Roboto-Light-C1tknH-X.ttf",
-    "src": "resources/fonts/roboto/Roboto-Light.ttf"
+  "resources/fonts/inter/Inter-Variable-latin-ext.woff2": {
+    "file": "assets/Inter-Variable-latin-ext-DO1Apj_S.woff2",
+    "src": "resources/fonts/inter/Inter-Variable-latin-ext.woff2"
   },
-  "resources/fonts/roboto/Roboto-Regular.ttf": {
-    "file": "assets/Roboto-Regular-Duvu0CAl.ttf",
-    "src": "resources/fonts/roboto/Roboto-Regular.ttf"
+  "resources/fonts/inter/Inter-Variable-latin.woff2": {
+    "file": "assets/Inter-Variable-latin-Dx4kXJAl.woff2",
+    "src": "resources/fonts/inter/Inter-Variable-latin.woff2"
   }
 }

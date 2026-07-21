@@ -48,7 +48,7 @@
                             <input type="tel" id="phone-input" inputmode="numeric" pattern="[0-9]*"
                                 placeholder="Enter Phone Number"
                                 class="w-full h-full border-1.5 border-slate-200 rounded-[20px] pl-4 pr-10 font-medium text-[18px] tracking-[0.15em] text-slate-800 placeholder:text-slate-400 placeholder:font-medium placeholder:tracking-normal outline-none focus:border-[#0A5C66] focus:ring-1 focus:ring-[#0A5C66] bg-white transition-all"
-                                style="font-family: 'Roboto', sans-serif;">
+                                style="font-family: 'Inter', sans-serif;">
 
                             <div id="phone-status-icon"
                                 class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center opacity-0 transition-opacity duration-300">
@@ -110,7 +110,7 @@
                                         class="fa-solid fa-location-arrow text-[#111315] text-[9px] -rotate-45 -ml-[1px] mt-[1px]"></i>
                                 </div>
                                 <span class="text-white text-[13px] font-bold tracking-wide font-poppins"
-                                    style="font-family: 'Roboto', sans-serif;">stable bonds</span>
+                                    style="font-family: 'Inter', sans-serif;">stable bonds</span>
                             </div>
                         </div>
                         <p class="text-[12px] text-slate-500 font-medium tracking-wide">Start Goal in GullakPe and earn

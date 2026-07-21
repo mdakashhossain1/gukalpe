@@ -9,29 +9,31 @@
 @source '../../app/Modules/**/*.php';
 
 /* Only self-hosted font in the app - no other font file or Google/Bunny
-   Fonts link may be added anywhere in the site. Every weight (bold, black,
-   etc. from font-bold/font-black utilities) renders off these same two
-   files; the browser synthesizes heavier weights since no separate
-   bold/black cut was supplied. */
+   Fonts link may be added anywhere in the site. These are the real Inter
+   variable-font files (latin + latin-ext subsets), so font-weight 100-900
+   all render as true weights - no faux-bold browser synthesis like the
+   old single-weight Roboto files needed. */
 @font-face {
-  font-family: 'Roboto';
-  src: url('../fonts/roboto/Roboto-Light.ttf') format('truetype');
-  font-weight: 300;
+  font-family: 'Inter';
+  src: url('../fonts/inter/Inter-Variable-latin-ext.woff2') format('woff2');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Roboto';
-  src: url('../fonts/roboto/Roboto-Regular.ttf') format('truetype');
-  font-weight: 400;
+  font-family: 'Inter';
+  src: url('../fonts/inter/Inter-Variable-latin.woff2') format('woff2');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @theme {
-  --font-sans: 'Roboto', sans-serif;
-  --font-poppins: 'Roboto', sans-serif;
-  --font-devanagari: 'Roboto', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-poppins: 'Inter', sans-serif;
+  --font-devanagari: 'Inter', sans-serif;
 
   --color-brand: #0A5C66;
   --color-brand-light: #118290;
@@ -73,7 +75,7 @@
 @layer components {
 /* Base Body Styles */
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Inter', sans-serif;
   background-color: #F4F7F8;
   -webkit-tap-highlight-color: transparent;
   top: 0px !important;
@@ -690,7 +692,7 @@ input[type=number]::-webkit-outer-spin-button {
                 color: #9CA3AF;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                font-family: 'Poppins', sans-serif;
+                font-family: var(--font-sans);
                 line-height: 1;
                 margin-bottom: 2px;
             }
@@ -699,7 +701,7 @@ input[type=number]::-webkit-outer-spin-button {
                 font-size: 16px;
                 font-weight: 900;
                 color: #0A5C66;
-                font-family: 'Poppins', sans-serif;
+                font-family: var(--font-sans);
                 margin: 0;
                 line-height: 1.1;
             }
@@ -715,7 +717,7 @@ input[type=number]::-webkit-outer-spin-button {
                 box-shadow: 0 4px 12px rgba(10, 92, 102, 0.15);
                 cursor: pointer;
                 transition: all 0.2s ease;
-                font-family: 'Poppins', sans-serif;
+                font-family: var(--font-sans);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -764,14 +766,14 @@ input[type=number]::-webkit-outer-spin-button {
                 color: #94A3B8;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                font-family: 'Poppins', sans-serif;
+                font-family: var(--font-sans);
                 line-height: 1.2;
             }
 
             .stat-card .value {
                 font-size: 15px;
                 font-weight: 800;
-                font-family: 'Poppins', sans-serif;
+                font-family: var(--font-sans);
                 line-height: 1.2;
                 margin-top: 2px;
             }
@@ -857,7 +859,7 @@ input[type=number]::-webkit-outer-spin-button {
                 align-items: center;
                 justify-content: center;
                 color: #ffffff;
-                font-family: 'Poppins', sans-serif;
+                font-family: var(--font-sans);
                 pointer-events: none;
                 z-index: 2;
             }
@@ -866,7 +868,7 @@ input[type=number]::-webkit-outer-spin-button {
                 color: #ffffff;
                 font-size: 16px;
                 font-weight: 700;
-                font-family: 'Poppins', sans-serif;
+                font-family: var(--font-sans);
                 line-height: 1.2;
                 text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
             }
@@ -877,7 +879,7 @@ input[type=number]::-webkit-outer-spin-button {
                 font-weight: 500;
                 letter-spacing: 0.2px;
                 margin-top: 1px;
-                font-family: 'Poppins', sans-serif;
+                font-family: var(--font-sans);
                 text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
             }
 
