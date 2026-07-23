@@ -248,36 +248,36 @@
                 <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins mb-3">Why choose this plan?</h4>
                 <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
                     <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
-                        <div class="w-8 h-8 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-1.5">
-                            <i class="bi bi-shield-check text-[15px]"></i>
+                        <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center mb-1.5">
+                            <img src="{{ asset('assets/ui/why-choose-shield-check.png') }}" alt="" class="w-5 h-5">
                         </div>
                         <p class="text-[10.5px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">Secure Investment</p>
                         <p class="text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">Bank grade security</p>
                     </div>
                     <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
-                        <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-1.5">
-                            <i class="bi bi-[#currency-rupee] bi-cash-coin text-[15px]"></i>
+                        <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center mb-1.5">
+                            <img src="{{ asset('assets/ui/why-choose-daily-profit.png') }}" alt="" class="w-5 h-5">
                         </div>
                         <p class="text-[10.5px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">Daily Profit</p>
                         <p class="text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">Earn profit every day</p>
                     </div>
                     <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
-                        <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-1.5">
-                            <i class="bi bi-lightning-charge text-[15px]"></i>
+                        <div class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center mb-1.5">
+                            <img src="{{ asset('assets/ui/why-choose-lightning.png') }}" alt="" class="w-5 h-5">
                         </div>
                         <p class="text-[10.5px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">Instant Activation</p>
                         <p class="text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">Start earning instantly</p>
                     </div>
                     <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
-                        <div class="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-1.5">
-                            <i class="bi bi-lock text-[15px]"></i>
+                        <div class="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center mb-1.5">
+                            <img src="{{ asset('assets/ui/why-choose-encryption.png') }}" alt="" class="w-5 h-5">
                         </div>
                         <p class="text-[10.5px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">End-to-End Encryption</p>
                         <p class="text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">256-bit protection</p>
                     </div>
                     <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center col-span-2 sm:col-span-1">
-                        <div class="w-8 h-8 rounded-full bg-teal-50 text-[#0A5C66] flex items-center justify-center mb-1.5">
-                            <i class="bi bi-headset text-[15px]"></i>
+                        <div class="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center mb-1.5">
+                            <img src="{{ asset('assets/ui/why-choose-support.png') }}" alt="" class="w-5 h-5">
                         </div>
                         <p class="text-[10.5px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">24x7 Support</p>
                         <p class="text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">We are always here</p>
@@ -290,21 +290,21 @@
                 <div class="grid grid-cols-3 gap-2 text-center divide-x divide-slate-100">
                     <div class="px-1">
                         <div class="flex items-center justify-center gap-1 text-[#19B36B] mb-0.5">
-                            <i class="bi bi-patch-check-fill text-[14px]"></i>
+                            <img src="{{ asset('assets/ui/trusted-investors-shield.png') }}" alt="" class="w-5 h-5">
                             <span class="text-[12px] font-black font-poppins">1,50,000+</span>
                         </div>
                         <p class="text-[8.5px] text-slate-400 font-bold uppercase">Trusted Investors</p>
                     </div>
                     <div class="px-1">
                         <div class="flex items-center justify-center gap-1 text-amber-500 mb-0.5">
-                            <i class="bi bi-star-fill text-[13px]"></i>
+                            <img src="{{ asset('assets/ui/rating-star-laurel.png') }}" alt="" class="w-5 h-5">
                             <span class="text-[12px] font-black font-poppins">4.8 / 5</span>
                         </div>
                         <p class="text-[8.5px] text-slate-400 font-bold uppercase">Investor Rating</p>
                     </div>
                     <div class="px-1">
                         <div class="flex items-center justify-center gap-1 text-[#0A5C66] mb-0.5">
-                            <i class="bi bi-shield-lock-fill text-[14px]"></i>
+                            <img src="{{ asset('assets/ui/money-safe-lock.png') }}" alt="" class="w-5 h-5">
                             <span class="text-[12px] font-black font-poppins">100% Safe</span>
                         </div>
                         <p class="text-[8.5px] text-slate-400 font-bold uppercase">Money is Safe</p>
@@ -485,29 +485,29 @@
                     <img src="{{ asset('assets/ui/Capture.png') }}" alt="Why Trust GullakPe" class="h-auto w-[260px] sm:w-[300px]">
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
-                            <i class="bi bi-patch-check-fill text-[22px]"></i>
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 text-left">
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <i class="bi bi-patch-check-fill text-[16px] sm:text-[22px]"></i>
                         </div>
-                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Verified Platform</h4>
-                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Trusted digital investment experience.</p>
+                        <h4 class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">Verified Platform</h4>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Trusted digital investment experience.</p>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
-                            <i class="bi bi-shield-lock-fill text-[22px]"></i>
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <i class="bi bi-shield-lock-fill text-[16px] sm:text-[22px]"></i>
                         </div>
-                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Secure Plans</h4>
-                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">All plans are protected with bank-grade encryption.</p>
+                        <h4 class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">Secure Plans</h4>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">All plans are protected with bank-grade encryption.</p>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
-                            <i class="bi bi-lock-fill text-[22px]"></i>
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <i class="bi bi-lock-fill text-[16px] sm:text-[22px]"></i>
                         </div>
-                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">100% Safe</h4>
-                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Your investment stays safe &amp; protected.</p>
+                        <h4 class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">100% Safe</h4>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Your investment stays safe &amp; protected.</p>
                     </div>
                 </div>
             </div>
