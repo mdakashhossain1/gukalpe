@@ -6,10 +6,10 @@ Redesigned the plan cards layout in `app/Modules/Explore/Views/explore.blade.php
 
 - **Layout & Badges**:
   - Top row: Soft pastel marketing badge on left (`#FFF4E5`/`#ECFDF5`/`#F3E8FF`) and category tier badge on right (`STARTER`/`BEGINNER`/`PREMIUM`).
-  - Card Body (Responsive 3-column grid on desktop, clean stacked layout on mobile):
-    - **Left**: Soft circular background pod (`bg-[#F4F9F8] rounded-full`) featuring plan icon or 3D plan image.
-    - **Center**: Plan title & subtitle, 3-column metrics grid with vertical divider lines (`border-r border-slate-200/80`) for *Interest Rate (Yearly)*, *Total Return*, and *Duration* (fixed `$dur->label` dropdown option property fix for duration text, e.g. "3 Months", "6 Months", "1 Year"), plus *End-to-End Encryption* and *100% Trusted & Secure* trust indicators row.
-    - **Right**: Big bold price display (`₹199`/`₹499`/`₹999`), *One-Time Investment* caption, and solid deep teal `Buy Now →` button (`bg-[#0A5C66]`).
+  - Card Body (Responsive horizontal grid on both mobile & desktop):
+    - **Left**: Soft circular background pod (`bg-[#F2F7F8] rounded-full`, scaled `w-14 h-14` on mobile, `w-28 h-28` on desktop).
+    - **Center**: Title & subtitle, 3-column metrics grid with vertical divider lines (`border-r border-slate-200`) for *Interest Rate (Yearly)*, *Total Return*, and *Duration* (with `$dur->label` dropdown option text support), plus *End-to-End Encryption* and *100% Trusted & Secure* trust indicators row.
+    - **Price & CTA**: Integrated inline price and deep teal `Buy Now →` button (`bg-[#0A5C66]`) preserving the desktop style across all mobile viewport sizes.
 - **Verification**: Recompiled Vite assets (`npm run build`), cleared view cache (`php artisan view:clear`), and tested with `php artisan test` (25 passed, 79 assertions).
 
 
