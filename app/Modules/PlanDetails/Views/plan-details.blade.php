@@ -41,7 +41,7 @@
                                 </span>
                             </div>
                             <div class="bg-white shadow-md px-3.5 py-2 rounded-2xl text-center shrink-0">
-                                <p class="text-[16px] font-black text-[#19B36B] font-poppins leading-none">{{ $p['expectedGrowth'] }}</p>
+                                <p class="text-[16px] font-black text-[#19B36B] font-poppins leading-none">{{ $p['growthRate'] }}%</p>
                                 <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">Yearly Return</p>
                             </div>
                         </div>
@@ -332,29 +332,29 @@
                 </div>
 
                 <!-- 3 Feature Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
-                            <i class="bi bi-box-arrow-down text-[22px]"></i>
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 text-left">
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <i class="bi bi-box-arrow-down text-[16px] sm:text-[22px]"></i>
                         </div>
-                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Withdraw Anytime</h4>
-                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Withdraw your investment whenever eligible.</p>
+                        <h4 class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">Withdraw Anytime</h4>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Withdraw your investment whenever eligible.</p>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
-                            <i class="bi bi-shield-check text-[22px]"></i>
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <i class="bi bi-shield-check text-[16px] sm:text-[22px]"></i>
                         </div>
-                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Secured Investment</h4>
-                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Your investment is backed by verified &amp; secure assets.</p>
+                        <h4 class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">Secured Investment</h4>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Your investment is backed by verified &amp; secure assets.</p>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
-                            <i class="bi bi-calendar-event text-[22px]"></i>
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <i class="bi bi-calendar-event text-[16px] sm:text-[22px]"></i>
                         </div>
-                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Regular Returns</h4>
-                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Profit is credited as per selected plan.</p>
+                        <h4 class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">Regular Returns</h4>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Profit is credited as per selected plan.</p>
                     </div>
                 </div>
             </div>
@@ -473,10 +473,13 @@
 
             <!-- 10. SECTION: "Why Trust GullakPe" (WITH LAUREL WREATH) -->
             <div class="pt-2 text-center">
-                <div class="inline-flex items-center justify-center gap-2 mb-4">
-                    <span class="text-amber-500 text-[18px]">🌿</span>
-                    <h3 class="text-[17px] font-black text-[#0D1F3C] font-poppins">Why Trust GullakPe</h3>
-                    <span class="text-amber-500 text-[18px]">🌿</span>
+                <div class="flex flex-col items-center mb-4">
+                    <img src="{{ asset('assets/ui/trust-shield.png') }}" alt="" class="w-7 h-auto mb-1.5">
+                    <div class="inline-flex items-center justify-center gap-2">
+                        <img src="{{ asset('assets/ui/laurel-left.png') }}" alt="" class="w-7 sm:w-8 h-auto shrink-0">
+                        <h3 class="text-[18px] sm:text-[20px] font-black text-[#0A5C66] font-poppins whitespace-nowrap">Why Trust GullakPe</h3>
+                        <img src="{{ asset('assets/ui/laurel-right.png') }}" alt="" class="w-7 sm:w-8 h-auto shrink-0">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
