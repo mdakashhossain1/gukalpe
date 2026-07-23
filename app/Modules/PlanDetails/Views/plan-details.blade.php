@@ -287,27 +287,28 @@
 
             <!-- 6. SOCIAL PROOF & CONSENT CHECKBOX -->
             <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs space-y-3">
-                <div class="grid grid-cols-3 gap-2 text-center divide-x divide-slate-100">
-                    <div class="px-1">
-                        <div class="flex items-center justify-center gap-1 text-[#19B36B] mb-0.5">
-                            <img src="{{ asset('assets/ui/trusted-investors-shield.png') }}" alt="" class="w-5 h-5">
-                            <span class="text-[12px] font-black font-poppins">1,50,000+</span>
+                <div class="flex items-center divide-x divide-slate-100">
+                    <div class="flex items-center gap-2 flex-1 min-w-0 pr-1.5">
+                        <img src="{{ asset('assets/ui/trusted-investors-shield.png') }}" alt="" class="w-8 h-8 sm:w-10 sm:h-10 shrink-0">
+                        <div class="text-left min-w-0">
+                            <p class="text-[7.5px] sm:text-[9px] text-slate-400 font-semibold leading-tight truncate">Trusted by</p>
+                            <p class="text-[11.5px] sm:text-[14px] font-black text-[#0D1F3C] font-poppins leading-tight truncate">1,50,000+</p>
+                            <p class="text-[7.5px] sm:text-[9px] text-slate-400 font-semibold leading-tight truncate">Happy Investors</p>
                         </div>
-                        <p class="text-[8.5px] text-slate-400 font-bold uppercase">Trusted Investors</p>
                     </div>
-                    <div class="px-1">
-                        <div class="flex items-center justify-center gap-1 text-amber-500 mb-0.5">
-                            <img src="{{ asset('assets/ui/rating-star-laurel.png') }}" alt="" class="w-5 h-5">
-                            <span class="text-[12px] font-black font-poppins">4.8 / 5</span>
+                    <div class="flex items-center gap-2 flex-1 min-w-0 px-1.5">
+                        <img src="{{ asset('assets/ui/rating-star-laurel.png') }}" alt="" class="w-8 h-8 sm:w-10 sm:h-10 shrink-0">
+                        <div class="text-left min-w-0">
+                            <p class="text-[11.5px] sm:text-[14px] font-black text-[#0D1F3C] font-poppins leading-tight truncate">4.8/5</p>
+                            <p class="text-[7.5px] sm:text-[9px] text-slate-400 font-semibold leading-tight truncate">Investor Rating</p>
                         </div>
-                        <p class="text-[8.5px] text-slate-400 font-bold uppercase">Investor Rating</p>
                     </div>
-                    <div class="px-1">
-                        <div class="flex items-center justify-center gap-1 text-[#0A5C66] mb-0.5">
-                            <img src="{{ asset('assets/ui/money-safe-lock.png') }}" alt="" class="w-5 h-5">
-                            <span class="text-[12px] font-black font-poppins">100% Safe</span>
+                    <div class="flex items-center gap-2 flex-1 min-w-0 pl-1.5">
+                        <img src="{{ asset('assets/ui/money-safe-lock.png') }}" alt="" class="w-8 h-8 sm:w-10 sm:h-10 shrink-0">
+                        <div class="text-left min-w-0">
+                            <p class="text-[11px] sm:text-[13px] font-black text-[#0D1F3C] font-poppins leading-tight truncate">100% Safe &amp; Secure</p>
+                            <p class="text-[7.5px] sm:text-[9px] text-slate-400 font-semibold leading-tight truncate">Your money is safe</p>
                         </div>
-                        <p class="text-[8.5px] text-slate-400 font-bold uppercase">Money is Safe</p>
                     </div>
                 </div>
 
