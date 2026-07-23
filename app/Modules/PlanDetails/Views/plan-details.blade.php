@@ -22,34 +22,36 @@
         <div class="p-3.5 sm:p-5 space-y-4 max-w-3xl mx-auto w-full">
 
             <!-- 1. HERO PLAN CARD & HEADER BANNER -->
-            <div class="relative bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm">
-                <div class="relative w-full h-[180px] sm:h-[220px]">
-                    <img src="{{ $p['image'] }}" class="w-full h-full object-cover" alt="{{ $p['title'] }}">
-                    <div class="absolute inset-0 bg-gradient-to-r from-[#031B26]/90 via-[#0A5C66]/70 to-transparent"></div>
-                    
-                    <div class="absolute inset-0 p-5 flex flex-col justify-between z-10">
+            <div class="relative bg-gradient-to-br from-[#EAF4FB] via-[#E3EFFA] to-[#D6E8F7] rounded-[24px] overflow-hidden border border-slate-100 shadow-sm">
+                <div class="relative w-full h-[190px] sm:h-[230px]">
+                    <!-- Building image faded into the light background on the left -->
+                    <img src="{{ $p['image'] }}" class="absolute inset-y-0 right-0 h-full w-[62%] sm:w-[58%] object-cover"
+                        style="mask-image: linear-gradient(to right, transparent, black 40%); -webkit-mask-image: linear-gradient(to right, transparent, black 40%);"
+                        alt="{{ $p['title'] }}">
+
+                    <div class="absolute inset-0 p-4 sm:p-5 flex flex-col justify-between z-10">
                         <!-- Top Badges -->
-                        <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-start justify-between gap-2">
                             <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-xl bg-white/90 backdrop-blur-md flex items-center justify-center text-[#0A5C66] shadow-sm">
-                                    <i class="bi {{ $p['icon'] ?? 'bi-building' }} text-[18px]"></i>
+                                <div class="w-11 h-11 rounded-2xl bg-white shadow-md flex items-center justify-center text-[#0A5C66] shrink-0">
+                                    <i class="bi {{ $p['icon'] ?? 'bi-building' }} text-[20px]"></i>
                                 </div>
-                                <span class="bg-purple-100/90 text-purple-700 text-[9.5px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-md">
+                                <span class="bg-purple-100 text-purple-700 text-[9.5px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
                                     NEWLY ADDED
                                 </span>
                             </div>
-                            <div class="bg-white/95 text-[#19B36B] px-3 py-1.5 rounded-2xl shadow-sm text-right">
-                                <p class="text-[14px] font-black font-poppins leading-none">{{ $p['expectedGrowth'] }}</p>
+                            <div class="bg-white shadow-md px-3.5 py-2 rounded-2xl text-center shrink-0">
+                                <p class="text-[16px] font-black text-[#19B36B] font-poppins leading-none">{{ $p['expectedGrowth'] }}</p>
                                 <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">Yearly Return</p>
                             </div>
                         </div>
 
                         <!-- Main Title Block -->
                         <div>
-                            <h1 class="text-white font-extrabold text-[22px] sm:text-[26px] font-poppins leading-tight tracking-tight drop-shadow-sm">{{ $p['title'] }}</h1>
+                            <h1 class="text-[#0D1F3C] font-extrabold text-[22px] sm:text-[26px] font-poppins leading-tight tracking-tight">{{ $p['title'] }}</h1>
                             <div class="flex items-center gap-2 mt-1">
-                                <span class="text-white/90 text-[12px] font-semibold font-poppins">{{ $p['badge'] }} Plan</span>
-                                <span class="text-emerald-300 text-[11px] font-bold flex items-center gap-1">
+                                <span class="text-slate-600 text-[12px] font-semibold font-poppins">{{ $p['badge'] }} Plan</span>
+                                <span class="text-[#19B36B] text-[11px] font-bold flex items-center gap-1">
                                     <i class="bi bi-patch-check-fill text-[12px]"></i> Verified &amp; Secure
                                 </span>
                             </div>
@@ -58,7 +60,7 @@
                 </div>
 
                 <!-- Effective Return Strip -->
-                <div class="p-4 bg-gradient-to-r from-blue-50/70 via-white to-blue-50/70 border-t border-slate-100 flex items-center justify-between">
+                <div class="relative -mt-4 mx-2 mb-2 p-4 rounded-2xl bg-white shadow-md border border-slate-100 flex items-center justify-between z-10">
                     <div>
                         <div class="flex items-baseline gap-1.5">
                             <span class="text-[22px] font-black text-[#0D1F3C] font-poppins leading-none">{{ $p['growthRate'] ?? '11.35' }}%</span>
@@ -571,19 +573,19 @@
         </form>
 
         <!-- 13. FIXED BOTTOM STICKY INVESTMENT BAR -->
-        <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 p-3 sm:p-4 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
-            <div class="max-w-3xl mx-auto flex items-center justify-between gap-3">
-                <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-9 h-9 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center shrink-0 shadow-inner">
-                        <i class="bi bi-[#currency-rupee] bi-piggy-bank text-[18px]"></i>
+        <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-3 pt-2.5 sm:px-4 sm:pt-4" style="padding-bottom: max(0.625rem, env(safe-area-inset-bottom));">
+            <div class="max-w-3xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
+                <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
+                    <div class="flex w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-emerald-50 text-[#19B36B] items-center justify-center shrink-0 shadow-inner">
+                        <i class="bi bi-piggy-bank text-[13px] sm:text-[18px]"></i>
                     </div>
                     <div class="min-w-0">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Invest</p>
-                        <p class="text-[15px] sm:text-[17px] font-black text-[#0D1F3C] font-poppins leading-none truncate">
-                            <span id="sticky-amount-display">₹{{ number_format($flexMin, 0) }}</span> <span class="text-[10px] font-bold text-slate-400">/ Monthly</span>
+                        <p class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Invest</p>
+                        <p class="text-[13px] sm:text-[17px] font-black text-[#0D1F3C] font-poppins leading-none truncate">
+                            <span id="sticky-amount-display">₹{{ number_format($flexMin, 0) }}</span> <span class="text-[9px] sm:text-[10px] font-bold text-slate-400">/mo</span>
                         </p>
                     </div>
-                    <div class="h-6 w-[1px] bg-slate-200 mx-1 shrink-0"></div>
+                    <div class="hidden sm:block h-6 w-[1px] bg-slate-200 mx-1 shrink-0"></div>
                     <div class="hidden sm:block min-w-0">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Earn (1 Year)</p>
                         <p class="text-[15px] font-black text-[#19B36B] font-poppins leading-none truncate">
@@ -593,15 +595,15 @@
                 </div>
 
                 @auth
-                    <button type="submit" form="plan-purchase-form" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[13.5px] sm:text-[15px] px-6 py-3 rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-2">
-                        <span class="relative z-10 flex items-center gap-2">
-                            Invest <span id="sticky-btn-amount">₹{{ number_format($flexMin, 0) }}</span> Monthly <i class="bi bi-arrow-right text-[15px]"></i>
+                    <button type="submit" form="plan-purchase-form" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[11.5px] sm:text-[15px] px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                        <span class="relative z-10 flex items-center gap-1 sm:gap-2">
+                            Invest <span id="sticky-btn-amount">₹{{ number_format($flexMin, 0) }}</span> <span class="hidden sm:inline">Monthly</span> <i class="bi bi-arrow-right text-[12px] sm:text-[15px]"></i>
                         </span>
                     </button>
                 @else
-                    <a href="{{ route('login') }}" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[13.5px] sm:text-[15px] px-6 py-3 rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-2">
-                        <span class="relative z-10 flex items-center gap-2">
-                            Log In to Invest <i class="bi bi-arrow-right text-[15px]"></i>
+                    <a href="{{ route('login') }}" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[11.5px] sm:text-[15px] px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                        <span class="relative z-10 flex items-center gap-1 sm:gap-2">
+                            Log In to Invest <i class="bi bi-arrow-right text-[12px] sm:text-[15px]"></i>
                         </span>
                     </a>
                 @endauth
