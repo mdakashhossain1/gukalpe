@@ -474,11 +474,11 @@
             <!-- 10. SECTION: "Why Trust GullakPe" (WITH LAUREL WREATH) -->
             <div class="pt-2 text-center">
                 <div class="flex flex-col items-center mb-4">
-                    <img src="{{ asset('assets/ui/trust-shield.png') }}" alt="" class="w-7 h-auto mb-1.5">
-                    <div class="inline-flex items-center justify-center gap-2">
-                        <img src="{{ asset('assets/ui/laurel-left.png') }}" alt="" class="w-7 sm:w-8 h-auto shrink-0">
+                    <img src="{{ asset('assets/ui/trust-shield.png') }}" alt="" class="w-11 sm:w-12 h-auto mb-0.5">
+                    <div class="inline-flex items-center justify-center gap-1">
+                        <img src="{{ asset('assets/ui/laurel-left.png') }}" alt="" class="w-11 sm:w-12 h-auto shrink-0">
                         <h3 class="text-[18px] sm:text-[20px] font-black text-[#0A5C66] font-poppins whitespace-nowrap">Why Trust GullakPe</h3>
-                        <img src="{{ asset('assets/ui/laurel-right.png') }}" alt="" class="w-7 sm:w-8 h-auto shrink-0">
+                        <img src="{{ asset('assets/ui/laurel-right.png') }}" alt="" class="w-11 sm:w-12 h-auto shrink-0">
                     </div>
                 </div>
 
