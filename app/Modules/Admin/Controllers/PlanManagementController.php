@@ -178,6 +178,8 @@ class PlanManagementController extends Controller
                 : 'exists:plans,id'],
             'unlock_message' => ['nullable', 'string', 'max:2000'],
             'marketing_badge' => ['nullable', 'string', 'max:40'],
+            'marketing_badge_icon' => ['nullable', 'string', 'max:50'],
+            'marketing_badge_color' => ['nullable', 'in:'.implode(',', array_keys(Plan::MARKETING_BADGE_COLORS))],
             'risk_level' => ['nullable', 'in:Low,Medium,High'],
             'max_slots' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date'],

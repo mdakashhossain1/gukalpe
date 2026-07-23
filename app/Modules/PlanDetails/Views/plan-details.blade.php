@@ -26,7 +26,11 @@
                                 <span>{{ $p['badge'] }}</span>
                             </div>
                             @if ($plan->marketing_badge)
-                                <div class="backdrop-blur-md border border-white/20 bg-white/15 text-[10px] font-bold px-3 py-1.5 rounded-[14px] flex items-center gap-1.5 shadow-sm font-poppins text-white">
+                                @php $badgeColor = $plan->marketingBadgeColorClasses(); @endphp
+                                <div class="backdrop-blur-md border {{ $badgeColor['border'] }} {{ $badgeColor['bg'] }} {{ $badgeColor['text'] }} text-[10px] font-bold px-3 py-1.5 rounded-[14px] flex items-center gap-1.5 shadow-sm font-poppins">
+                                    @if ($plan->marketing_badge_icon)
+                                        <i class="bi {{ $plan->marketing_badge_icon }} text-[10px]"></i>
+                                    @endif
                                     {{ $plan->marketing_badge }}
                                 </div>
                             @endif

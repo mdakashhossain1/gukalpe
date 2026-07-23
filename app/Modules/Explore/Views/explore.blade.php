@@ -110,7 +110,11 @@
                 <div class="relative bg-white rounded-[22px] border border-slate-100 shadow-[0_2px_14px_rgba(10,92,102,0.05)] hover:shadow-[0_8px_28px_rgba(10,92,102,0.09)] transition-shadow duration-300 {{ $plan->marketing_badge ? 'pt-8' : 'pt-5' }} px-4 pb-4">
 
                     @if ($plan->marketing_badge)
-                        <span class="absolute -top-3 left-4 z-10 inline-flex items-center max-w-[calc(100%-6rem)] bg-white border border-amber-200 text-amber-600 text-[9.5px] font-black uppercase tracking-wide leading-none px-2.5 py-1.5 rounded-full shadow-sm whitespace-nowrap truncate">
+                        @php $badgeColor = $plan->marketingBadgeColorClasses(); @endphp
+                        <span class="absolute -top-3 left-4 z-10 inline-flex items-center gap-1 max-w-[calc(100%-6rem)] {{ $badgeColor['bg'] }} border {{ $badgeColor['border'] }} {{ $badgeColor['text'] }} text-[9.5px] font-black uppercase tracking-wide leading-none px-2.5 py-1.5 rounded-full shadow-sm whitespace-nowrap truncate">
+                            @if ($plan->marketing_badge_icon)
+                                <i class="bi {{ $plan->marketing_badge_icon }} text-[9px] shrink-0"></i>
+                            @endif
                             {{ $plan->marketing_badge }}
                         </span>
                     @endif

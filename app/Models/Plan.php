@@ -16,9 +16,23 @@ class Plan extends Model
         'daily_profit', 'total_return',
         'min_goal', 'is_active', 'sort_order',
         'plan_type', 'max_purchase_per_user', 'cooldown_days', 'requires_plan_id',
-        'unlock_enabled', 'unlock_message', 'marketing_badge', 'risk_level',
+        'unlock_enabled', 'unlock_message', 'marketing_badge', 'marketing_badge_icon',
+        'marketing_badge_color', 'risk_level',
         'max_slots', 'start_date', 'end_date', 'auto_mature', 'early_close_allowed',
         'terms', 'faqs', 'highlights',
+    ];
+
+    // Curated colour schemes for the marketing badge ribbon (Explore/Plan
+    // Details) - a closed preset list rather than a free-text hex field, so
+    // every admin-picked combination stays legible (soft tint bg + matching
+    // border/text) instead of risking low-contrast or clashing colours.
+    public const MARKETING_BADGE_COLORS = [
+        'amber' => ['bg' => 'bg-amber-50', 'border' => 'border-amber-200', 'text' => 'text-amber-600'],
+        'teal' => ['bg' => 'bg-[#0A5C66]/8', 'border' => 'border-[#0A5C66]/25', 'text' => 'text-[#0A5C66]'],
+        'green' => ['bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'text' => 'text-emerald-600'],
+        'rose' => ['bg' => 'bg-rose-50', 'border' => 'border-rose-200', 'text' => 'text-rose-600'],
+        'violet' => ['bg' => 'bg-violet-50', 'border' => 'border-violet-200', 'text' => 'text-violet-600'],
+        'slate' => ['bg' => 'bg-slate-100', 'border' => 'border-slate-300', 'text' => 'text-slate-600'],
     ];
 
     protected $casts = [
@@ -77,6 +91,13 @@ class Plan extends Model
     public function defaultDuration(): ?PlanDuration
     {
         return $this->durations->firstWhere('is_default', true) ?? $this->durations->first();
+    }
+
+    // Falls back to the 'amber' preset for plans saved before this column
+    // existed (or left blank) so the ribbon still renders with a sane style.
+    public function marketingBadgeColorClasses(): array
+    {
+        return self::MARKETING_BADGE_COLORS[$this->marketing_badge_color] ?? self::MARKETING_BADGE_COLORS['amber'];
     }
 
     // null = unlimited slots (no cap configured). Never negative - a plan

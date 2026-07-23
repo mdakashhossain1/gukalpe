@@ -245,9 +245,24 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                     <div>
                         <label for="marketing_badge" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Marketing badge</label>
-                        <input type="text" name="marketing_badge" id="marketing_badge" maxlength="40" placeholder="🔥 Most Popular" value="{{ old('marketing_badge', $plan->marketing_badge) }}"
+                        <input type="text" name="marketing_badge" id="marketing_badge" maxlength="40" placeholder="Most Popular" value="{{ old('marketing_badge', $plan->marketing_badge) }}"
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        <p class="text-[11px] text-[#94A3B8] mt-1">Plain text now - pick the star/fire/etc. icon separately below instead of typing an emoji.</p>
                         @error('marketing_badge')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label for="marketing-badge-icon-input" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Badge icon (optional)</label>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 rounded-lg bg-[#0A5C66]/5 border border-[#E5E9EB] flex items-center justify-center shrink-0">
+                                <i id="marketing-badge-icon-preview" class="bi {{ old('marketing_badge_icon', $plan->marketing_badge_icon) ?: 'bi-star-fill' }} text-[16px] text-[#0A5C66]"></i>
+                            </div>
+                            <input type="text" name="marketing_badge_icon" id="marketing-badge-icon-input" maxlength="50" placeholder="e.g. bi-star-fill" value="{{ old('marketing_badge_icon', $plan->marketing_badge_icon) }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                            <button type="button" data-icon-picker-target="marketing-badge-icon-input" data-icon-picker-preview="marketing-badge-icon-preview" class="icon-picker-open shrink-0 h-10 px-3 rounded-lg border border-[#CBD5E1] text-[12.5px] font-semibold text-[#334155] hover:border-brand hover:text-brand transition-colors whitespace-nowrap">
+                                <i class="bi bi-grid-3x3-gap"></i> Browse
+                            </button>
+                        </div>
+                        @error('marketing_badge_icon')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label for="risk_level" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Risk level</label>
@@ -265,6 +280,29 @@
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                         @error('max_slots')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
+                </div>
+
+                @php
+                    $currentBadgeColor = old('marketing_badge_color', $plan->marketing_badge_color) ?: 'amber';
+                    $badgeColorDots = [
+                        'amber' => '#F59E0B', 'teal' => '#0A5C66', 'green' => '#10B981',
+                        'rose' => '#F43F5E', 'violet' => '#8B5CF6', 'slate' => '#64748B',
+                    ];
+                @endphp
+                <div class="mt-3.5">
+                    <label class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Badge colour</label>
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        @foreach (\App\Models\Plan::MARKETING_BADGE_COLORS as $colorKey => $colorClasses)
+                            <label class="group cursor-pointer" title="{{ ucfirst($colorKey) }}">
+                                <input type="radio" name="marketing_badge_color" value="{{ $colorKey }}" class="hidden" {{ $currentBadgeColor === $colorKey ? 'checked' : '' }}>
+                                <span class="flex w-8 h-8 rounded-full border-2 border-transparent items-center justify-center transition-all group-has-[:checked]:border-[#0F172A] group-has-[:checked]:scale-110" style="background-color: {{ $badgeColorDots[$colorKey] }}">
+                                    <i class="bi bi-check-lg text-white text-[13px] hidden group-has-[:checked]:block"></i>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <p class="text-[11px] text-[#94A3B8] mt-1.5">Controls the badge's background/text colour on Explore and Plan Details.</p>
+                    @error('marketing_badge_color')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3.5">
