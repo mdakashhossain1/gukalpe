@@ -225,8 +225,8 @@
                                 <p class="text-[28px] sm:text-[34px] font-black text-[#0D1F3C] font-poppins leading-none tracking-tight">{!! $priceLabel !!}</p>
                                 <p class="text-[11.5px] text-slate-400 font-semibold mt-1 tracking-tight">{{ $priceCaption }}</p>
                             </div>
-                            <a href="{{ route('plan-details', $plan) }}" class="inline-flex items-center gap-2.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[14px] sm:text-[15px] px-7 py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-[#0A5C66]/15 font-poppins btn-ripple shrink-0">
-                                Buy Now <i class="bi bi-arrow-right text-[15px]"></i>
+                            <a href="{{ route('plan-details', $plan) }}" class="btn-shimmer inline-flex items-center gap-2.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[14px] sm:text-[15px] px-7 py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-[#0A5C66]/15 font-poppins btn-ripple shrink-0">
+                                <span class="relative z-10 flex items-center gap-2.5">Buy Now <i class="bi bi-arrow-right text-[15px]"></i></span>
                             </a>
                         </div>
                     </div>
@@ -237,8 +237,8 @@
                             <p class="text-[20px] font-black text-[#0D1F3C] font-poppins leading-none tracking-tight">{!! $priceLabel !!}</p>
                             <p class="text-[10px] text-slate-400 font-semibold mt-0.5 tracking-tight">{{ $priceCaption }}</p>
                         </div>
-                        <a href="{{ route('plan-details', $plan) }}" class="inline-flex items-center gap-1.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[12.5px] px-5 py-2 rounded-xl active:scale-95 transition-all shadow-sm font-poppins btn-ripple shrink-0">
-                            Buy Now <i class="bi bi-arrow-right text-[13px]"></i>
+                        <a href="{{ route('plan-details', $plan) }}" class="btn-shimmer inline-flex items-center gap-1.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[12.5px] px-5 py-2 rounded-xl active:scale-95 transition-all shadow-sm font-poppins btn-ripple shrink-0">
+                            <span class="relative z-10 flex items-center gap-1.5">Buy Now <i class="bi bi-arrow-right text-[13px]"></i></span>
                         </a>
                     </div>
                 </div>
