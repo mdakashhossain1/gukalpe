@@ -452,29 +452,29 @@
                         style="background: linear-gradient(to left, rgba(83,182,199,0) 0%, rgba(83,182,199,.25) 20%, rgba(83,182,199,.7) 50%, #53b6c7 100%);"></span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mb-2.5">
-                            <img src="{{ asset('assets/ui/icon1.png') }}" alt="" class="w-6 h-6">
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 text-left">
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-amber-50 flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <img src="{{ asset('assets/ui/icon1.png') }}" alt="" class="w-4.5 h-4.5 sm:w-6 sm:h-6">
                         </div>
-                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Start from ₹199</h4>
-                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Minimum investment starts at ₹199.</p>
+                        <h4 class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">Start from ₹199</h4>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Minimum investment starts at ₹199.</p>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center mb-2.5">
-                            <img src="{{ asset('assets/ui/icon2.png') }}" alt="" class="w-6 h-6">
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-teal-50 flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <img src="{{ asset('assets/ui/icon2.png') }}" alt="" class="w-4.5 h-4.5 sm:w-6 sm:h-6">
                         </div>
-                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Withdraw Anytime</h4>
-                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Flexible withdrawals as per plan terms.</p>
+                        <h4 class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">Withdraw Anytime</h4>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Flexible withdrawals as per plan terms.</p>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-2.5">
-                            <img src="{{ asset('assets/ui/icon3.png') }}" alt="" class="w-6 h-6">
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <img src="{{ asset('assets/ui/icon3.png') }}" alt="" class="w-4.5 h-4.5 sm:w-6 sm:h-6">
                         </div>
-                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Safe &amp; Secure</h4>
-                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Bank-grade encrypted investment.</p>
+                        <h4 class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">Safe &amp; Secure</h4>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Bank-grade encrypted investment.</p>
                     </div>
                 </div>
             </div>
