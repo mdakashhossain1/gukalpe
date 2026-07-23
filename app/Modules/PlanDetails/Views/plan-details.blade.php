@@ -81,29 +81,29 @@
             <!-- 2. 4 METRIC PODS GRID -->
             <div class="grid grid-cols-4 gap-2 sm:gap-3">
                 <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                    <div class="w-8 h-8 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-1.5">
-                        <i class="bi bi-graph-up text-[15px]"></i>
+                    <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center mb-1.5">
+                        <img src="{{ asset('assets/ui/metric-daily-profit.png') }}" alt="" class="w-5 h-5">
                     </div>
                     <span class="text-[9px] font-bold text-slate-400 uppercase font-poppins">Daily Profit</span>
                     <span class="text-[13px] font-black text-[#19B36B] font-poppins mt-0.5">{{ $p['dailyProfit'] }}</span>
                 </div>
                 <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                    <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-1.5">
-                        <i class="bi bi-[#currency-rupee] bi-cash-stack text-[15px]"></i>
+                    <div class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center mb-1.5">
+                        <img src="{{ asset('assets/ui/metric-total-profit.png') }}" alt="" class="w-5 h-5">
                     </div>
                     <span class="text-[9px] font-bold text-slate-400 uppercase font-poppins">Total Profit</span>
                     <span class="text-[13px] font-black text-[#19B36B] font-poppins mt-0.5">{{ $p['totalReturn'] }}</span>
                 </div>
                 <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                    <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-1.5">
-                        <i class="bi bi-clock-history text-[15px]"></i>
+                    <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center mb-1.5">
+                        <img src="{{ asset('assets/ui/metric-duration.png') }}" alt="" class="w-5 h-5">
                     </div>
                     <span class="text-[9px] font-bold text-slate-400 uppercase font-poppins">Duration</span>
                     <span class="text-[13px] font-black text-[#19B36B] font-poppins mt-0.5">{{ $p['lockDuration'] }}</span>
                 </div>
                 <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                    <div class="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-1.5">
-                        <i class="bi bi-gift text-[15px]"></i>
+                    <div class="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center mb-1.5">
+                        <img src="{{ asset('assets/ui/metric-maturity.png') }}" alt="" class="w-5 h-5">
                     </div>
                     <span class="text-[9px] font-bold text-slate-400 uppercase font-poppins">Maturity</span>
                     <span class="text-[13px] font-black text-[#19B36B] font-poppins mt-0.5">{{ $p['totalReturn'] }}</span>
