@@ -438,10 +438,14 @@
 
             <!-- 9. SECTION: "Real Investment. Real Benefits." -->
             <div class="pt-2 text-center">
-                <div class="inline-flex items-center justify-center gap-3 mb-4">
-                    <span class="w-8 h-[1px] bg-slate-200"></span>
-                    <h3 class="text-[15px] font-extrabold text-[#0D1F3C] font-poppins">Real Investment. Real Benefits.</h3>
-                    <span class="w-8 h-[1px] bg-slate-200"></span>
+                <div class="flex items-center justify-center gap-2.5 sm:gap-4 mb-4">
+                    <span class="flex-1 max-w-[60px] sm:max-w-[160px] h-[2px] rounded-full"
+                        style="background: linear-gradient(to right, rgba(83,182,199,0) 0%, rgba(83,182,199,.25) 20%, rgba(83,182,199,.7) 50%, #53b6c7 100%);"></span>
+                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#008ca5] shrink-0"></span>
+                    <h3 class="text-[17px] sm:text-[26px] font-bold text-[#17344d] font-poppins whitespace-nowrap shrink-0">Real Investment. Real Benefits.</h3>
+                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#008ca5] shrink-0"></span>
+                    <span class="flex-1 max-w-[60px] sm:max-w-[160px] h-[2px] rounded-full"
+                        style="background: linear-gradient(to left, rgba(83,182,199,0) 0%, rgba(83,182,199,.25) 20%, rgba(83,182,199,.7) 50%, #53b6c7 100%);"></span>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
@@ -473,13 +477,8 @@
 
             <!-- 10. SECTION: "Why Trust GullakPe" (WITH LAUREL WREATH) -->
             <div class="pt-2 text-center">
-                <div class="flex flex-col items-center mb-4">
-                    <img src="{{ asset('assets/ui/trust-shield.png') }}" alt="" class="w-11 sm:w-12 h-auto mb-0.5">
-                    <div class="inline-flex items-center justify-center gap-1">
-                        <img src="{{ asset('assets/ui/laurel-left.png') }}" alt="" class="w-11 sm:w-12 h-auto shrink-0">
-                        <h3 class="text-[18px] sm:text-[20px] font-black text-[#0A5C66] font-poppins whitespace-nowrap">Why Trust GullakPe</h3>
-                        <img src="{{ asset('assets/ui/laurel-right.png') }}" alt="" class="w-11 sm:w-12 h-auto shrink-0">
-                    </div>
+                <div class="flex justify-center mb-4">
+                    <img src="{{ asset('assets/ui/Capture.png') }}" alt="Why Trust GullakPe" class="h-auto w-[260px] sm:w-[300px]">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
