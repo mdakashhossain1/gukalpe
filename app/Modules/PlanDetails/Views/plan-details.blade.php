@@ -24,10 +24,14 @@
             <!-- 1. HERO PLAN CARD & HEADER BANNER -->
             <div class="relative bg-gradient-to-br from-[#EAF4FB] via-[#E3EFFA] to-[#D6E8F7] rounded-[24px] overflow-hidden border border-slate-100 shadow-sm">
                 <div class="relative w-full">
-                    <!-- Building image faded into the light background on the left -->
-                    <img src="{{ $p['image'] }}" class="absolute inset-y-0 right-0 h-full w-[62%] sm:w-[58%] object-cover"
-                        style="mask-image: linear-gradient(to right, transparent, black 40%); -webkit-mask-image: linear-gradient(to right, transparent, black 40%);"
+                    <!-- Plan image faded into the light background on the left, and lightened
+                         overall - some plan images (e.g. dark trading-chart photos) are deep/dark
+                         enough to dominate the whole banner at full opacity otherwise. -->
+                    <img src="{{ $p['image'] }}" class="absolute inset-y-0 right-0 h-full w-[62%] sm:w-[58%] object-cover opacity-50"
+                        style="mask-image: linear-gradient(to right, transparent, black 45%); -webkit-mask-image: linear-gradient(to right, transparent, black 45%);"
                         alt="{{ $p['title'] }}">
+                    <div class="absolute inset-y-0 right-0 w-[62%] sm:w-[58%] bg-white/35"
+                        style="mask-image: linear-gradient(to right, transparent, black 45%); -webkit-mask-image: linear-gradient(to right, transparent, black 45%);"></div>
 
                     {{-- In normal flow (not absolute) so its height - which varies with
                          title length/font size across screens - sets the banner's own
