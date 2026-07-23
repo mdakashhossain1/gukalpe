@@ -191,7 +191,7 @@
                                         <div class="relative inline-flex items-center bg-white border border-slate-200/90 rounded-lg px-3 py-1 text-[13px] font-bold text-[#0D1F3C] shadow-2xs mt-0.5">
                                             <select class="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer font-poppins text-[13px] font-bold text-[#0D1F3C]">
                                                 @foreach($plan->durations as $dur)
-                                                    <option value="{{ $dur->id }}" {{ $dur->is_default ? 'selected' : '' }}>{{ $dur->name ?? $dur->duration_text }}</option>
+                                                    <option value="{{ $dur->id }}" {{ $dur->is_default ? 'selected' : '' }} class="text-slate-800 bg-white font-bold">{{ $dur->label ?? ($dur->duration_days ? $dur->duration_days . ' Days' : $cp['lockDuration']) }}</option>
                                                 @endforeach
                                             </select>
                                             <i class="bi bi-chevron-down text-[10px] text-slate-400 absolute right-2.5 pointer-events-none"></i>
