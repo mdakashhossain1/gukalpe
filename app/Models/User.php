@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -80,6 +81,14 @@ class User extends Authenticatable
     public function referrals(): HasMany
     {
         return $this->hasMany(self::class, 'referred_by');
+    }
+
+    // Heart icon on Plan Details / Favorite Plans on Profile - the pivot
+    // table doubles as the "is this plan favorited" check via ->exists()
+    // and the toggle-on-tap behavior via the built-in ->toggle() method.
+    public function favoritePlans(): BelongsToMany
+    {
+        return $this->belongsToMany(Plan::class, 'plan_favorites')->withTimestamps();
     }
 
     /**

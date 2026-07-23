@@ -10,8 +10,11 @@ class ProfileController extends Controller
 {
     public function index(): View
     {
+        $user = Auth::user();
+        $user?->load('favoritePlans');
+
         return view('Profile::profile', [
-            'user' => Auth::user(),
+            'user' => $user,
         ]);
     }
 }

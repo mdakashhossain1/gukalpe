@@ -7,6 +7,7 @@ use App\Models\Plan;
 use App\Models\PlanCategory;
 use App\Models\UserPlan;
 use App\Models\WalletBalance;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -44,6 +45,21 @@ class PlanDetailsController extends Controller
             'hasUnlocked' => $hasUnlocked,
             'existingHolding' => $existingHolding,
             'activePot' => $activePot,
+            'isFavorited' => $user ? $user->favoritePlans()->where('plan_id', $plan->id)->exists() : false,
         ]);
+    }
+
+    // Plain redirect+flash, no JSON - matches PlanPurchaseController's
+    // pattern since this is a plain <form method="POST"> heart button too,
+    // not a JS/fetch-driven toggle.
+    public function toggleFavorite(Plan $plan): RedirectResponse
+    {
+        if (! Auth::check()) {
+            return redirect()->route('login')->withErrors(['plan' => 'Please log in to save a plan.']);
+        }
+
+        Auth::user()->favoritePlans()->toggle($plan->id);
+
+        return back();
     }
 }

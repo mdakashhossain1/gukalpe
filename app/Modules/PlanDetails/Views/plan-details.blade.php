@@ -13,9 +13,18 @@
                 <button type="button" onclick="sharePlan(this, '{{ $p['title'] }}')" class="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center text-slate-600 hover:bg-slate-200 active:scale-95 transition-all">
                     <i class="bi bi-share text-[15px]"></i>
                 </button>
-                <button type="button" class="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center text-rose-500 hover:bg-slate-200 active:scale-95 transition-all">
-                    <i class="bi bi-heart-fill text-[15px]"></i>
-                </button>
+                @auth
+                    <form method="POST" action="{{ route('plan-details.favorite', $plan) }}" class="contents">
+                        @csrf
+                        <button type="submit" class="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center {{ $isFavorited ? 'text-rose-500' : 'text-slate-600' }} hover:bg-slate-200 active:scale-95 transition-all">
+                            <i class="bi {{ $isFavorited ? 'bi-heart-fill' : 'bi-heart' }} text-[15px]"></i>
+                        </button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center text-slate-600 hover:bg-slate-200 active:scale-95 transition-all">
+                        <i class="bi bi-heart text-[15px]"></i>
+                    </a>
+                @endauth
             </div>
         </div>
 
@@ -698,11 +707,11 @@
          instead of sticking to the viewport. --}}
 
     <!-- 13. FIXED BOTTOM STICKY INVESTMENT BAR -->
-        <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-3.5 pt-3 sm:px-4 sm:pt-4" style="padding-bottom: max(0.875rem, env(safe-area-inset-bottom));">
+        <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-3.5 pt-3.5 sm:px-4 sm:pt-5" style="padding-bottom: max(1.125rem, env(safe-area-inset-bottom));">
             <div class="max-w-3xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
                 <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
-                    <div class="flex w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-50 text-[#19B36B] items-center justify-center shrink-0 shadow-inner">
-                        <i class="bi bi-piggy-bank text-[15px] sm:text-[18px]"></i>
+                    <div class="flex w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-50 items-center justify-center shrink-0 shadow-inner">
+                        <img src="{{ asset('assets/ui/you-invest-icon.png') }}" alt="" class="w-6 h-6 sm:w-7 sm:h-7">
                     </div>
                     <div class="min-w-0 shrink">
                         <p class="text-[8.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Invest</p>

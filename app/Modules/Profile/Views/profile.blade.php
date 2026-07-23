@@ -48,6 +48,27 @@
                     </a>
                 </div>
 
+                <!-- Favorite Plans -->
+                @if ($user->favoritePlans->isNotEmpty())
+                    <span class="text-[11px] font-bold text-slate-400 tracking-wider uppercase px-1 font-poppins mb-2.5 block">Favorite Plans</span>
+                    <div class="flex flex-col gap-2.5 mb-7">
+                        @foreach ($user->favoritePlans as $favPlan)
+                            <a href="{{ route('plan-details', $favPlan) }}" class="w-full bg-white p-4 rounded-[16px] border border-slate-100 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex items-center justify-between gap-3 transition-all active:scale-[0.98] hover:border-[#0A5C66]/20">
+                                <div class="flex items-center gap-3.5 min-w-0">
+                                    <div class="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 shrink-0">
+                                        <i class="bi bi-heart-fill text-[16px]"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="block text-[13.5px] font-bold text-[#0F172A] font-poppins truncate">{{ $favPlan->title }}</span>
+                                        <span class="block text-[11px] text-slate-400 font-semibold truncate">{{ $favPlan->growth_rate }}% Yearly Return</span>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-[12px] text-slate-300 shrink-0"></i>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+
                 <!-- Manage -->
                 <span class="text-[11px] font-bold text-slate-400 tracking-wider uppercase px-1 font-poppins mb-2.5 block">Manage</span>
                 <div class="flex flex-col gap-2.5 mb-7">
