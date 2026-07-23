@@ -515,9 +515,13 @@
 
             <!-- 11. SECURITY GRADIENT BANNER -->
             <div class="bg-gradient-to-r from-[#032128] via-[#0A5C66] to-[#042A33] rounded-[22px] p-4 text-white flex items-center justify-between gap-3 shadow-md relative overflow-hidden">
+                <!-- Decorative diagonal strokes, bottom-left corner -->
+                <div class="absolute -bottom-6 -left-6 w-36 h-28 pointer-events-none"
+                    style="background: repeating-linear-gradient(115deg, rgba(255,255,255,0.35) 0px, rgba(255,255,255,0.35) 1.5px, transparent 1.5px, transparent 9px); -webkit-mask-image: linear-gradient(115deg, black 10%, transparent 65%); mask-image: linear-gradient(115deg, black 10%, transparent 65%);"></div>
+
                 <div class="flex items-center gap-3 relative z-10">
                     <div class="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0">
-                        <i class="bi bi-shield-fill-check text-[22px] text-emerald-400"></i>
+                        <img src="{{ asset('assets/ui/money-protected-shield.png') }}" alt="" class="w-7 h-7">
                     </div>
                     <div>
                         <p class="text-[13px] font-extrabold font-poppins leading-tight">Your money is protected</p>
