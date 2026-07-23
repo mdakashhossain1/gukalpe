@@ -322,13 +322,17 @@
             <!-- 7. SECTION: "Higher Returns. Same Safety." -->
             <div class="pt-3 text-center">
                 <!-- Title Header -->
-                <div class="inline-flex items-center justify-center gap-2 mb-4">
-                    <span class="w-6 h-[1px] bg-amber-300"></span>
-                    <h2 class="text-[20px] sm:text-[24px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">
+                <div class="flex items-center justify-center gap-2.5 sm:gap-4 mb-4">
+                    <span class="flex-1 max-w-[60px] sm:max-w-[160px] h-[2px] rounded-full"
+                        style="background: linear-gradient(to right, rgba(245,158,11,0) 0%, rgba(245,158,11,.25) 20%, rgba(245,158,11,.7) 50%, #f59e0b 100%);"></span>
+                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <h2 class="text-[18px] sm:text-[24px] font-extrabold text-[#0D1F3C] font-poppins leading-tight shrink-0">
                         Higher Returns.<br>
                         <span class="text-amber-500">Same Safety.</span>
                     </h2>
-                    <span class="w-6 h-[1px] bg-amber-300"></span>
+                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <span class="flex-1 max-w-[60px] sm:max-w-[160px] h-[2px] rounded-full"
+                        style="background: linear-gradient(to left, rgba(245,158,11,0) 0%, rgba(245,158,11,.25) 20%, rgba(245,158,11,.7) 50%, #f59e0b 100%);"></span>
                 </div>
 
                 <!-- 3 Feature Cards -->
@@ -442,7 +446,7 @@
                     <span class="flex-1 max-w-[60px] sm:max-w-[160px] h-[2px] rounded-full"
                         style="background: linear-gradient(to right, rgba(83,182,199,0) 0%, rgba(83,182,199,.25) 20%, rgba(83,182,199,.7) 50%, #53b6c7 100%);"></span>
                     <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#008ca5] shrink-0"></span>
-                    <h3 class="text-[17px] sm:text-[26px] font-bold text-[#17344d] font-poppins whitespace-nowrap shrink-0">Real Investment. Real Benefits.</h3>
+                    <h3 class="text-[15px] sm:text-[22px] font-bold text-[#17344d] font-poppins whitespace-nowrap shrink-0">Real Investment. Real Benefits.</h3>
                     <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#008ca5] shrink-0"></span>
                     <span class="flex-1 max-w-[60px] sm:max-w-[160px] h-[2px] rounded-full"
                         style="background: linear-gradient(to left, rgba(83,182,199,0) 0%, rgba(83,182,199,.25) 20%, rgba(83,182,199,.7) 50%, #53b6c7 100%);"></span>
