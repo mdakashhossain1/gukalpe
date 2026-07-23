@@ -10,7 +10,7 @@
             </a>
             <h2 class="text-[16px] font-black text-[#0D1F3C] font-poppins tracking-tight truncate max-w-[200px]">{{ $p['title'] }}</h2>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="if(navigator.share){navigator.share({title:'{{ $p['title'] }}',url:window.location.href});}" class="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center text-slate-600 hover:bg-slate-200 active:scale-95 transition-all">
+                <button type="button" onclick="sharePlan(this, '{{ $p['title'] }}')" class="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center text-slate-600 hover:bg-slate-200 active:scale-95 transition-all">
                     <i class="bi bi-share text-[15px]"></i>
                 </button>
                 <button type="button" class="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center text-rose-500 hover:bg-slate-200 active:scale-95 transition-all">
@@ -252,44 +252,48 @@
                 </div>
             @endif
 
-            <!-- 5. WHY CHOOSE THIS PLAN? (5 HORIZONTAL CARDS) -->
+            <!-- 5. WHY CHOOSE THIS PLAN? (3 + 2 CARDS) -->
             <div>
                 <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins mb-3">Why choose this plan?</h4>
-                <div class="grid grid-cols-5 gap-1 sm:gap-2">
-                    <div class="bg-white p-1.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
-                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-50 flex items-center justify-center mb-1 sm:mb-1.5">
-                            <img src="{{ asset('assets/ui/why-choose-shield-check.png') }}" alt="" class="w-3.5 h-3.5 sm:w-5 sm:h-5">
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <img src="{{ asset('assets/ui/why-choose-shield-check.png') }}" alt="" class="w-5 h-5 sm:w-7 sm:h-7">
                         </div>
-                        <p class="text-[7px] sm:text-[10.5px] font-extrabold text-[#0D1F3C] leading-[1.1] font-poppins">Secure Investment</p>
-                        <p class="hidden sm:block text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">Bank grade security</p>
+                        <p class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">Secure Investment</p>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Bank grade security</p>
                     </div>
-                    <div class="bg-white p-1.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
-                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-50 flex items-center justify-center mb-1 sm:mb-1.5">
-                            <img src="{{ asset('assets/ui/why-choose-daily-profit.png') }}" alt="" class="w-3.5 h-3.5 sm:w-5 sm:h-5">
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-blue-50 flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <img src="{{ asset('assets/ui/why-choose-daily-profit.png') }}" alt="" class="w-5 h-5 sm:w-7 sm:h-7">
                         </div>
-                        <p class="text-[7px] sm:text-[10.5px] font-extrabold text-[#0D1F3C] leading-[1.1] font-poppins">Daily Profit</p>
-                        <p class="hidden sm:block text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">Earn profit every day</p>
+                        <p class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">Daily Profit</p>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Earn profit every day</p>
                     </div>
-                    <div class="bg-white p-1.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
-                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-50 flex items-center justify-center mb-1 sm:mb-1.5">
-                            <img src="{{ asset('assets/ui/why-choose-lightning.png') }}" alt="" class="w-3.5 h-3.5 sm:w-5 sm:h-5">
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-amber-50 flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <img src="{{ asset('assets/ui/why-choose-lightning.png') }}" alt="" class="w-5 h-5 sm:w-7 sm:h-7">
                         </div>
-                        <p class="text-[7px] sm:text-[10.5px] font-extrabold text-[#0D1F3C] leading-[1.1] font-poppins">Instant Activation</p>
-                        <p class="hidden sm:block text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">Start earning instantly</p>
+                        <p class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">Instant Activation</p>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Start earning instantly</p>
                     </div>
-                    <div class="bg-white p-1.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
-                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-purple-50 flex items-center justify-center mb-1 sm:mb-1.5">
-                            <img src="{{ asset('assets/ui/why-choose-encryption.png') }}" alt="" class="w-3.5 h-3.5 sm:w-5 sm:h-5">
+                </div>
+
+                <!-- Second row: remaining 2 cards -->
+                <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-purple-50 flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <img src="{{ asset('assets/ui/why-choose-encryption.png') }}" alt="" class="w-5 h-5 sm:w-7 sm:h-7">
                         </div>
-                        <p class="text-[7px] sm:text-[10.5px] font-extrabold text-[#0D1F3C] leading-[1.1] font-poppins">End-to-End Encryption</p>
-                        <p class="hidden sm:block text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">256-bit protection</p>
+                        <p class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">End-to-End Encryption</p>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">256-bit protection</p>
                     </div>
-                    <div class="bg-white p-1.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
-                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-teal-50 flex items-center justify-center mb-1 sm:mb-1.5">
-                            <img src="{{ asset('assets/ui/why-choose-support.png') }}" alt="" class="w-3.5 h-3.5 sm:w-5 sm:h-5">
+                    <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-teal-50 flex items-center justify-center mb-1.5 sm:mb-2.5">
+                            <img src="{{ asset('assets/ui/why-choose-support.png') }}" alt="" class="w-5 h-5 sm:w-7 sm:h-7">
                         </div>
-                        <p class="text-[7px] sm:text-[10.5px] font-extrabold text-[#0D1F3C] leading-[1.1] font-poppins">24x7 Support</p>
-                        <p class="hidden sm:block text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">We are always here</p>
+                        <p class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">24x7 Support</p>
+                        <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">We are always here</p>
                     </div>
                 </div>
             </div>
@@ -633,6 +637,33 @@
                 @endauth
             </div>
         </div>
+
+    <!-- SHARE BUTTON: navigator.share needs a secure context (HTTPS, or
+         localhost) and isn't implemented in every desktop browser - it was
+         silently doing nothing wherever it's unavailable. Fall back to
+         copying the link so the click always does something visible. -->
+    <script>
+    function sharePlan(button, title) {
+        var shareData = { title: title, url: window.location.href };
+        if (navigator.share) {
+            navigator.share(shareData).catch(function () {});
+            return;
+        }
+        var icon = button.querySelector('i');
+        var restore = icon.className;
+        function flash(className) {
+            icon.className = className;
+            setTimeout(function () { icon.className = restore; }, 1500);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareData.url)
+                .then(function () { flash('bi bi-check-lg text-[15px] text-emerald-600'); })
+                .catch(function () { flash('bi bi-exclamation-lg text-[15px] text-rose-500'); });
+        } else {
+            flash('bi bi-exclamation-lg text-[15px] text-rose-500');
+        }
+    }
+    </script>
 
     <!-- DYNAMIC SLIDER RECALCULATION SCRIPT -->
     <script>
