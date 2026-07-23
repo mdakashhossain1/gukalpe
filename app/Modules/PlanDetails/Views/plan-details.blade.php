@@ -58,9 +58,9 @@
                         </div>
                     </div>
 
-                    <!-- Effective Return tab: inset white panel with a chamfered top-right corner, sitting directly on the banner -->
-                    <div class="absolute bottom-0 left-0 w-[64%] sm:w-[54%] bg-white p-4 sm:p-5 z-10"
-                        style="clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 0 100%);">
+                    <!-- Effective Return tab: pre-cut corner-shape asset (rounded top-left, diagonal cut bottom-right) stretched to the panel box -->
+                    <div class="absolute bottom-0 left-0 w-[64%] sm:w-[54%] p-4 sm:p-5 z-10"
+                        style="background-image: url('{{ asset('assets/ui/plan-return-tab-shape.png') }}'); background-size: 100% 100%; background-repeat: no-repeat;">
                         <div class="flex items-baseline gap-1.5">
                             <span class="text-[22px] font-black text-[#0D1F3C] font-poppins leading-none">{{ $p['growthRate'] ?? '11.35' }}%</span>
                             <span class="text-[11px] font-bold text-slate-400 font-poppins">YTM</span>
@@ -577,37 +577,37 @@
          instead of sticking to the viewport. --}}
 
     <!-- 13. FIXED BOTTOM STICKY INVESTMENT BAR -->
-        <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-3 pt-2.5 sm:px-4 sm:pt-4" style="padding-bottom: max(0.625rem, env(safe-area-inset-bottom));">
-            <div class="max-w-3xl mx-auto flex items-center justify-between gap-1.5 sm:gap-3">
-                <div class="flex items-center gap-1 sm:gap-2.5 min-w-0 flex-1">
-                    <div class="flex w-6 h-6 sm:w-9 sm:h-9 rounded-full bg-emerald-50 text-[#19B36B] items-center justify-center shrink-0 shadow-inner">
-                        <i class="bi bi-piggy-bank text-[11px] sm:text-[18px]"></i>
+        <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-3.5 pt-3 sm:px-4 sm:pt-4" style="padding-bottom: max(0.875rem, env(safe-area-inset-bottom));">
+            <div class="max-w-3xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
+                <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
+                    <div class="flex w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-50 text-[#19B36B] items-center justify-center shrink-0 shadow-inner">
+                        <i class="bi bi-piggy-bank text-[15px] sm:text-[18px]"></i>
                     </div>
                     <div class="min-w-0 shrink">
-                        <p class="text-[7.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Invest</p>
-                        <p class="text-[11px] sm:text-[17px] font-black text-[#0D1F3C] font-poppins leading-none truncate">
-                            <span id="sticky-amount-display">₹{{ number_format($flexMin, 0) }}</span> <span class="text-[7.5px] sm:text-[10px] font-bold text-slate-400">/mo</span>
+                        <p class="text-[8.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Invest</p>
+                        <p class="text-[13px] sm:text-[17px] font-black text-[#0D1F3C] font-poppins leading-none truncate">
+                            <span id="sticky-amount-display">₹{{ number_format($flexMin, 0) }}</span> <span class="text-[8.5px] sm:text-[10px] font-bold text-slate-400">/mo</span>
                         </p>
                     </div>
-                    <div class="h-6 w-[1px] bg-slate-200 mx-0.5 sm:mx-1 shrink-0"></div>
+                    <div class="h-7 w-[1px] bg-slate-200 mx-1 shrink-0"></div>
                     <div class="min-w-0 shrink">
-                        <p class="text-[7.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Earn (1Y)</p>
-                        <p class="text-[11px] sm:text-[15px] font-black text-[#19B36B] font-poppins leading-none truncate">
-                            <span id="sticky-return-display">₹{{ number_format($flexMin * 1.25, 0) }}</span> <span class="text-[7.5px] sm:text-[10px] text-[#19B36B] font-bold">(26.7%)</span>
+                        <p class="text-[8.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Earn (1Y)</p>
+                        <p class="text-[13px] sm:text-[15px] font-black text-[#19B36B] font-poppins leading-none truncate">
+                            <span id="sticky-return-display">₹{{ number_format($flexMin * 1.25, 0) }}</span> <span class="text-[8.5px] sm:text-[10px] text-[#19B36B] font-bold">(26.7%)</span>
                         </p>
                     </div>
                 </div>
 
                 @auth
-                    <button type="submit" form="plan-purchase-form" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[10px] sm:text-[15px] px-2.5 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap">
-                        <span class="relative z-10 flex items-center gap-1 sm:gap-2">
-                            Invest <span id="sticky-btn-amount">₹{{ number_format($flexMin, 0) }}</span> <span class="hidden sm:inline">Monthly</span> <i class="bi bi-arrow-right text-[10px] sm:text-[15px]"></i>
+                    <button type="submit" form="plan-purchase-form" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[12px] sm:text-[15px] px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+                        <span class="relative z-10 flex items-center gap-1.5 sm:gap-2">
+                            Invest <span id="sticky-btn-amount">₹{{ number_format($flexMin, 0) }}</span> <span class="hidden sm:inline">Monthly</span> <i class="bi bi-arrow-right text-[12px] sm:text-[15px]"></i>
                         </span>
                     </button>
                 @else
-                    <a href="{{ route('login') }}" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[10px] sm:text-[15px] px-2.5 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap">
-                        <span class="relative z-10 flex items-center gap-1 sm:gap-2">
-                            Log In to Invest <i class="bi bi-arrow-right text-[10px] sm:text-[15px]"></i>
+                    <a href="{{ route('login') }}" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[12px] sm:text-[15px] px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+                        <span class="relative z-10 flex items-center gap-1.5 sm:gap-2">
+                            Log In to Invest <i class="bi bi-arrow-right text-[12px] sm:text-[15px]"></i>
                         </span>
                     </a>
                 @endauth
