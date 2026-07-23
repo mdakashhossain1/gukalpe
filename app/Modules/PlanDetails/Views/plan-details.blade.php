@@ -131,18 +131,18 @@
             @if ($plan->durations->count() > 0)
                 <div class="bg-white p-3.5 sm:p-4 rounded-[22px] border border-slate-100 shadow-2xs">
                     <label class="text-[11.5px] sm:text-[12px] font-extrabold text-[#0D1F3C] font-poppins block mb-3">Select Duration</label>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+                    <div class="grid grid-cols-3 gap-2 sm:gap-2.5">
                         @foreach ($plan->durations as $dur)
                             <button type="button"
                                 onclick="selectDuration('pd-dur-{{ $dur->id }}', this)"
-                                class="dur-pill-btn relative p-2.5 sm:p-3 rounded-xl border border-slate-200 text-left transition-all {{ $dur->is_default ? 'bg-[#0A5C66] text-white shadow-md' : 'bg-slate-50/50 text-slate-700 hover:bg-slate-100' }}">
+                                class="dur-pill-btn relative p-2 sm:p-3 rounded-xl border border-slate-200 text-left transition-all {{ $dur->is_default ? 'bg-[#0A5C66] text-white shadow-md' : 'bg-slate-50/50 text-slate-700 hover:bg-slate-100' }}">
                                 @if($dur->is_default)
-                                    <span class="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-900 text-[7.5px] sm:text-[8px] font-black uppercase px-2 py-0.5 rounded-full shadow-2xs whitespace-nowrap">
+                                    <span class="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-900 text-[6.5px] sm:text-[8px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full shadow-2xs whitespace-nowrap">
                                         ⭐ MOST POPULAR
                                     </span>
                                 @endif
-                                <p class="text-[12px] sm:text-[13px] font-extrabold font-poppins leading-tight truncate">{{ $dur->label }}</p>
-                                <p class="text-[9.5px] sm:text-[10px] opacity-80 font-bold mt-0.5 truncate">{{ $dur->growth_rate }}% Return</p>
+                                <p class="text-[11px] sm:text-[13px] font-extrabold font-poppins leading-tight truncate">{{ $dur->label }}</p>
+                                <p class="text-[8.5px] sm:text-[10px] opacity-80 font-bold mt-0.5 truncate">{{ $dur->growth_rate }}% Return</p>
                             </button>
                         @endforeach
                     </div>
