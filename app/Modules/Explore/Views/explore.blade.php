@@ -107,21 +107,31 @@
                     $priceCaption = $isFlexible ? 'Flexible Amount' : 'One-Time Investment';
                 @endphp
                 <!-- Plan Card: {{ $cp['title'] }} -->
-                <div class="relative bg-white rounded-[22px] border border-slate-100 shadow-[0_2px_14px_rgba(10,92,102,0.05)] hover:shadow-[0_8px_28px_rgba(10,92,102,0.09)] transition-shadow duration-300 {{ $plan->marketing_badge ? 'pt-8' : 'pt-5' }} px-4 pb-4">
+                <div class="relative bg-white rounded-[22px] border border-slate-100 shadow-[0_2px_14px_rgba(10,92,102,0.05)] hover:shadow-[0_8px_28px_rgba(10,92,102,0.09)] transition-shadow duration-300 pt-5 px-4 pb-4">
 
-                    @if ($plan->marketing_badge)
-                        @php $badgeColor = $plan->marketingBadgeColorClasses(); @endphp
-                        <span class="absolute -top-3 left-4 z-10 inline-flex items-center gap-1 max-w-[calc(100%-6rem)] {{ $badgeColor['bg'] }} border {{ $badgeColor['border'] }} {{ $badgeColor['text'] }} text-[9.5px] font-black uppercase tracking-wide leading-none px-2.5 py-1.5 rounded-full shadow-sm whitespace-nowrap truncate">
-                            @if ($plan->marketing_badge_icon)
-                                <i class="bi {{ $plan->marketing_badge_icon }} text-[9px] shrink-0"></i>
-                            @endif
-                            {{ $plan->marketing_badge }}
-                        </span>
-                    @endif
+                    {{-- Both badges sit in normal document flow (not
+                         position:absolute) so they can never overlap the
+                         title/subtitle below - a prior absolute + negative-
+                         top "ribbon" version depended on the exact rendered
+                         height of admin-typed emoji, which varies enough
+                         across fonts/browsers to overlap unpredictably. --}}
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                        @if ($plan->marketing_badge)
+                            @php $badgeColor = $plan->marketingBadgeColorClasses(); @endphp
+                            <span class="inline-flex items-center gap-1 min-w-0 max-w-[65%] {{ $badgeColor['bg'] }} border {{ $badgeColor['border'] }} {{ $badgeColor['text'] }} text-[9.5px] font-black uppercase tracking-wide px-2.5 py-1.5 rounded-full shadow-sm truncate">
+                                @if ($plan->marketing_badge_icon)
+                                    <i class="bi {{ $plan->marketing_badge_icon }} text-[9px] shrink-0"></i>
+                                @endif
+                                <span class="truncate">{{ $plan->marketing_badge }}</span>
+                            </span>
+                        @else
+                            <span></span>
+                        @endif
 
-                    <span class="absolute top-4 right-4 bg-[#3CCF91]/12 text-[#19B36B] text-[9.5px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full">{{ $cp['badge'] }}</span>
+                        <span class="shrink-0 bg-[#3CCF91]/12 text-[#19B36B] text-[9.5px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full">{{ $cp['badge'] }}</span>
+                    </div>
 
-                    <div class="flex items-start gap-3 pr-16">
+                    <div class="flex items-start gap-3">
                         <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0A5C66] to-[#11727d] flex items-center justify-center shrink-0 text-white shadow-[0_4px_12px_rgba(10,92,102,0.2)]">
                             <i class="bi {{ $cp['icon'] }} text-[20px]"></i>
                         </div>
