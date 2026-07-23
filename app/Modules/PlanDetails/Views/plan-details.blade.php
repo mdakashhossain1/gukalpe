@@ -571,8 +571,16 @@
             @csrf
             <input type="hidden" name="amount" id="pd-flex-amount-input" value="{{ $flexMin }}">
         </form>
+    </div>
 
-        <!-- 13. FIXED BOTTOM STICKY INVESTMENT BAR -->
+    {{-- Sticky bar lives outside #tab-plan-details on purpose: that div carries
+         animate-fade-in-up, whose forwards-filled keyframe leaves a static
+         transform on it after the animation ends. A transform on an ancestor
+         becomes the containing block for position:fixed descendants, which
+         silently turned this bar into something that scrolled with the page
+         instead of sticking to the viewport. --}}
+
+    <!-- 13. FIXED BOTTOM STICKY INVESTMENT BAR -->
         <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-3 pt-2.5 sm:px-4 sm:pt-4" style="padding-bottom: max(0.625rem, env(safe-area-inset-bottom));">
             <div class="max-w-3xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
                 <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
@@ -609,7 +617,6 @@
                 @endauth
             </div>
         </div>
-    </div>
 
     <!-- DYNAMIC SLIDER RECALCULATION SCRIPT -->
     <script>
