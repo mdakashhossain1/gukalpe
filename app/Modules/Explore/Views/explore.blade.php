@@ -105,41 +105,61 @@
                         ? '₹'.number_format((float) $plan->min_investment_amount, 0).'&ndash;₹'.number_format((float) $plan->max_investment_amount, 0)
                         : '₹'.number_format((float) $plan->investment_amount, (float) $plan->investment_amount == (int) $plan->investment_amount ? 0 : 2);
                     $priceCaption = $isFlexible ? 'Flexible Amount' : 'One-Time Investment';
+                    
+                    $mBadge = strtoupper($plan->marketing_badge ?? '');
+                    if (str_contains($mBadge, 'POPULAR')) {
+                        $mBadgeClass = 'bg-[#FFF4E5] text-[#FF8A00]';
+                        $mBadgeIcon = 'bi-star-fill text-[#FF8A00]';
+                    } elseif (str_contains($mBadge, 'RETURN')) {
+                        $mBadgeClass = 'bg-[#E8F8F0] text-[#19B36B]';
+                        $mBadgeIcon = 'bi-graph-up-arrow text-[#19B36B]';
+                    } elseif (str_contains($mBadge, 'STEADY') || str_contains($mBadge, 'GROWTH')) {
+                        $mBadgeClass = 'bg-[#F3E8FF] text-[#9333EA]';
+                        $mBadgeIcon = 'bi-trophy text-[#9333EA]';
+                    } else {
+                        $mBadgeClass = 'bg-[#FFF4E5] text-[#FF8A00]';
+                        $mBadgeIcon = $plan->marketing_badge_icon ? 'bi '.$plan->marketing_badge_icon : 'bi-star-fill text-[#FF8A00]';
+                    }
+
+                    $cBadge = strtoupper($cp['badge'] ?? '');
+                    if ($cBadge === 'STARTER') {
+                        $tBadgeClass = 'bg-[#E8F8EE] text-[#22C55E]';
+                    } elseif ($cBadge === 'BEGINNER') {
+                        $tBadgeClass = 'bg-[#EFF6FF] text-[#3B82F6]';
+                    } elseif ($cBadge === 'PREMIUM') {
+                        $tBadgeClass = 'bg-[#FEF3C7] text-[#D97706]';
+                    } else {
+                        $tBadgeClass = 'bg-[#E8F8EE] text-[#22C55E]';
+                    }
                 @endphp
-                <!-- Plan Card: {{ $cp['title'] }} -->
-                <div class="relative bg-white rounded-[22px] border border-slate-100 shadow-[0_2px_14px_rgba(10,92,102,0.04)] hover:shadow-[0_8px_28px_rgba(10,92,102,0.08)] transition-all duration-300 p-4 sm:p-5">
+                <div class="relative bg-white rounded-[26px] border border-slate-100/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.07)] transition-all duration-300 p-5 sm:p-6">
 
                     <!-- TOP BADGES ROW -->
-                    <div class="flex items-center justify-between gap-2 mb-3.5">
+                    <div class="flex items-center justify-between gap-2 mb-4">
                         @if ($plan->marketing_badge)
-                            @php $badgeColor = $plan->marketingBadgeColorClasses(); @endphp
-                            <span class="inline-flex items-center gap-1.5 {{ $badgeColor['bg'] }} {{ $badgeColor['text'] }} text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wide px-3 py-1 rounded-full border border-slate-100/50 shadow-2xs truncate">
-                                @if ($plan->marketing_badge_icon)
-                                    <i class="bi {{ $plan->marketing_badge_icon }} text-[10px] shrink-0"></i>
-                                @else
-                                    <i class="bi bi-star-fill text-[9px] shrink-0"></i>
-                                @endif
-                                <span class="truncate">{{ $plan->marketing_badge }}</span>
+                            <span class="inline-flex items-center gap-1.5 {{ $mBadgeClass }} text-[11px] font-extrabold uppercase tracking-wide px-3.5 py-1 rounded-full shadow-2xs">
+                                <i class="bi {{ $mBadgeIcon }} text-[11px]"></i>
+                                <span>{{ $plan->marketing_badge }}</span>
                             </span>
                         @else
                             <span></span>
                         @endif
 
-                        <span class="inline-flex items-center text-[10px] sm:text-[10.5px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100/60 shrink-0">
+                        <span class="inline-flex items-center text-[10.5px] font-black uppercase tracking-wider px-3 py-1 rounded-full {{ $tBadgeClass }}">
                             {{ $cp['badge'] }}
                         </span>
                     </div>
 
                     <!-- MAIN CARD CONTENT (RESPONSIVE GRID) -->
-                    <div class="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-4 md:gap-6 items-center">
+                    <div class="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-5 md:gap-7 items-center">
 
                         <!-- LEFT: CIRCULAR ICON CONTAINER -->
                         <div class="flex items-center justify-center shrink-0">
-                            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#F4F9F8] border border-[#E2EFEF] flex items-center justify-center shadow-inner relative overflow-hidden group">
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#F2F7F8] border border-[#E4EFEF] flex items-center justify-center shadow-inner relative overflow-hidden group">
                                 @if(!empty($cp['image']) && (str_starts_with($cp['image'], 'http') || str_contains($cp['image'], '/assets/') || str_contains($cp['image'], 'unsplash')))
-                                    <img src="{{ $cp['image'] }}" alt="{{ $cp['title'] }}" class="w-14 h-14 sm:w-16 sm:h-16 object-contain transition-transform duration-300 group-hover:scale-105">
+                                    <img src="{{ $cp['image'] }}" alt="{{ $cp['title'] }}" class="w-16 h-16 sm:w-20 sm:h-20 object-contain transition-transform duration-300 group-hover:scale-105">
                                 @else
-                                    <i class="bi {{ $cp['icon'] ?? 'bi-piggy-bank' }} text-[32px] sm:text-[38px] text-[#0A5C66] transition-transform duration-300 group-hover:scale-110"></i>
+                                    <i class="bi {{ $cp['icon'] ?? 'bi-shield-check' }} text-[38px] sm:text-[44px] text-[#0A5C66] transition-transform duration-300 group-hover:scale-110"></i>
                                 @endif
                             </div>
                         </div>
@@ -148,59 +168,65 @@
                         <div class="min-w-0 flex flex-col justify-between">
                             <!-- TITLE & SUBTITLE -->
                             <div>
-                                <h3 class="text-[17px] sm:text-[19px] font-extrabold text-slate-900 font-poppins leading-tight tracking-tight">{{ $cp['title'] }}</h3>
-                                <p class="text-[12px] sm:text-[13px] text-slate-500 font-medium leading-normal mt-0.5">{{ $cp['subtitle'] }}</p>
+                                <h3 class="text-[19px] sm:text-[21px] font-extrabold text-[#0D1F3C] font-poppins leading-tight tracking-tight">{{ $cp['title'] }}</h3>
+                                <p class="text-[12.5px] sm:text-[13px] text-slate-500 font-medium leading-normal mt-0.5">{{ $cp['subtitle'] }}</p>
                             </div>
 
                             <!-- 3-COLUMN METRICS GRID WITH VERTICAL DIVIDERS -->
-                            <div class="grid grid-cols-3 gap-2 sm:gap-4 mt-3.5 py-1">
+                            <div class="flex items-center gap-3 sm:gap-6 mt-4 py-1 overflow-x-auto hide-scrollbar">
                                 <!-- Col 1: Interest Rate -->
-                                <div class="pr-2 sm:pr-4 border-r border-slate-200/80">
-                                    <p class="text-[8.5px] sm:text-[9.5px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-1">Interest Rate (Yearly)</p>
-                                    <p class="text-[18px] sm:text-[22px] font-extrabold text-[#19B36B] font-poppins leading-none">{{ $cp['growthRate'] }}%</p>
+                                <div class="pr-3 sm:pr-6 border-r border-slate-200/90 shrink-0">
+                                    <p class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-1">Interest Rate (Yearly)</p>
+                                    <p class="text-[20px] sm:text-[24px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['growthRate'] }}%</p>
                                 </div>
                                 <!-- Col 2: Total Return -->
-                                <div class="px-2 sm:px-4 border-r border-slate-200/80">
-                                    <p class="text-[8.5px] sm:text-[9.5px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-1">Total Return</p>
-                                    <p class="text-[18px] sm:text-[22px] font-extrabold text-[#19B36B] font-poppins leading-none">{{ $cp['totalReturn'] }}</p>
+                                <div class="px-3 sm:px-6 border-r border-slate-200/90 shrink-0">
+                                    <p class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-1">Total Return</p>
+                                    <p class="text-[20px] sm:text-[24px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['totalReturn'] }}</p>
                                 </div>
                                 <!-- Col 3: Duration -->
-                                <div class="pl-2 sm:pl-4">
-                                    <p class="text-[8.5px] sm:text-[9.5px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-1">Duration</p>
+                                <div class="pl-1 shrink-0">
+                                    <p class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-1">Duration</p>
                                     @if ($plan->durations && $plan->durations->count() > 1)
-                                        <div class="relative inline-block mt-0.5">
-                                            <select class="appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-[12px] sm:text-[13px] font-bold rounded-lg px-2.5 py-1 pr-6 focus:outline-none cursor-pointer font-poppins">
+                                        <div class="relative inline-flex items-center bg-white border border-slate-200/90 rounded-lg px-3 py-1 text-[13px] font-bold text-[#0D1F3C] shadow-2xs mt-0.5">
+                                            <select class="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer font-poppins text-[13px] font-bold text-[#0D1F3C]">
                                                 @foreach($plan->durations as $dur)
                                                     <option value="{{ $dur->id }}" {{ $dur->is_default ? 'selected' : '' }}>{{ $dur->name ?? $dur->duration_text }}</option>
                                                 @endforeach
                                             </select>
-                                            <i class="bi bi-chevron-down text-[10px] text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                                            <i class="bi bi-chevron-down text-[10px] text-slate-400 absolute right-2.5 pointer-events-none"></i>
                                         </div>
                                     @else
-                                        <p class="text-[16px] sm:text-[19px] font-extrabold text-[#19B36B] font-poppins leading-none">{{ $cp['lockDuration'] }}</p>
+                                        <p class="text-[18px] sm:text-[22px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['lockDuration'] }}</p>
                                     @endif
                                 </div>
                             </div>
 
-                            <!-- TRUST INDICATORS ROW -->
-                            <div class="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3">
-                                <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
-                                    <i class="bi bi-lock-fill text-[11px] text-[#0A5C66]"></i> End-to-End Encryption
-                                </span>
-                                <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
-                                    <i class="bi bi-shield-check text-[12px] text-[#19B36B]"></i> 100% Trusted &amp; Secure
-                                </span>
+                            <!-- TRUST INDICATORS ROW WITH DIVIDER -->
+                            <div class="flex items-center gap-4 sm:gap-6 mt-4 pt-1">
+                                <div class="flex items-center gap-2 pr-4 border-r border-slate-200/80">
+                                    <i class="bi bi-lock text-[20px] text-[#0A5C66] shrink-0"></i>
+                                    <div class="text-[10px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">
+                                        <span>End-to-End</span><br><span>Encryption</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="bi bi-shield-check text-[20px] text-[#0A5C66] shrink-0"></i>
+                                    <div class="text-[10px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">
+                                        <span>100% Trusted</span><br><span>&amp; Secure</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- RIGHT: PRICE & BUY NOW BUTTON -->
-                        <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
+                        <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-4 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
                             <div class="text-left md:text-right">
-                                <p class="text-[22px] sm:text-[28px] font-black text-slate-900 font-poppins leading-none tracking-tight">{!! $priceLabel !!}</p>
-                                <p class="text-[10.5px] sm:text-[11px] text-slate-400 font-bold mt-1 tracking-tight">{{ $priceCaption }}</p>
+                                <p class="text-[28px] sm:text-[34px] font-black text-[#0D1F3C] font-poppins leading-none tracking-tight">{!! $priceLabel !!}</p>
+                                <p class="text-[11.5px] text-slate-400 font-semibold mt-1 tracking-tight">{{ $priceCaption }}</p>
                             </div>
-                            <a href="{{ route('plan-details', $plan) }}" class="inline-flex items-center gap-2 bg-[#0A5C66] hover:bg-[#07474f] text-white font-extrabold text-[13px] sm:text-[14px] px-6 py-2.5 rounded-xl active:scale-95 transition-all shadow-sm font-poppins btn-ripple shrink-0">
-                                Buy Now <i class="bi bi-arrow-right text-[14px]"></i>
+                            <a href="{{ route('plan-details', $plan) }}" class="inline-flex items-center gap-2.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[14px] sm:text-[15px] px-7 py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-[#0A5C66]/15 font-poppins btn-ripple shrink-0">
+                                Buy Now <i class="bi bi-arrow-right text-[15px]"></i>
                             </a>
                         </div>
                     </div>
