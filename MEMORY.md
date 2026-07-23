@@ -9,7 +9,7 @@ Redesigned the plan cards layout in `app/Modules/Explore/Views/explore.blade.php
   - Header Block: Full-width Title (`Trust Builder Plan`) and Subtitle (`Your first successful investment and withdrawal experience`) with natural 2-line text wrapping so no text gets truncated with `...`.
   - Card Body (Responsive horizontal grid):
     - **Left**: Prominent circular icon pod (`bg-[#F2F7F8] rounded-full`, scaled `w-18 h-18` on mobile with `text-[32px]` icon / `w-12 h-12` image).
-    - **Center**: 3-column metrics grid with vertical divider lines (`border-r border-slate-200`) for *Interest Rate (Yearly)*, *Total Return*, and *Duration*, plus *End-to-End Encryption* and *100% Trusted & Secure* trust indicators.
+    - **Center**: 3-column metrics grid with vertical divider lines (`border-r border-slate-200`) for *Interest Rate* <br> *(Yearly)* (with `(Yearly)` on a new line), *Total Return*, and *Duration*, plus *End-to-End Encryption* and *100% Trusted & Secure* trust indicators.
     - **Price & CTA**: Integrated mobile bottom flex row with compact price (`text-[20px]`) and deep teal `Buy Now →` button (`bg-[#0A5C66]`), keeping full desktop style on desktop (`md:` breakpoint).
 - **Verification**: Recompiled Vite assets (`npm run build`), cleared view cache (`php artisan view:clear`), and tested with `php artisan test` (25 passed, 79 assertions).
 
