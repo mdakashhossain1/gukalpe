@@ -92,381 +92,73 @@
             @endif
         </div>
 
-        @if (count($tickerItems) > 0)
-            @php
-                // Pure-CSS crossfade rotator (no JS left in the main app to
-                // drive it): every item shares one @keyframes cycle of
-                // length $tickerTotal, each phase-shifted by a negative
-                // animation-delay equal to its own slot's start time - the
-                // standard trick for an infinite, JS-free slideshow.
-                $tickerSlot = 4; // seconds each entry is shown
-                $tickerCount = count($tickerItems);
-                $tickerTotal = $tickerSlot * $tickerCount;
-                $fadePct = round((0.5 / $tickerTotal) * 100, 3);
-                $holdEndPct = round((($tickerSlot - 0.5) / $tickerTotal) * 100, 3);
-                $slotEndPct = round(($tickerSlot / $tickerTotal) * 100, 3);
-            @endphp
-            <style>
-                @keyframes explore-ticker-cycle {
-                    0% { opacity: 0; transform: translateY(6px); }
-                    {{ $fadePct }}% { opacity: 1; transform: translateY(0); }
-                    {{ $holdEndPct }}% { opacity: 1; transform: translateY(0); }
-                    {{ $slotEndPct }}% { opacity: 0; transform: translateY(-6px); }
-                    100% { opacity: 0; transform: translateY(-6px); }
-                }
-                .explore-ticker-item {
-                    animation: explore-ticker-cycle {{ $tickerTotal }}s ease-in-out infinite;
-                }
-            </style>
-            <div class="px-4 mt-3 flex justify-center shrink-0">
-                <div class="w-full rounded-[22px] bg-white/60 backdrop-blur-md border border-[#0A5C66]/8 shadow-[0_8px_30px_rgba(10,92,102,0.03)] p-3 flex flex-col justify-center overflow-hidden h-[64px] relative">
-                    <!-- Tiny Live Indicator -->
-                    <div class="absolute top-1.5 right-3.5 flex items-center gap-1.5 select-none">
-                        <span class="relative flex h-1.5 w-1.5">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3CCF91] opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#3CCF91]"></span>
-                        </span>
-                        <span class="text-[8px] font-black tracking-wider text-slate-400 font-poppins uppercase">LIVE ACTIVITY</span>
-                    </div>
-
-                    <!-- Inner Animated Wrapper -->
-                    <div class="relative overflow-hidden h-[40px] w-full mt-1">
-                        @foreach ($tickerItems as $i => $item)
-                            <div class="explore-ticker-item absolute inset-0 flex items-center justify-between gap-2 opacity-0"
-                                style="animation-delay: -{{ $i * $tickerSlot }}s">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <div class="w-7 h-7 rounded-full bg-[#0A5C66]/8 flex items-center justify-center shrink-0 text-[#0A5C66]">
-                                        <i class="bi {{ $item['planIcon'] }} text-[11px]"></i>
-                                    </div>
-                                    <p class="text-[11.5px] font-semibold text-slate-600 font-poppins truncate leading-tight">
-                                        <span class="font-black text-[#0A5C66]">{{ $item['name'] }}</span>
-                                        from {{ $item['city'] }} invested
-                                        <span class="font-black text-[#19B36B]">{{ $item['amount'] }}</span>
-                                        in {{ $item['planTitle'] }}
-                                    </p>
-                                </div>
-                                <span class="text-[9.5px] font-bold text-slate-400 shrink-0 font-poppins">{{ $item['timeAgo'] }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        {{-- JS-free multi-select-then-view Compare flow: card checkboxes use
-             form="explore-compare-form" so they submit with this empty form
-             as real compare[]=uuid query params, without needing to nest a
-             <form> around the whole card grid (cards are anchor-heavy;
-             nested forms would be invalid HTML). Deliberately kept OUTSIDE
-             .explore-layout: that's a real `display:flex; gap:24px` layout
-             box (see app.css), and even a visually-empty 0x0 form as its
-             first flex child still consumes a full 24px gap before the
-             actual content - form="" works regardless of DOM position, so
-             it doesn't need to live inside the flex container at all. --}}
-        <form id="explore-compare-form" method="GET" action="{{ route('explore.compare') }}"></form>
-
         <!-- EXPLORE LAYOUT -->
         <div class="explore-layout w-full flex-grow flex-1">
             <!-- PLANS LIST -->
-            <div id="step-plans-list" class="flex-1 flex-col pb-safe overflow-y-auto overflow-x-hidden px-4 space-y-6">
-
-            <!-- Section: Featured Dream Goals -->
-            @php
-                // Pure-CSS auto-slide (no JS left in the main app to drive a
-                // setInterval-based carousel): the track's own @keyframes
-                // hold on each slide then slide-transitions to the next,
-                // looping infinitely. Dots share ONE keyframe (the same
-                // "active during the first slot" shape used by the Live
-                // Activity ticker) phase-shifted per-dot via a negative
-                // animation-delay, so they land on their own slide's window
-                // without needing a separate keyframe block per dot.
-                $slideCount = $featuredPlans->count();
-                $slideSeconds = 4;
-                $slideTransition = 0.5;
-                $slideTotal = $slideCount * $slideSeconds;
-                $dotHoldEndPct = $slideCount > 0 ? round((($slideSeconds - $slideTransition) / $slideTotal) * 100, 3) : 0;
-                $dotFadePct = $slideCount > 0 ? round(min(2, $dotHoldEndPct), 3) : 0;
-            @endphp
-            <div id="explore-featured-container" class="flex flex-col gap-2">
-                <div class="flex justify-between items-end mb-1">
-                    <div>
-                        <span class="text-[9px] font-bold text-[#3CCF91] uppercase tracking-wider font-poppins">Specially Curated</span>
-                        <h2 class="text-[15px] font-black text-slate-800 tracking-tight font-poppins">Featured Dream Goals</h2>
-                    </div>
-                    @if ($slideCount > 1)
-                        <!-- Slider Dots -->
-                        <div class="flex gap-1.5 pb-1">
-                            @for ($i = 0; $i < $slideCount; $i++)
-                                <div class="explore-featured-dot h-1 rounded-full {{ $i === 0 ? 'w-3.5 bg-[#0A5C66]' : 'w-1.5 bg-slate-300' }}" style="animation-delay: -{{ $i * $slideSeconds }}s"></div>
-                            @endfor
-                        </div>
-                    @endif
-                </div>
-
-                @if ($slideCount > 1)
-                    <style>
-                        @keyframes explore-featured-slide {
-                            @for ($i = 0; $i < $slideCount; $i++)
-                                @php
-                                    $holdStart = round(($i * $slideSeconds / $slideTotal) * 100, 3);
-                                    $holdEnd = round((($i + 1) * $slideSeconds - $slideTransition) / $slideTotal * 100, 3);
-                                @endphp
-                                {{ $holdStart }}%, {{ $holdEnd }}% { transform: translateX(-{{ $i * 100 }}%); }
-                            @endfor
-                            100% { transform: translateX(-{{ ($slideCount - 1) * 100 }}%); }
-                        }
-                        .explore-featured-track {
-                            animation: explore-featured-slide {{ $slideTotal }}s ease-in-out infinite;
-                        }
-                        #explore-featured-container:hover .explore-featured-track {
-                            animation-play-state: paused;
-                        }
-                        @keyframes explore-featured-dot-active {
-                            0% { width: 14px; background-color: #0A5C66; }
-                            {{ $dotFadePct }}% { width: 14px; background-color: #0A5C66; }
-                            {{ $dotHoldEndPct }}% { width: 14px; background-color: #0A5C66; }
-                            {{ min(100, $dotHoldEndPct + $dotFadePct) }}% { width: 6px; background-color: #cbd5e1; }
-                            100% { width: 6px; background-color: #cbd5e1; }
-                        }
-                        .explore-featured-dot {
-                            animation: explore-featured-dot-active {{ $slideTotal }}s ease-in-out infinite;
-                        }
-                        @media (prefers-reduced-motion: reduce) {
-                            .explore-featured-track, .explore-featured-dot { animation: none; }
-                        }
-                    </style>
-                @endif
-
-                <div class="relative w-full overflow-hidden rounded-[22px] shadow-[0_8px_25px_rgba(10,92,102,0.05)] group border border-slate-100/50">
-                    <div id="explore-slider" class="flex w-full h-[105px] {{ $slideCount > 1 ? 'explore-featured-track' : '' }}">
-
-                        @forelse ($featuredPlans as $plan)
-                            @php $fp = $plan->toLegacyArray(); $fpInvestors = $plan->investorCount(); @endphp
-                            <a href="{{ route('plan-details', $plan) }}" class="w-full h-full flex-shrink-0 relative overflow-hidden flex items-center p-3.5 snap-center">
-                                <img src="{{ $fp['image'] }}" class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-103 transition-transform duration-700" alt="{{ $fp['title'] }}">
-                                <div class="absolute inset-0 bg-gradient-to-r from-[#04242F] via-[#0A5C66]/85 to-[#0A5C66]/15"></div>
-                                <div class="absolute top-2 right-10 w-20 h-20 bg-[#3CCF91]/15 rounded-full blur-lg pointer-events-none animate-pulse"></div>
-
-                                <div class="relative z-10 w-full flex justify-between items-center pr-1">
-                                    <div class="flex flex-col gap-0.5 text-white max-w-[65%]">
-                                        <div class="flex items-center gap-1.5 mb-0.5">
-                                            <span style="background: rgba(10,92,102,0.14); color: #3CCF91;" class="backdrop-blur-md border border-[#3CCF91]/25 text-[8px] font-black px-2 py-0.5 rounded-[14px] uppercase tracking-wider font-poppins">{{ $fp['badge'] }}</span>
-                                            <span class="bg-white/10 backdrop-blur-md text-white/90 text-[8px] font-bold px-2 py-0.5 rounded-full border border-white/10">{{ $fp['growthRate'] }}% Return</span>
-                                        </div>
-                                        <h3 class="font-extrabold text-[15px] leading-tight font-poppins text-white">{{ $fp['title'] }}</h3>
-                                        <p class="text-white/80 text-[10px] leading-tight font-medium">{{ $fp['subtitle'] }}</p>
-                                        <span class="text-[9px] text-[#3CCF91] font-bold mt-0.5">Target: {{ $fp['minGoal'] }} @if ($fpInvestors > 0) • {{ $fpInvestors }} joined @endif</span>
-                                    </div>
-                                    <span class="relative overflow-hidden bg-gradient-to-r from-[#0A5C66] to-[#0E7481] text-white border border-[#3CCF91]/35 font-extrabold text-[10px] px-3.5 py-1.5 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_4px_12px_rgba(10,92,102,0.25),0_0_8px_rgba(60,207,145,0.2)] font-poppins flex items-center gap-1 shrink-0">
-                                        Buy Now <i class="bi bi-arrow-right text-[12px] text-white"></i>
-                                    </span>
-                                </div>
-                            </a>
-                        @empty
-                            <div class="w-full h-full flex-shrink-0 flex items-center justify-center text-white/70 text-[12px] font-semibold font-poppins bg-[#0A5C66]">
-                                No featured goals yet
-                            </div>
-                        @endforelse
-
-                    </div>
-                </div>
-            </div>
-
-
-            @php
-                $badgeStyles = [
-                    'Beginner' => ['bg' => 'rgba(60,207,145,0.12)', 'color' => '#3CCF91'],
-                    'Trending' => ['bg' => 'rgba(10,92,102,0.14)', 'color' => '#0A5C66'],
-                    'Fast Return' => ['bg' => 'linear-gradient(135deg,#0A5C66,#11727d)', 'color' => 'white'],
-                    'Verified' => ['bg' => 'rgba(60,207,145,0.15)', 'color' => '#19B36B'],
-                ];
-                $defaultBadgeStyle = ['bg' => 'rgba(10,92,102,0.14)', 'color' => '#0A5C66'];
-            @endphp
+            <div id="step-plans-list" class="flex-1 flex-col pb-safe overflow-y-auto overflow-x-hidden px-4 pt-2 space-y-5">
 
             @forelse ($plans as $plan)
                 @php
                     $cp = $plan->toLegacyArray();
-                    $cpInvestors = $plan->investorCount();
-                    $cpStyle = $badgeStyles[$cp['badge']] ?? $defaultBadgeStyle;
+                    $isFlexible = $plan->isFlexibleAmount();
+                    $priceLabel = $isFlexible
+                        ? '₹'.number_format((float) $plan->min_investment_amount, 0).'&ndash;₹'.number_format((float) $plan->max_investment_amount, 0)
+                        : '₹'.number_format((float) $plan->investment_amount, (float) $plan->investment_amount == (int) $plan->investment_amount ? 0 : 2);
+                    $priceCaption = $isFlexible ? 'Flexible Amount' : 'One-Time Investment';
                 @endphp
                 <!-- Plan Card: {{ $cp['title'] }} -->
-                <div class="plan-card relative bg-white rounded-[28px] overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(10,92,102,0.08)] transition-all duration-500 group border border-slate-100/90 hover:-translate-y-1">
-                    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#0A5C66]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                    <!-- Subtle Teal Reflection Overlay -->
-                    <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-[#0A5C66]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+                <div class="relative bg-white rounded-[22px] border border-slate-100 shadow-[0_2px_14px_rgba(10,92,102,0.05)] hover:shadow-[0_8px_28px_rgba(10,92,102,0.09)] transition-shadow duration-300 pt-5 px-4 pb-4">
 
-                    <!-- Cover Image -->
-                    <div class="relative w-full h-[160px] overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent z-10"></div>
-                        <img src="{{ $cp['image'] }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" alt="{{ $cp['title'] }}">
+                    @if ($plan->marketing_badge)
+                        <span class="absolute -top-2.5 left-4 inline-flex items-center gap-1 bg-white border border-amber-200 text-amber-600 text-[9.5px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full shadow-sm">
+                            <i class="bi bi-star-fill text-[9px]"></i> {{ $plan->marketing_badge }}
+                        </span>
+                    @endif
 
-                        {{-- Compare checkbox - real form input, submits via
-                             explore-compare-form's form= attribute. A labeled
-                             pill (not a bare icon square) so it reads as an
-                             intentional control against a busy photo, with a
-                             visibly different checked state rather than a
-                             near-invisible opacity change. --}}
-                        <label class="group absolute top-4 left-4 z-20 cursor-pointer flex items-center gap-1 pl-2 pr-2.5 h-7 rounded-full backdrop-blur-md border transition-colors bg-slate-900/40 border-white/25 has-[:checked]:bg-[#3CCF91] has-[:checked]:border-[#3CCF91]">
-                            <input type="checkbox" name="compare[]" value="{{ $plan->uuid }}" form="explore-compare-form" class="hidden">
-                            <i class="bi bi-check-lg text-[11px] text-white"></i>
-                            <span class="text-[9.5px] font-bold text-white uppercase tracking-wide">
-                                <span class="group-has-[:checked]:hidden">Compare</span>
-                                <span class="hidden group-has-[:checked]:inline">Added</span>
-                            </span>
-                        </label>
+                    <span class="absolute top-4 right-4 bg-[#3CCF91]/12 text-[#19B36B] text-[9.5px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full">{{ $cp['badge'] }}</span>
 
-                        <!-- Floating Badge -->
-                        <div class="absolute top-4 right-4 z-20 flex flex-col items-end gap-1.5">
-                            <div style="background: {{ $cpStyle['bg'] }}; color: {{ $cpStyle['color'] }};" class="backdrop-blur-md border border-[#3CCF91]/20 text-[9px] font-bold px-2.5 py-1 rounded-[14px] uppercase tracking-wider flex items-center gap-1 shadow-sm font-poppins">
-                                <i class="bi {{ $badgeIcons[$cp['badge']] ?? $defaultBadgeIcon }}"></i> {{ $cp['badge'] }}
-                            </div>
-                            @if ($plan->marketing_badge)
-                                <div class="bg-white/15 backdrop-blur-md border border-white/25 text-white text-[9px] font-bold px-2.5 py-1 rounded-[14px] shadow-sm font-poppins">
-                                    {{ $plan->marketing_badge }}
-                                </div>
-                            @endif
+                    <div class="flex items-start gap-3 pr-16">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0A5C66] to-[#11727d] flex items-center justify-center shrink-0 text-white shadow-[0_4px_12px_rgba(10,92,102,0.2)]">
+                            <i class="bi {{ $cp['icon'] }} text-[20px]"></i>
                         </div>
-
-                        <!-- Title Content in Header Overlay -->
-                        <div class="absolute bottom-4 left-5 z-20 flex items-center gap-3.5 w-[calc(100%-40px)]">
-                            <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-2.5 flex items-center justify-center shrink-0 shadow-lg text-[#3CCF91] group-hover:scale-105 transition-transform duration-300">
-                                <i class="bi {{ $cp['icon'] }} text-[22px]"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-white font-extrabold text-[19px] leading-tight font-poppins tracking-tight">{{ $cp['title'] }}</h3>
-                                <p class="text-white/80 text-[10px] font-semibold font-poppins">{{ $cp['subtitle'] }}</p>
-                            </div>
+                        <div class="min-w-0">
+                            <h3 class="text-[16px] font-extrabold text-slate-800 font-poppins leading-tight truncate">{{ $cp['title'] }}</h3>
+                            <p class="text-[11.5px] text-slate-500 font-medium leading-tight truncate">{{ $cp['subtitle'] }}</p>
                         </div>
                     </div>
 
-                    <div class="p-5 relative z-20 bg-white/95 backdrop-blur-md">
-                        <!-- Stats Grid -->
-                        <div class="grid grid-cols-2 gap-2 mb-4">
-                            <!-- Expected Growth -->
-                            <div class="bg-slate-50/60 backdrop-blur-sm border border-slate-200/40 rounded-xl p-2 flex items-center gap-2 shadow-sm hover:border-[#0A5C66]/20 transition-all duration-300">
-                                <div class="w-7 h-7 rounded-lg bg-[#0A5C66]/5 flex items-center justify-center text-[#0A5C66] shrink-0 border border-[#0A5C66]/10 shadow-[0_2px_8px_rgba(10,92,102,0.06)]">
-                                    <i class="bi bi-graph-up-arrow text-[14px] text-[#0A5C66]"></i>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-[9px] font-semibold text-slate-400/70 uppercase tracking-wider font-poppins truncate leading-tight">Expected Growth</span>
-                                    <span class="text-[12.5px] font-black text-[#0A5C66] font-poppins truncate leading-tight">{{ $cp['expectedGrowth'] }}</span>
-                                </div>
-                            </div>
-                            <!-- Lock Duration -->
-                            <div class="bg-slate-50/60 backdrop-blur-sm border border-slate-200/40 rounded-xl p-2 flex items-center gap-2 shadow-sm hover:border-[#0A5C66]/20 transition-all duration-300">
-                                <div class="w-7 h-7 rounded-lg bg-[#0A5C66]/5 flex items-center justify-center text-[#0A5C66] shrink-0 border border-[#0A5C66]/10 shadow-[0_2px_8px_rgba(10,92,102,0.06)]">
-                                    <i class="bi bi-calendar2-check text-[14px] text-[#0A5C66]"></i>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-[9px] font-semibold text-slate-400/70 uppercase tracking-wider font-poppins truncate leading-tight">Lock Duration</span>
-                                    <span class="text-[12.5px] font-black text-[#0A5C66] font-poppins truncate leading-tight">{{ $cp['lockDuration'] }}</span>
-                                </div>
-                            </div>
-                            <!-- Plan Investment -->
-                            <div class="bg-slate-50/60 backdrop-blur-sm border border-slate-200/40 rounded-xl p-2 flex items-center gap-2 shadow-sm hover:border-[#0A5C66]/20 transition-all duration-300">
-                                <div class="w-7 h-7 rounded-lg bg-[#0A5C66]/5 flex items-center justify-center text-[#0A5C66] shrink-0 border border-[#0A5C66]/10 shadow-[0_2px_8px_rgba(10,92,102,0.06)]">
-                                    <i class="bi bi-currency-rupee text-[14px] text-[#0A5C66]"></i>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-[9px] font-semibold text-slate-400/70 uppercase tracking-wider font-poppins truncate leading-tight">Plan Investment</span>
-                                    <span class="text-[12.5px] font-black text-[#0A5C66] font-poppins truncate leading-tight">{{ $cp['planInvestment'] }}</span>
-                                </div>
-                            </div>
-                            <!-- Daily Profit -->
-                            <div class="bg-slate-50/60 backdrop-blur-sm border border-slate-200/40 rounded-xl p-2 flex items-center gap-2 shadow-sm hover:border-[#0A5C66]/20 transition-all duration-300">
-                                <div class="w-7 h-7 rounded-lg bg-[#3CCF91]/10 flex items-center justify-center text-[#3CCF91] shrink-0 border border-[#3CCF91]/20 shadow-[0_2px_8px_rgba(60,207,145,0.06)]">
-                                    <i class="bi bi-wallet2 text-[14px] text-[#3CCF91]"></i>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-[9px] font-semibold text-slate-400/70 uppercase tracking-wider font-poppins truncate leading-tight">Daily Profit</span>
-                                    <span class="text-[12.5px] font-black text-[#19B36B] font-poppins truncate leading-tight">{{ $cp['dailyProfit'] }}</span>
-                                </div>
-                            </div>
-                            <!-- Total Return -->
-                            <div class="col-span-2 bg-slate-50/60 backdrop-blur-sm border border-slate-200/40 rounded-xl p-2 flex items-center gap-2 shadow-sm hover:border-[#0A5C66]/20 transition-all duration-300">
-                                <div class="w-7 h-7 rounded-lg bg-[#3CCF91]/10 flex items-center justify-center text-[#3CCF91] shrink-0 border border-[#3CCF91]/20 shadow-[0_2px_8px_rgba(60,207,145,0.06)]">
-                                    <i class="bi bi-piggy-bank text-[14px] text-[#3CCF91]"></i>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-[9px] font-semibold text-slate-400/70 uppercase tracking-wider font-poppins truncate leading-tight">Total Return</span>
-                                    <span class="text-[12.5px] font-black text-[#19B36B] font-poppins truncate leading-tight">{{ $cp['totalReturn'] }}</span>
-                                </div>
-                            </div>
+                    <div class="grid grid-cols-3 gap-2 mt-4">
+                        <div>
+                            <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-0.5">Interest Rate (Yearly)</p>
+                            <p class="text-[15px] font-black text-[#19B36B] font-poppins">{{ $cp['growthRate'] }}%</p>
                         </div>
-
-                        @if ($plan->unlock_enabled || $plan->highlights || $plan->risk_level || $plan->max_slots !== null)
-                            <!-- Premium chips: unlock state, highlights, risk, available slots -->
-                            <div class="flex flex-wrap items-center gap-1.5 mb-3">
-                                <x-plan-badge :plan="$plan" :unlocked="! $plan->unlock_enabled || ! $plan->requires_plan_id || $purchasedPlanIds->contains($plan->requires_plan_id)" />
-                                @if ($plan->risk_level)
-                                    <span class="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[9.5px] font-bold px-2.5 py-1 rounded-full">
-                                        <i class="bi bi-shield-check text-[9px]"></i> {{ $plan->risk_level }} Risk
-                                    </span>
-                                @endif
-                                @foreach (array_slice($plan->highlights ?? [], 0, 2) as $highlight)
-                                    <span class="inline-flex items-center gap-1 bg-[#0A5C66]/5 border border-[#0A5C66]/10 text-[#0A5C66] text-[9.5px] font-bold px-2.5 py-1 rounded-full">
-                                        <i class="bi bi-stars text-[9px]"></i> {{ $highlight }}
-                                    </span>
-                                @endforeach
-                            </div>
-                            @if ($plan->max_slots !== null)
-                                @php $slotsLeft = $plan->availableSlots(); $slotsPct = $plan->max_slots > 0 ? min(100, round((($plan->max_slots - $slotsLeft) / $plan->max_slots) * 100)) : 0; @endphp
-                                <div class="mb-3">
-                                    <div class="flex items-center justify-between text-[9.5px] font-bold text-slate-500 mb-1">
-                                        <span>Available Slots</span>
-                                        <span>{{ number_format($plan->max_slots - $slotsLeft) }} / {{ number_format($plan->max_slots) }}</span>
-                                    </div>
-                                    <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                                        <div class="h-full rounded-full bg-gradient-to-r from-[#0A5C66] to-[#3CCF91]" style="width: {{ $slotsPct }}%"></div>
-                                    </div>
-                                </div>
-                            @endif
-                        @endif
-
-                        <!-- Bottom CTA & Avatars -->
-                        <div class="flex flex-col gap-3 border-t border-slate-100/60 pt-4 mt-2">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <div class="flex items-center -space-x-1.5 relative shrink-0">
-                                    <div class="relative w-6 h-6 rounded-full border border-white bg-slate-100 overflow-hidden shadow-sm">
-                                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ $plan->id }}A" class="w-full h-full">
-                                    </div>
-                                    <div class="relative w-6 h-6 rounded-full border border-white bg-slate-100 overflow-hidden shadow-sm">
-                                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ $plan->id }}B" class="w-full h-full">
-                                    </div>
-                                    <div class="relative w-6 h-6 rounded-full border border-white bg-slate-100 overflow-hidden shadow-sm">
-                                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ $plan->id }}C" class="w-full h-full">
-                                        <!-- Online pulse glow on the top avatar -->
-                                        <span class="absolute bottom-0 right-0 w-1.5 h-1.5 bg-[#3CCF91] rounded-full border border-white shadow-[0_0_6px_#3CCF91]"></span>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <div class="flex items-center gap-1 min-w-0">
-                                        <span class="w-1.5 h-1.5 bg-[#3CCF91] rounded-full animate-pulse shrink-0 shadow-[0_0_6px_#3CCF91]"></span>
-                                        <span class="text-[10px] font-extrabold text-slate-700 font-poppins leading-none truncate">
-                                            @if ($cpInvestors > 0)
-                                                Trusted by {{ number_format($cpInvestors) }} investor{{ $cpInvestors === 1 ? '' : 's' }}
-                                            @else
-                                                Be the first to invest
-                                            @endif
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between gap-2.5">
-                                <div class="flex items-center gap-2 min-w-0 bg-gradient-to-r from-[#0A5C66]/8 to-[#3CCF91]/8 border border-[#0A5C66]/10 rounded-xl pl-1.5 pr-3 py-1.5">
-                                    <div class="w-6 h-6 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm">
-                                        <i class="bi bi-lightning-charge text-[10px] text-[#3CCF91]"></i>
-                                    </div>
-                                    <div class="flex flex-col min-w-0 leading-none">
-                                        <span class="text-[8.5px] font-bold text-[#0A5C66]/60 uppercase tracking-wider font-poppins">Invest</span>
-                                        <span class="text-[13.5px] font-black text-[#0A5C66] font-poppins truncate">{{ $cp['planInvestment'] }}</span>
-                                    </div>
-                                </div>
-                                <a href="{{ route('plan-details', $plan) }}" class="relative overflow-hidden bg-gradient-to-r from-[#0A5C66] to-[#0E7481] text-white font-extrabold text-[12px] px-5 py-2.5 rounded-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_6px_20px_rgba(10,92,102,0.25)] active:scale-95 btn-ripple border border-[#0A5C66]/20 font-poppins shadow-md flex items-center justify-center gap-1.5 hover:brightness-105 shrink-0 whitespace-nowrap">
-                                    Buy Now <i class="bi bi-arrow-right text-[14px] text-white"></i>
-                                </a>
-                            </div>
+                        <div>
+                            <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-0.5">Total Return</p>
+                            <p class="text-[15px] font-black text-[#19B36B] font-poppins">{{ $cp['totalReturn'] }}</p>
                         </div>
+                        <div>
+                            <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-0.5">Duration</p>
+                            <p class="text-[15px] font-black text-slate-800 font-poppins">{{ $cp['lockDuration'] }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 mt-3.5">
+                        <span class="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-slate-500">
+                            <i class="bi bi-lock-fill text-[10px] text-[#0A5C66]"></i> End-to-End Encryption
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-slate-500">
+                            <i class="bi bi-shield-check text-[10px] text-[#3CCF91]"></i> 100% Trusted &amp; Secure
+                        </span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3 border-t border-slate-100 mt-4 pt-4">
+                        <div class="min-w-0">
+                            <p class="text-[19px] font-black text-slate-800 font-poppins leading-tight truncate">{!! $priceLabel !!}</p>
+                            <p class="text-[10.5px] text-slate-400 font-semibold leading-tight">{{ $priceCaption }}</p>
+                        </div>
+                        <a href="{{ route('plan-details', $plan) }}" class="shrink-0 inline-flex items-center gap-1.5 bg-[#0A5C66] hover:bg-[#0d6c78] text-white font-extrabold text-[12.5px] px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-md font-poppins btn-ripple">
+                            Buy Now <i class="bi bi-arrow-right text-[13px]"></i>
+                        </a>
                     </div>
                 </div>
             @empty
@@ -494,33 +186,8 @@
                 </div>
             @endforelse
 
-            <!-- Trust Section -->
-            <div class="flex flex-col gap-4 text-center items-center">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-poppins">GullakPe Trust & Security</span>
-                <div class="grid grid-cols-3 gap-2 w-full">
-                    <div class="bg-white/40 backdrop-blur-sm border border-slate-200/50 rounded-xl py-2 px-1 flex items-center justify-center gap-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
-                        <i class="bi bi-bank2 text-[11px] text-[#0A5C66]"></i>
-                        <span class="text-[10px] font-bold text-slate-600 font-poppins">RBI Reg.</span>
-                    </div>
-                    <div class="bg-white/40 backdrop-blur-sm border border-slate-200/50 rounded-xl py-2 px-1 flex items-center justify-center gap-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
-                        <i class="bi bi-cash-coin text-[11px] text-[#0A5C66]"></i>
-                        <span class="text-[10px] font-bold text-slate-600 font-poppins">Safe Pay</span>
-                    </div>
-                    <div class="bg-white/40 backdrop-blur-sm border border-slate-200/50 rounded-xl py-2 px-1 flex items-center justify-center gap-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
-                        <i class="bi bi-check-circle-fill text-[11px] text-[#0A5C66]"></i>
-                        <span class="text-[10px] font-bold text-slate-600 font-poppins">Verified</span>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
-
-    {{-- Floating "Compare" submit button - submits explore-compare-form
-         (real checkboxes on the cards above) as a real GET request, no JS. --}}
-    <button type="submit" form="explore-compare-form" class="fixed bottom-24 right-4 z-40 flex items-center gap-2 h-12 px-4 rounded-full bg-[#0A5C66] text-white font-bold text-[12.5px] shadow-lg shadow-[#0A5C66]/25 active:scale-95 transition-all font-poppins">
-        <i class="bi bi-columns-gap text-[14px]"></i> Compare
-    </button>
 
         <!-- REAL SEARCH PANEL - toggled via #explore-search-toggle (CSS
              peer-checked, no JS). A real GET form to this same page's own
