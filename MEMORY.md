@@ -1,6 +1,17 @@
 # MEMORY.md — Project Log
 
-## 2026-07-21 (48) — Site-wide font swapped from Roboto to Inter (still self-hosted, single-font policy)
+## 2026-07-23 — Redesigned Explore Goal Plan cards to match reference screenshot
+
+Redesigned the plan cards layout in `app/Modules/Explore/Views/explore.blade.php` to match the exact visual style from the user-provided screenshot.
+
+- **Layout & Badges**:
+  - Top row: Soft pastel marketing badge on left (`#FFF4E5`/`#ECFDF5`/`#F3E8FF`) and category tier badge on right (`STARTER`/`BEGINNER`/`PREMIUM`).
+  - Card Body (Responsive 3-column grid on desktop, clean stacked layout on mobile):
+    - **Left**: Soft circular background pod (`bg-[#F4F9F8] rounded-full`) featuring plan icon or 3D plan image.
+    - **Center**: Plan title & subtitle, 3-column metrics grid with vertical divider lines (`border-r border-slate-200/80`) for *Interest Rate (Yearly)*, *Total Return*, and *Duration* (with dropdown support when multiple durations exist), plus *End-to-End Encryption* and *100% Trusted & Secure* trust indicators row.
+    - **Right**: Big bold price display (`₹199`/`₹499`/`₹999`), *One-Time Investment* caption, and solid deep teal `Buy Now →` button (`bg-[#0A5C66]`).
+- **Verification**: Tested with `php artisan test` (25 passed, 79 assertions) and `php -l` syntax check on Blade views.
+
 
 User supplied an exact typography spec (Inter, weights 400/500/600/700/800) for a plan/investment screen and asked to use it as the only font site-wide, then said to source the files from Google Fonts. Replaces the 2026-07-18 (entry 44-ish) Roboto-only setup — same "no other fonts, no CDN link" policy, different font.
 
