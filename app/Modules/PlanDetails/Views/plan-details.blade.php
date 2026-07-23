@@ -220,19 +220,28 @@
                     </div>
 
                     <!-- Live Projection Calculation Card -->
-                    <div class="bg-[#F6FAFA] p-4 rounded-2xl border border-[#E0EFEF]">
-                        <div class="flex items-center justify-between flex-wrap gap-2">
-                            <div>
-                                <p class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">
-                                    <span id="pd-calc-summary-amount">₹{{ number_format($flexMin, 0) }}</span> / Monthly
+                    <div class="bg-[#F6FAFA] p-3 sm:p-4 rounded-2xl border border-[#E0EFEF]">
+                        <div class="flex items-center gap-1.5 sm:gap-3">
+                            <div class="shrink-0">
+                                <p class="text-[11px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins whitespace-nowrap leading-tight">
+                                    <span id="pd-calc-summary-amount">₹{{ number_format($flexMin, 0) }}</span> <span class="text-slate-400 font-bold">/ Monthly</span>
                                 </p>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase">for 1 Year</p>
+                                <p class="text-[8.5px] sm:text-[10px] font-bold text-purple-500 mt-0.5 whitespace-nowrap">for 1 Year</p>
                             </div>
-                            <div class="text-right">
-                                <p id="pd-flex-return" class="text-[20px] font-black text-[#19B36B] font-poppins leading-none">₹{{ number_format($flexMin * 1.25, 0) }}+</p>
-                                <div class="flex items-center justify-end gap-2 text-[10px] font-bold text-slate-500 mt-0.5">
-                                    <span>Investment: <strong id="pd-calc-invested" class="text-slate-800">₹{{ number_format($flexMin * 12, 0) }}</strong></span>
-                                    <span>Profit: <strong id="pd-calc-profit" class="text-[#19B36B]">₹{{ number_format($flexMin * 0.25 * 12, 0) }}+</strong></span>
+
+                            <span class="text-[14px] sm:text-[18px] font-black text-slate-300 shrink-0">=</span>
+
+                            <p id="pd-flex-return" class="text-[16px] sm:text-[22px] font-black text-[#19B36B] font-poppins leading-none flex-1 min-w-0 text-center truncate">₹{{ number_format($flexMin * 1.25, 0) }}+</p>
+
+                            <div class="w-[1px] h-8 bg-slate-200 shrink-0"></div>
+
+                            <div class="shrink-0 flex items-center gap-1.5">
+                                <div class="text-[7.5px] sm:text-[10px] font-bold text-slate-500 leading-snug whitespace-nowrap">
+                                    <p>Investment: <strong id="pd-calc-invested" class="text-slate-800">₹{{ number_format($flexMin * 12, 0) }}</strong></p>
+                                    <p>Profit: <strong id="pd-calc-profit" class="text-[#19B36B]">₹{{ number_format($flexMin * 0.25 * 12, 0) }}+</strong></p>
+                                </div>
+                                <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center shrink-0">
+                                    <i class="bi bi-graph-up-arrow text-[10px] sm:text-[12px]"></i>
                                 </div>
                             </div>
                         </div>
@@ -514,7 +523,7 @@
             </div>
 
             <!-- 11. SECURITY GRADIENT BANNER -->
-            <div class="bg-gradient-to-r from-[#032128] via-[#0A5C66] to-[#042A33] rounded-[22px] p-4 text-white flex items-center justify-between gap-3 shadow-md relative overflow-hidden">
+            <div class="btn-shimmer-cta bg-gradient-to-r from-[#032128] via-[#0A5C66] to-[#042A33] rounded-[22px] p-4 text-white flex items-center justify-between gap-3 shadow-md relative overflow-hidden">
                 <!-- Decorative diagonal strokes, bottom-left corner -->
                 <div class="absolute -bottom-6 -left-6 w-36 h-28 pointer-events-none"
                     style="background: repeating-linear-gradient(115deg, rgba(255,255,255,0.35) 0px, rgba(255,255,255,0.35) 1.5px, transparent 1.5px, transparent 9px); -webkit-mask-image: linear-gradient(115deg, black 10%, transparent 65%); mask-image: linear-gradient(115deg, black 10%, transparent 65%);"></div>
