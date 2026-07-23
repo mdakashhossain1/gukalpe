@@ -7,9 +7,9 @@ Redesigned the plan cards layout in `app/Modules/Explore/Views/explore.blade.php
 - **Layout & Badges**:
   - Top row: Soft pastel marketing badge on left (`#FFF4E5`/`#ECFDF5`/`#F3E8FF`) and category tier badge on right (`STARTER`/`BEGINNER`/`PREMIUM`).
   - Card Body (Responsive horizontal grid on both mobile & desktop):
-    - **Left**: Soft circular background pod (`bg-[#F2F7F8] rounded-full`, scaled `w-14 h-14` on mobile, `w-28 h-28` on desktop).
-    - **Center**: Title & subtitle, 3-column metrics grid with vertical divider lines (`border-r border-slate-200`) for *Interest Rate (Yearly)*, *Total Return*, and *Duration* (with `$dur->label` dropdown option text support), plus *End-to-End Encryption* and *100% Trusted & Secure* trust indicators row.
-    - **Price & CTA**: Integrated inline price and deep teal `Buy Now →` button (`bg-[#0A5C66]`) preserving the desktop style across all mobile viewport sizes.
+    - **Left**: Prominent circular icon pod (`bg-[#F2F7F8] rounded-full`, enlarged `w-18 h-18` on mobile with `text-[32px]` icon / `w-12 h-12` image, matching sample image).
+    - **Center**: Title & subtitle (`truncate` on mobile), 3-column metrics grid with vertical divider lines (`border-r border-slate-200`) for *Interest Rate (Yearly)*, *Total Return*, and *Duration* (compact `text-[7.5px]` labels and `text-[15px]` values on mobile to avoid line breaks), plus *End-to-End Encryption* and *100% Trusted & Secure* trust indicators.
+    - **Price & CTA**: Integrated mobile bottom flex row with compact price (`text-[18px]`) and deep teal `Buy Now →` button (`bg-[#0A5C66]`), keeping full desktop style on desktop (`md:` breakpoint).
 - **Verification**: Recompiled Vite assets (`npm run build`), cleared view cache (`php artisan view:clear`), and tested with `php artisan test` (25 passed, 79 assertions).
 
 
