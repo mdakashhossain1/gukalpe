@@ -454,24 +454,24 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
                     <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-2.5">
-                            <i class="bi bi-[#currency-rupee] bi-piggy-bank text-[22px]"></i>
+                        <div class="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mb-2.5">
+                            <img src="{{ asset('assets/ui/icon1.png') }}" alt="" class="w-6 h-6">
                         </div>
                         <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Start from ₹199</h4>
                         <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Minimum investment starts at ₹199.</p>
                     </div>
 
                     <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-teal-50 text-[#0A5C66] flex items-center justify-center mb-2.5">
-                            <i class="bi bi-arrow-repeat text-[22px]"></i>
+                        <div class="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center mb-2.5">
+                            <img src="{{ asset('assets/ui/icon2.png') }}" alt="" class="w-6 h-6">
                         </div>
                         <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Withdraw Anytime</h4>
                         <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Flexible withdrawals as per plan terms.</p>
                     </div>
 
                     <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
-                            <i class="bi bi-shield-check text-[22px]"></i>
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-2.5">
+                            <img src="{{ asset('assets/ui/icon3.png') }}" alt="" class="w-6 h-6">
                         </div>
                         <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Safe &amp; Secure</h4>
                         <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Bank-grade encrypted investment.</p>
