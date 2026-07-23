@@ -286,8 +286,8 @@
             </div>
 
             <!-- 6. SOCIAL PROOF & CONSENT CHECKBOX -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs space-y-3">
-                <div class="flex items-center divide-x divide-slate-100">
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-2xs space-y-4">
+                <div class="flex items-center divide-x divide-slate-100 py-2">
                     <div class="flex items-center gap-2 flex-1 min-w-0 pr-1.5">
                         <img src="{{ asset('assets/ui/trusted-investors-shield.png') }}" alt="" class="w-8 h-8 sm:w-10 sm:h-10 shrink-0">
                         <div class="text-left min-w-0">
@@ -306,7 +306,7 @@
                     <div class="flex items-center gap-2 flex-1 min-w-0 pl-1.5">
                         <img src="{{ asset('assets/ui/money-safe-lock.png') }}" alt="" class="w-8 h-8 sm:w-10 sm:h-10 shrink-0">
                         <div class="text-left min-w-0">
-                            <p class="text-[11px] sm:text-[13px] font-black text-[#0D1F3C] font-poppins leading-tight truncate">100% Safe &amp; Secure</p>
+                            <p class="text-[11px] sm:text-[13px] font-black text-[#0D1F3C] font-poppins leading-tight truncate">Safe &amp; Secure</p>
                             <p class="text-[7.5px] sm:text-[9px] text-slate-400 font-semibold leading-tight truncate">Your money is safe</p>
                         </div>
                     </div>
