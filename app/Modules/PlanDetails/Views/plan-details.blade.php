@@ -3,76 +3,139 @@
 @section('content')
     <div id="tab-plan-details" class="flex min-h-[100dvh] w-full flex-col flex-1 bg-[#F4F7F8] pb-36 pt-safe overflow-y-auto custom-scrollbar animate-fade-in-up">
         
-        <!-- Sticky Premium Header (Step 3) -->
-        <div class="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-slate-100/80 px-5 py-4 flex items-center justify-between shadow-sm">
-            <a href="{{ route('explore') }}" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-[#0A5C66] hover:bg-slate-100 active:scale-95 transition-all">
-                <i class="bi bi-arrow-left text-[20px]"></i>
+        <!-- Sticky Premium Header -->
+        <div class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100/80 px-4 py-3 flex items-center justify-between shadow-2xs">
+            <a href="{{ route('explore') }}" class="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center text-[#0A5C66] hover:bg-slate-200 active:scale-95 transition-all">
+                <i class="bi bi-arrow-left text-[18px]"></i>
             </a>
-            <h2 class="text-[17px] font-black text-[#0A5C66] font-poppins tracking-tight">{{ $p['title'] }}</h2>
-            <span class="w-10 h-10"></span>
+            <h2 class="text-[16px] font-black text-[#0D1F3C] font-poppins tracking-tight truncate max-w-[200px]">{{ $p['title'] }}</h2>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="if(navigator.share){navigator.share({title:'{{ $p['title'] }}',url:window.location.href});}" class="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center text-slate-600 hover:bg-slate-200 active:scale-95 transition-all">
+                    <i class="bi bi-share text-[15px]"></i>
+                </button>
+                <button type="button" class="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center text-rose-500 hover:bg-slate-200 active:scale-95 transition-all">
+                    <i class="bi bi-heart-fill text-[15px]"></i>
+                </button>
+            </div>
         </div>
 
-        <div class="p-4 space-y-[14px]">
-            <!-- Hero Banner (Step 4) -->
-            <div class="relative w-full h-[210px] rounded-[24px] overflow-hidden shadow-md group">
-                <img src="{{ $p['image'] }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="{{ $p['title'] }}">
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/50 to-transparent z-10"></div>
+        <div class="p-3.5 sm:p-5 space-y-4 max-w-3xl mx-auto w-full">
 
-                <div class="absolute inset-0 p-6 flex flex-col justify-between z-20">
-                    <div class="flex justify-between items-start gap-2">
-                        <div class="flex flex-wrap items-center gap-1.5">
-                            <div class="backdrop-blur-md border border-white/20 text-[10px] font-bold px-3 py-1.5 rounded-[14px] uppercase tracking-wider flex items-center gap-1.5 shadow-sm font-poppins text-white">
-                                <i class="bi {{ $badgeIcons[$p['badge']] ?? $defaultBadgeIcon }} text-[10px]"></i>
-                                <span>{{ $p['badge'] }}</span>
-                            </div>
-                            @if ($plan->marketing_badge)
-                                @php $badgeColor = $plan->marketingBadgeColorClasses(); @endphp
-                                <div class="backdrop-blur-md border {{ $badgeColor['border'] }} {{ $badgeColor['bg'] }} {{ $badgeColor['text'] }} text-[10px] font-bold px-3 py-1.5 rounded-[14px] flex items-center gap-1.5 shadow-sm font-poppins">
-                                    @if ($plan->marketing_badge_icon)
-                                        <i class="bi {{ $plan->marketing_badge_icon }} text-[10px]"></i>
-                                    @endif
-                                    {{ $plan->marketing_badge }}
+            <!-- 1. HERO PLAN CARD & HEADER BANNER -->
+            <div class="relative bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm">
+                <div class="relative w-full h-[180px] sm:h-[220px]">
+                    <img src="{{ $p['image'] }}" class="w-full h-full object-cover" alt="{{ $p['title'] }}">
+                    <div class="absolute inset-0 bg-gradient-to-r from-[#031B26]/90 via-[#0A5C66]/70 to-transparent"></div>
+                    
+                    <div class="absolute inset-0 p-5 flex flex-col justify-between z-10">
+                        <!-- Top Badges -->
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-xl bg-white/90 backdrop-blur-md flex items-center justify-center text-[#0A5C66] shadow-sm">
+                                    <i class="bi {{ $p['icon'] ?? 'bi-building' }} text-[18px]"></i>
                                 </div>
-                            @endif
+                                <span class="bg-purple-100/90 text-purple-700 text-[9.5px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-md">
+                                    NEWLY ADDED
+                                </span>
+                            </div>
+                            <div class="bg-white/95 text-[#19B36B] px-3 py-1.5 rounded-2xl shadow-sm text-right">
+                                <p class="text-[14px] font-black font-poppins leading-none">{{ $p['expectedGrowth'] }}</p>
+                                <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">Yearly Return</p>
+                            </div>
                         </div>
-                        <x-plan-badge :plan="$plan" :unlocked="$hasUnlocked" />
-                    </div>
 
-                    <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-3 flex items-center justify-center shrink-0 shadow-lg text-white">
-                            <i class="bi {{ $p['icon'] }} text-[26px]"></i>
+                        <!-- Main Title Block -->
+                        <div>
+                            <h1 class="text-white font-extrabold text-[22px] sm:text-[26px] font-poppins leading-tight tracking-tight drop-shadow-sm">{{ $p['title'] }}</h1>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-white/90 text-[12px] font-semibold font-poppins">{{ $p['badge'] }} Plan</span>
+                                <span class="text-emerald-300 text-[11px] font-bold flex items-center gap-1">
+                                    <i class="bi bi-patch-check-fill text-[12px]"></i> Verified &amp; Secure
+                                </span>
+                            </div>
                         </div>
-                        <div class="min-w-0">
-                            <h3 class="text-white font-extrabold text-[22px] leading-tight font-poppins tracking-tight">{{ $p['title'] }}</h3>
-                            <p class="text-white/80 text-[12px] font-semibold font-poppins mt-0.5 truncate">{{ $p['subtitle'] }}</p>
+                    </div>
+                </div>
+
+                <!-- Effective Return Strip -->
+                <div class="p-4 bg-gradient-to-r from-blue-50/70 via-white to-blue-50/70 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                        <div class="flex items-baseline gap-1.5">
+                            <span class="text-[22px] font-black text-[#0D1F3C] font-poppins leading-none">{{ $p['growthRate'] ?? '11.35' }}%</span>
+                            <span class="text-[11px] font-bold text-slate-400 font-poppins">YTM</span>
                         </div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Effective Return (Yearly)</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-[#0A5C66]/8 flex items-center justify-center text-[#0A5C66]">
+                        <i class="bi bi-graph-up-arrow text-[18px]"></i>
                     </div>
                 </div>
             </div>
 
+            <!-- HIDDEN DURATION RADIOS FOR FORM SUBMISSION -->
             @if ($plan->durations->isNotEmpty())
-                {{-- Hidden duration radios - always rendered when the plan has
-                     real duration options, regardless of which calculator UI
-                     is shown below. form="plan-purchase-form" so the selected
-                     duration submits with Invest Now without needing to
-                     physically nest inside that form. The flexible-amount JS
-                     calculator (below) checks/unchecks these directly when
-                     its own duration pills are clicked; the fixed-amount
-                     pure-CSS calculator drives them the normal radio way. --}}
                 @foreach ($plan->durations as $duration)
                     <input type="radio" name="duration_id" id="pd-dur-{{ $duration->id }}" value="{{ $duration->id }}"
                         class="hidden" form="plan-purchase-form" {{ $duration->is_default ? 'checked' : '' }}>
                 @endforeach
             @endif
 
-            @if ($plan->isFlexibleAmount())
-              @if ($activePot)
-                {{-- Top-up mode: the user already has one ongoing pot for
-                     this plan (Plan::isTopupPot()) - show its status instead
-                     of the initial pick-an-amount slider, and a smaller
-                     "Add More" control that only changes invested_amount on
-                     the SAME UserPlan row (shared single maturity date, see
-                     PlanPurchaseController::topUp()). --}}
+            <!-- 2. 4 METRIC PODS GRID -->
+            <div class="grid grid-cols-4 gap-2 sm:gap-3">
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                    <div class="w-8 h-8 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-1.5">
+                        <i class="bi bi-graph-up text-[15px]"></i>
+                    </div>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase font-poppins">Daily Profit</span>
+                    <span class="text-[13px] font-black text-[#19B36B] font-poppins mt-0.5">{{ $p['dailyProfit'] }}</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                    <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-1.5">
+                        <i class="bi bi-[#currency-rupee] bi-cash-stack text-[15px]"></i>
+                    </div>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase font-poppins">Total Profit</span>
+                    <span class="text-[13px] font-black text-[#19B36B] font-poppins mt-0.5">{{ $p['totalReturn'] }}</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                    <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-1.5">
+                        <i class="bi bi-clock-history text-[15px]"></i>
+                    </div>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase font-poppins">Duration</span>
+                    <span class="text-[13px] font-black text-[#19B36B] font-poppins mt-0.5">{{ $p['lockDuration'] }}</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                    <div class="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-1.5">
+                        <i class="bi bi-gift text-[15px]"></i>
+                    </div>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase font-poppins">Maturity</span>
+                    <span class="text-[13px] font-black text-[#19B36B] font-poppins mt-0.5">{{ $p['totalReturn'] }}</span>
+                </div>
+            </div>
+
+            <!-- 3. SELECT DURATION PILLS -->
+            @if ($plan->durations->count() > 0)
+                <div class="bg-white p-4 rounded-[22px] border border-slate-100 shadow-2xs">
+                    <label class="text-[12px] font-extrabold text-[#0D1F3C] font-poppins block mb-3">Select Duration</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        @foreach ($plan->durations as $dur)
+                            <button type="button"
+                                onclick="document.getElementById('pd-dur-{{ $dur->id }}').checked=true; document.querySelectorAll('.dur-pill-btn').forEach(b => b.classList.remove('bg-[#0A5C66]','text-white','shadow-md')); this.classList.add('bg-[#0A5C66]','text-white','shadow-md');"
+                                class="dur-pill-btn relative p-3 rounded-xl border border-slate-200 text-left transition-all {{ $dur->is_default ? 'bg-[#0A5C66] text-white shadow-md' : 'bg-slate-50/50 text-slate-700 hover:bg-slate-100' }}">
+                                @if($dur->is_default)
+                                    <span class="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-900 text-[8px] font-black uppercase px-2 py-0.5 rounded-full shadow-2xs whitespace-nowrap">
+                                        ⭐ MOST POPULAR
+                                    </span>
+                                @endif
+                                <p class="text-[13px] font-extrabold font-poppins leading-tight">{{ $dur->label }}</p>
+                                <p class="text-[10px] opacity-80 font-bold mt-0.5">{{ $dur->growth_rate }}% Return</p>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- 4. SET YOUR INVESTMENT AMOUNT / ACTIVE POT WIDGET -->
+            @if ($activePot)
                 @php
                     $potMax = (float) $plan->max_investment_amount;
                     $potTotal = (float) $activePot->invested_amount;
@@ -82,7 +145,7 @@
                     $potStep = $potRemaining > 0 ? max(1, (int) round($potRemaining / 100)) : 1;
                     $potDefaultAdd = min($potStep, $potRemaining);
                 @endphp
-                <div class="bg-white rounded-[24px] border border-slate-100 shadow-sm p-5" id="pd-topup-calc"
+                <div class="bg-white rounded-[24px] border border-slate-100 shadow-2xs p-5" id="pd-topup-calc"
                     data-remaining="{{ $potRemaining }}" data-step="{{ $potStep }}"
                     data-current-total="{{ $potTotal }}" data-days="{{ $activePot->planDuration?->duration_days ?? 0 }}"
                     data-rate="{{ $activePot->planDuration?->growth_rate ?? 0 }}">
@@ -101,13 +164,13 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div class="stat-card">
-                            <div class="icon bg-[#19B36B]/5 border border-[#19B36B]/10 text-[#19B36B]"><i class="bi bi-piggy-bank text-[18px]"></i></div>
-                            <div class="flex flex-col min-w-0"><span class="title">Expected Return</span><span id="pd-topup-return" class="value text-[#19B36B]">₹{{ number_format($potTotalReturn, 0) }}</span></div>
+                        <div class="stat-card p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-full bg-[#19B36B]/10 text-[#19B36B] flex items-center justify-center shrink-0"><i class="bi bi-piggy-bank text-[16px]"></i></div>
+                            <div class="flex flex-col min-w-0"><span class="text-[9.5px] font-bold text-slate-400 uppercase">Expected Return</span><span id="pd-topup-return" class="text-[13px] font-black text-[#19B36B]">₹{{ number_format($potTotalReturn, 0) }}</span></div>
                         </div>
-                        <div class="stat-card">
-                            <div class="icon bg-[#0A5C66]/5 border border-[#0A5C66]/10 text-[#0A5C66]"><i class="bi bi-calendar2-check text-[18px]"></i></div>
-                            <div class="flex flex-col min-w-0"><span class="title">Matures On</span><span class="value text-[#0A5C66]">{{ $activePot->matures_at?->format('d M Y') ?? '-' }}</span></div>
+                        <div class="stat-card p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-full bg-[#0A5C66]/10 text-[#0A5C66] flex items-center justify-center shrink-0"><i class="bi bi-calendar2-check text-[16px]"></i></div>
+                            <div class="flex flex-col min-w-0"><span class="text-[9.5px] font-bold text-slate-400 uppercase">Matures On</span><span class="text-[13px] font-black text-[#0A5C66]">{{ $activePot->matures_at?->format('d M Y') ?? '-' }}</span></div>
                         </div>
                     </div>
 
@@ -127,604 +190,468 @@
                         </div>
                     @endif
                 </div>
-
-                @if ($potRemaining > 0)
-                    <input type="hidden" name="amount" id="pd-topup-amount-input" form="plan-purchase-form" value="{{ $potDefaultAdd }}">
-
-                    <script>
-                    (function () {
-                        var container = document.getElementById('pd-topup-calc');
-                        if (!container) return;
-
-                        var remaining = parseFloat(container.dataset.remaining);
-                        var step = parseFloat(container.dataset.step) || 1;
-                        var currentTotal = parseFloat(container.dataset.currentTotal) || 0;
-                        var days = parseFloat(container.dataset.days) || 0;
-                        var rate = parseFloat(container.dataset.rate) || 0;
-
-                        var slider = document.getElementById('pd-topup-slider');
-                        var display = document.getElementById('pd-topup-display');
-                        var hiddenInput = document.getElementById('pd-topup-amount-input');
-                        var decBtn = document.getElementById('pd-topup-dec');
-                        var incBtn = document.getElementById('pd-topup-inc');
-                        var returnEl = document.getElementById('pd-topup-return');
-                        var investBtnAmount = document.getElementById('pd-invest-btn-amount');
-
-                        function formatMoney(value) {
-                            return '₹' + Math.round(value).toLocaleString('en-IN');
-                        }
-
-                        function recalc() {
-                            var addAmount = parseFloat(slider.value);
-                            display.textContent = formatMoney(addAmount);
-                            hiddenInput.value = addAmount;
-                            if (investBtnAmount) investBtnAmount.textContent = formatMoney(addAmount);
-
-                            if (days > 0) {
-                                var newTotal = currentTotal + addAmount;
-                                var years = days / 365;
-                                var totalReturn = newTotal * (1 + (rate / 100) * years);
-                                returnEl.textContent = formatMoney(totalReturn);
-                            }
-                        }
-
-                        slider.addEventListener('input', recalc);
-                        decBtn.addEventListener('click', function () {
-                            slider.value = Math.max(step, parseFloat(slider.value) - step);
-                            recalc();
-                        });
-                        incBtn.addEventListener('click', function () {
-                            slider.value = Math.min(remaining, parseFloat(slider.value) + step);
-                            recalc();
-                        });
-
-                        recalc();
-                    })();
-                    </script>
-                @endif
-              @else
+            @else
                 @php
-                    $flexMin = (float) $plan->min_investment_amount;
-                    $flexMax = (float) $plan->max_investment_amount;
-                    $flexStep = max(1, (int) round(($flexMax - $flexMin) / 100));
-                    $flexDefaultDuration = $plan->defaultDuration();
+                    $flexMin = (float) ($plan->min_investment_amount ?? 199);
+                    $flexMax = (float) ($plan->max_investment_amount ?? 999);
+                    $flexStep = max(1, (int) round(($flexMax - $flexMin) / 50));
                 @endphp
-                {{-- "Choose Your Investment" - a real drag-slider with live
-                     recalculation (amount x selected duration's growth_rate),
-                     matching the reference SIP-style UI. This is the one
-                     deliberate, scoped exception to this app's no-JS
-                     convention (see MEMORY.md) - true continuous-drag live
-                     arithmetic isn't something pure CSS can do; every other
-                     interaction on this page (tabs, FAQ accordion, fixed-
-                     amount calculator) stays JS-free as before. --}}
-                <div class="bg-white rounded-[24px] border border-slate-100 shadow-sm p-5" id="pd-flex-calc"
+                <div class="bg-white p-4 sm:p-5 rounded-[24px] border border-slate-100 shadow-2xs space-y-4" id="pd-flex-calc"
                     data-min="{{ $flexMin }}" data-max="{{ $flexMax }}" data-step="{{ $flexStep }}" data-balance="{{ (float) $balance }}">
-                    <h4 class="text-[14px] font-black text-[#0A5C66] font-poppins mb-1">Choose Your Investment</h4>
-                    <p class="text-[11px] text-slate-400 font-medium mb-4">Drag the slider or use +/- to pick an amount.</p>
-
-                    @if ($plan->durations->count() > 1)
-                        <div class="flex gap-2 mb-5" id="pd-flex-durations">
-                            @foreach ($plan->durations as $duration)
-                                <button type="button"
-                                    class="pd-flex-dur-label flex-1 h-10 rounded-full border border-slate-200 text-[12.5px] font-bold text-slate-600 flex items-center justify-center transition-all {{ $duration->is_default ? 'pd-flex-dur-active' : '' }}"
-                                    data-duration-id="{{ $duration->id }}" data-days="{{ $duration->duration_days }}" data-rate="{{ $duration->growth_rate }}">
-                                    {{ $duration->label }}
-                                </button>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    <div class="flex items-center justify-between gap-3 mb-3">
-                        <button type="button" id="pd-amount-dec" aria-label="Decrease amount" class="w-10 h-10 shrink-0 rounded-full bg-slate-100 text-[#0A5C66] flex items-center justify-center active:scale-95 transition-all hover:bg-slate-200">
-                            <i class="bi bi-dash-lg"></i>
-                        </button>
-                        <span id="pd-amount-display" class="text-[28px] font-black text-[#0F172A] font-poppins">₹{{ number_format($flexMin, 0) }}</span>
-                        <button type="button" id="pd-amount-inc" aria-label="Increase amount" class="w-10 h-10 shrink-0 rounded-full bg-slate-100 text-[#0A5C66] flex items-center justify-center active:scale-95 transition-all hover:bg-slate-200">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
+                    
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-[14px] font-extrabold text-[#0D1F3C] font-poppins">Choose Your Investment</h3>
+                        <span class="text-[11px] font-extrabold text-[#0A5C66] flex items-center gap-1 cursor-pointer">
+                            Custom Amount <i class="bi bi-pencil-square text-[12px]"></i>
+                        </span>
                     </div>
 
-                    <input type="range" id="pd-amount-slider" min="{{ $flexMin }}" max="{{ $flexMax }}" step="{{ $flexStep }}" value="{{ $flexMin }}"
-                        class="w-full accent-[#0A5C66] mb-1.5" aria-label="Investment amount">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-4">
-                        <span>₹{{ number_format($flexMin, 0) }}</span>
-                        <span>₹{{ number_format($flexMax, 0) }}</span>
+                    <div class="text-center py-2">
+                        <span id="pd-amount-display" class="text-[34px] font-black text-[#0D1F3C] font-poppins leading-none">₹{{ number_format($flexMin, 0) }}</span>
+                        <span class="text-[13px] font-bold text-slate-400 font-poppins">/ Monthly</span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 mb-3">
-                        <div class="stat-card">
-                            <div class="icon bg-[#19B36B]/5 border border-[#19B36B]/10 text-[#19B36B]"><i class="bi bi-piggy-bank text-[18px]"></i></div>
-                            <div class="flex flex-col min-w-0"><span class="title">Expected Return</span><span id="pd-flex-return" class="value text-[#19B36B]">₹0</span></div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="icon bg-[#19B36B]/5 border border-[#19B36B]/10 text-[#19B36B]"><i class="bi bi-graph-up-arrow text-[18px]"></i></div>
-                            <div class="flex flex-col min-w-0"><span class="title">Daily Growth</span><span id="pd-flex-daily" class="value text-[#19B36B]">₹0</span></div>
-                        </div>
-                        <div class="stat-card col-span-2">
-                            <div class="icon bg-[#0A5C66]/5 border border-[#0A5C66]/10 text-[#0A5C66]"><i class="bi bi-calendar2-check text-[18px]"></i></div>
-                            <div class="flex flex-col min-w-0"><span class="title">Maturity Date</span><span id="pd-flex-maturity" class="value text-[#0A5C66]">-</span></div>
+                    <!-- Slider -->
+                    <div>
+                        <input type="range" id="pd-amount-slider" min="{{ $flexMin }}" max="{{ $flexMax }}" step="{{ $flexStep }}" value="{{ $flexMin }}"
+                            class="w-full accent-[#0A5C66] cursor-pointer h-2 bg-slate-100 rounded-lg">
+                        <div class="flex justify-between text-[11px] font-bold text-slate-400 mt-1">
+                            <span>₹{{ number_format($flexMin, 0) }}</span>
+                            <span>₹{{ number_format($flexMax, 0) }}</span>
                         </div>
                     </div>
 
-                    <div class="bg-[#0A5C66]/5 rounded-2xl p-4 border border-[#0A5C66]/10">
-                        <span class="text-[10.5px] font-bold text-[#0A5C66] uppercase tracking-wider font-poppins">Portfolio Preview</span>
-                        <div class="grid grid-cols-3 gap-2 mt-2.5 text-left">
-                            <div class="flex flex-col"><span class="text-[9.5px] font-semibold text-slate-400 uppercase">Current Balance</span><span class="text-[12.5px] font-black text-[#0A5C66] font-poppins">₹{{ number_format($balance, 0) }}</span></div>
-                            <div class="flex flex-col"><span class="text-[9.5px] font-semibold text-slate-400 uppercase">After Investment</span><span id="pd-flex-after" class="text-[12.5px] font-black text-[#0A5C66] font-poppins">₹{{ number_format(max(0, $balance - $flexMin), 0) }}</span></div>
-                            <div class="flex flex-col"><span class="text-[9.5px] font-semibold text-slate-400 uppercase">Expected Maturity</span><span id="pd-flex-maturity-value" class="text-[12.5px] font-black text-[#19B36B] font-poppins">₹0</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <input type="hidden" name="amount" id="pd-flex-amount-input" form="plan-purchase-form" value="{{ $flexMin }}">
-
-                <script>
-                (function () {
-                    var container = document.getElementById('pd-flex-calc');
-                    if (!container) return;
-
-                    var min = parseFloat(container.dataset.min);
-                    var max = parseFloat(container.dataset.max);
-                    var step = parseFloat(container.dataset.step) || 1;
-                    var balance = parseFloat(container.dataset.balance) || 0;
-
-                    var slider = document.getElementById('pd-amount-slider');
-                    var display = document.getElementById('pd-amount-display');
-                    var hiddenInput = document.getElementById('pd-flex-amount-input');
-                    var decBtn = document.getElementById('pd-amount-dec');
-                    var incBtn = document.getElementById('pd-amount-inc');
-                    var durationButtons = document.querySelectorAll('.pd-flex-dur-label');
-
-                    var returnEl = document.getElementById('pd-flex-return');
-                    var dailyEl = document.getElementById('pd-flex-daily');
-                    var maturityEl = document.getElementById('pd-flex-maturity');
-                    var afterEl = document.getElementById('pd-flex-after');
-                    var maturityValueEl = document.getElementById('pd-flex-maturity-value');
-                    var investBtnAmount = document.getElementById('pd-invest-btn-amount');
-
-                    function formatMoney(value) {
-                        return '₹' + Math.round(value).toLocaleString('en-IN');
-                    }
-
-                    function selectedDuration() {
-                        var active = document.querySelector('.pd-flex-dur-active');
-                        if (!active) return null;
-                        return { days: parseFloat(active.dataset.days), rate: parseFloat(active.dataset.rate) };
-                    }
-
-                    function recalc() {
-                        var amount = parseFloat(slider.value);
-                        display.textContent = formatMoney(amount);
-                        hiddenInput.value = amount;
-                        if (investBtnAmount) investBtnAmount.textContent = formatMoney(amount);
-                        afterEl.textContent = formatMoney(Math.max(0, balance - amount));
-
-                        var duration = selectedDuration();
-                        if (!duration) return;
-
-                        var years = duration.days / 365;
-                        var totalReturn = amount * (1 + (duration.rate / 100) * years);
-
-                        returnEl.textContent = formatMoney(totalReturn);
-                        dailyEl.textContent = formatMoney((totalReturn - amount) / duration.days);
-                        maturityValueEl.textContent = formatMoney(totalReturn);
-
-                        var maturityDate = new Date();
-                        maturityDate.setDate(maturityDate.getDate() + duration.days);
-                        maturityEl.textContent = maturityDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                    }
-
-                    slider.addEventListener('input', recalc);
-
-                    decBtn.addEventListener('click', function () {
-                        slider.value = Math.max(min, parseFloat(slider.value) - step);
-                        recalc();
-                    });
-                    incBtn.addEventListener('click', function () {
-                        slider.value = Math.min(max, parseFloat(slider.value) + step);
-                        recalc();
-                    });
-
-                    durationButtons.forEach(function (button) {
-                        button.addEventListener('click', function () {
-                            durationButtons.forEach(function (b) { b.classList.remove('pd-flex-dur-active'); });
-                            button.classList.add('pd-flex-dur-active');
-
-                            var radio = document.getElementById('pd-dur-' + button.dataset.durationId);
-                            if (radio) radio.checked = true;
-
-                            recalc();
-                        });
-                    });
-
-                    recalc();
-                })();
-                </script>
-              @endif
-            @elseif ($plan->durations->isNotEmpty())
-                {{-- Estimated Calculator + Portfolio Preview (pure CSS, radios
-                     + :has() - see .pd-tabs above for the same technique).
-                     Amount is fixed per plan, durations are a small admin-set
-                     list, so "live" calculation is really "pick a duration,
-                     see its precomputed numbers" - no JS needed. --}}
-                <div class="pd-calc">
-                    <style>
-                        .pd-calc-pane { display: none; }
-                        @foreach ($plan->durations as $duration)
-                        .pd-calc:has(#pd-dur-{{ $duration->id }}:checked) .pd-calc-pane-{{ $duration->id }} { display: block; }
-                        .pd-calc:has(#pd-dur-{{ $duration->id }}:checked) .pd-calc-label-{{ $duration->id }} {
-                            background: linear-gradient(to right, #0A5C66, #0E7481); color: #fff; border-color: transparent;
-                        }
-                        @endforeach
-                    </style>
-
-                    <div class="bg-white rounded-[24px] border border-slate-100 shadow-sm p-5">
-                        <h4 class="text-[14px] font-black text-[#0A5C66] font-poppins mb-3">Estimated Calculator</h4>
-
-                        <div class="flex gap-2 mb-4">
-                            @foreach ($plan->durations as $duration)
-                                <label for="pd-dur-{{ $duration->id }}" class="pd-calc-label-{{ $duration->id }} flex-1 h-10 rounded-full border border-slate-200 text-[12.5px] font-bold text-slate-600 flex items-center justify-center cursor-pointer transition-all">{{ $duration->label }}</label>
-                            @endforeach
-                        </div>
-
-                        @foreach ($plan->durations as $duration)
-                            @php
-                                $afterInvestment = max(0, $balance - (float) $plan->investment_amount);
-                            @endphp
-                            <div class="pd-calc-pane pd-calc-pane-{{ $duration->id }} space-y-3">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="stat-card">
-                                        <div class="icon bg-[#19B36B]/5 border border-[#19B36B]/10 text-[#19B36B]"><i class="bi bi-piggy-bank text-[18px]"></i></div>
-                                        <div class="flex flex-col min-w-0"><span class="title">Expected Return</span><span class="value text-[#19B36B]">₹{{ number_format((float) $duration->total_return, 2) }}</span></div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="icon bg-[#19B36B]/5 border border-[#19B36B]/10 text-[#19B36B]"><i class="bi bi-graph-up-arrow text-[18px]"></i></div>
-                                        <div class="flex flex-col min-w-0"><span class="title">Daily Growth</span><span class="value text-[#19B36B]">₹{{ number_format((float) $duration->daily_profit, 2) }}</span></div>
-                                    </div>
-                                    <div class="stat-card col-span-2">
-                                        <div class="icon bg-[#0A5C66]/5 border border-[#0A5C66]/10 text-[#0A5C66]"><i class="bi bi-calendar2-check text-[18px]"></i></div>
-                                        <div class="flex flex-col min-w-0"><span class="title">Maturity Date</span><span class="value text-[#0A5C66]">{{ $duration->projectedMaturityDate()->format('d M Y') }}</span></div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-[#0A5C66]/5 rounded-2xl p-4 border border-[#0A5C66]/10">
-                                    <span class="text-[10.5px] font-bold text-[#0A5C66] uppercase tracking-wider font-poppins">Portfolio Preview</span>
-                                    <div class="grid grid-cols-3 gap-2 mt-2.5 text-left">
-                                        <div class="flex flex-col"><span class="text-[9.5px] font-semibold text-slate-400 uppercase">Current Balance</span><span class="text-[12.5px] font-black text-[#0A5C66] font-poppins">₹{{ number_format($balance, 0) }}</span></div>
-                                        <div class="flex flex-col"><span class="text-[9.5px] font-semibold text-slate-400 uppercase">After Investment</span><span class="text-[12.5px] font-black text-[#0A5C66] font-poppins">₹{{ number_format($afterInvestment, 0) }}</span></div>
-                                        <div class="flex flex-col"><span class="text-[9.5px] font-semibold text-slate-400 uppercase">Expected Maturity</span><span class="text-[12.5px] font-black text-[#19B36B] font-poppins">₹{{ number_format((float) $duration->total_return, 0) }}</span></div>
-                                    </div>
+                    <!-- Live Projection Calculation Card -->
+                    <div class="bg-[#F6FAFA] p-4 rounded-2xl border border-[#E0EFEF]">
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <div>
+                                <p class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">
+                                    <span id="pd-calc-summary-amount">₹{{ number_format($flexMin, 0) }}</span> / Monthly
+                                </p>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">for 1 Year</p>
+                            </div>
+                            <div class="text-right">
+                                <p id="pd-flex-return" class="text-[20px] font-black text-[#19B36B] font-poppins leading-none">₹{{ number_format($flexMin * 1.25, 0) }}+</p>
+                                <div class="flex items-center justify-end gap-2 text-[10px] font-bold text-slate-500 mt-0.5">
+                                    <span>Investment: <strong id="pd-calc-invested" class="text-slate-800">₹{{ number_format($flexMin * 12, 0) }}</strong></span>
+                                    <span>Profit: <strong id="pd-calc-profit" class="text-[#19B36B]">₹{{ number_format($flexMin * 0.25 * 12, 0) }}+</strong></span>
                                 </div>
                             </div>
-                        @endforeach
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-medium text-center mt-2 border-t border-slate-200/50 pt-1.5">
+                            *Projected value based on selected plan and expected returns.
+                        </p>
                     </div>
                 </div>
             @endif
 
-            @if ($plan->highlights)
-                {{-- Plan Highlights chips --}}
-                <div class="flex flex-wrap gap-2">
-                    @foreach ($plan->highlights as $highlight)
-                        <span class="inline-flex items-center gap-1.5 bg-[#0A5C66]/5 border border-[#0A5C66]/10 text-[#0A5C66] text-[10.5px] font-bold px-3 py-1.5 rounded-full">
-                            <i class="bi bi-stars text-[10px]"></i> {{ $highlight }}
-                        </span>
-                    @endforeach
-                    @if ($plan->risk_level)
-                        <span class="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10.5px] font-bold px-3 py-1.5 rounded-full">
-                            <i class="bi bi-shield-check text-[10px]"></i> {{ $plan->risk_level }} Risk
-                        </span>
-                    @endif
-                </div>
-            @endif
-
-            {{-- Progress Timeline - preview by default, highlights the real
-                 current step once the viewer actually holds this plan. --}}
-            @php
-                $timelineSteps = ['Deposit', 'Investment Active', 'Daily Growth', 'Maturity', 'Withdraw'];
-                $activeStepIndex = null;
-                if ($existingHolding) {
-                    $activeStepIndex = $existingHolding->status === \App\Models\UserPlan::STATUS_WITHDRAWN ? 4
-                        : ($existingHolding->matures_at && $existingHolding->matures_at->isPast() ? 3 : 1);
-                }
-            @endphp
-            <div class="bg-white rounded-[24px] border border-slate-100 shadow-sm p-5">
-                <h4 class="text-[14px] font-black text-[#0A5C66] font-poppins mb-4">Investment Journey</h4>
-                <div class="flex items-start">
-                    @foreach ($timelineSteps as $index => $step)
-                        <div class="flex flex-col items-center gap-1.5 flex-1">
-                            <div @class([
-                                'w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold',
-                                'bg-[#0A5C66] text-white' => $activeStepIndex !== null && $index <= $activeStepIndex,
-                                'bg-slate-100 text-slate-400' => $activeStepIndex === null || $index > $activeStepIndex,
-                            ])>
-                                @if ($activeStepIndex !== null && $index < $activeStepIndex)
-                                    <i class="bi bi-check-lg"></i>
-                                @else
-                                    {{ $index + 1 }}
-                                @endif
-                            </div>
-                            <span class="text-[9px] font-bold text-slate-500 text-center leading-tight font-poppins">{{ $step }}</span>
+            <!-- 5. WHY CHOOSE THIS PLAN? (5 HORIZONTAL CARDS) -->
+            <div>
+                <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins mb-3">Why choose this plan?</h4>
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
+                        <div class="w-8 h-8 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-1.5">
+                            <i class="bi bi-shield-check text-[15px]"></i>
                         </div>
-                        @if (! $loop->last)
-                            <div @class([
-                                'h-[2px] flex-1 mt-3.5 mx-[-6px]',
-                                'bg-[#0A5C66]' => $activeStepIndex !== null && $index < $activeStepIndex,
-                                'bg-slate-100' => $activeStepIndex === null || $index >= $activeStepIndex,
-                            ])></div>
-                        @endif
-                    @endforeach
+                        <p class="text-[10.5px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">Secure Investment</p>
+                        <p class="text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">Bank grade security</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
+                        <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-1.5">
+                            <i class="bi bi-[#currency-rupee] bi-cash-coin text-[15px]"></i>
+                        </div>
+                        <p class="text-[10.5px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">Daily Profit</p>
+                        <p class="text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">Earn profit every day</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
+                        <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-1.5">
+                            <i class="bi bi-lightning-charge text-[15px]"></i>
+                        </div>
+                        <p class="text-[10.5px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">Instant Activation</p>
+                        <p class="text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">Start earning instantly</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
+                        <div class="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-1.5">
+                            <i class="bi bi-lock text-[15px]"></i>
+                        </div>
+                        <p class="text-[10.5px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">End-to-End Encryption</p>
+                        <p class="text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">256-bit protection</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center col-span-2 sm:col-span-1">
+                        <div class="w-8 h-8 rounded-full bg-teal-50 text-[#0A5C66] flex items-center justify-center mb-1.5">
+                            <i class="bi bi-headset text-[15px]"></i>
+                        </div>
+                        <p class="text-[10.5px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">24x7 Support</p>
+                        <p class="text-[8.5px] text-slate-400 font-medium mt-0.5 leading-tight">We are always here</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- ================= Real tab switcher (radios + :has(), no JS
-                 needed for the main app) - see .pd-tabs rules in app.css ================= -->
-            <div class="pd-tabs">
-                <input type="radio" name="pd-tab" id="pd-tab-summary" class="hidden" checked>
-                <input type="radio" name="pd-tab" id="pd-tab-benefits" class="hidden">
-                <input type="radio" name="pd-tab" id="pd-tab-details" class="hidden">
-                <input type="radio" name="pd-tab" id="pd-tab-faqs" class="hidden">
-                <input type="radio" name="pd-tab" id="pd-tab-terms" class="hidden">
-
-                <div class="w-full h-[46px] p-1 bg-slate-100 rounded-full flex items-center gap-0.5 border border-slate-200/40 relative select-none shrink-0 overflow-x-auto hide-scrollbar">
-                    <label for="pd-tab-summary" class="pd-tab-label pd-tab-label-summary flex-1 min-w-[62px] h-full rounded-full text-[12.5px] tracking-wide flex items-center justify-center cursor-pointer transition-all whitespace-nowrap px-2">Summary</label>
-                    <label for="pd-tab-benefits" class="pd-tab-label pd-tab-label-benefits flex-1 min-w-[62px] h-full rounded-full text-[12.5px] tracking-wide flex items-center justify-center cursor-pointer transition-all whitespace-nowrap px-2">Benefits</label>
-                    <label for="pd-tab-details" class="pd-tab-label pd-tab-label-details flex-1 min-w-[62px] h-full rounded-full text-[12.5px] tracking-wide flex items-center justify-center cursor-pointer transition-all whitespace-nowrap px-2">Details</label>
-                    <label for="pd-tab-faqs" class="pd-tab-label pd-tab-label-faqs flex-1 min-w-[62px] h-full rounded-full text-[12.5px] tracking-wide flex items-center justify-center cursor-pointer transition-all whitespace-nowrap px-2">FAQs</label>
-                    <label for="pd-tab-terms" class="pd-tab-label pd-tab-label-terms flex-1 min-w-[62px] h-full rounded-full text-[12.5px] tracking-wide flex items-center justify-center cursor-pointer transition-all whitespace-nowrap px-2">Terms</label>
-                </div>
-
-                <!-- Tab Content Area -->
-                <div class="w-full space-y-[14px] mt-[14px]">
-
-                <!-- SUMMARY -->
-                <div class="pd-tab-pane pd-tab-pane-summary">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="stat-card">
-                            <div class="icon bg-[#0A5C66]/5 border border-[#0A5C66]/10 text-[#0A5C66]">
-                                <i class="bi bi-graph-up-arrow text-[18px] text-[#0A5C66]"></i>
-                            </div>
-                            <div class="flex flex-col min-w-0">
-                                <span class="title">Expected Growth</span>
-                                <span class="value text-[#0A5C66]">{{ $p['expectedGrowth'] }}</span>
-                            </div>
+            <!-- 6. SOCIAL PROOF & CONSENT CHECKBOX -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs space-y-3">
+                <div class="grid grid-cols-3 gap-2 text-center divide-x divide-slate-100">
+                    <div class="px-1">
+                        <div class="flex items-center justify-center gap-1 text-[#19B36B] mb-0.5">
+                            <i class="bi bi-patch-check-fill text-[14px]"></i>
+                            <span class="text-[12px] font-black font-poppins">1,50,000+</span>
                         </div>
-                        <div class="stat-card">
-                            <div class="icon bg-[#0A5C66]/5 border border-[#0A5C66]/10 text-[#0A5C66]">
-                                <i class="bi bi-calendar2-check text-[18px] text-[#0A5C66]"></i>
-                            </div>
-                            <div class="flex flex-col min-w-0">
-                                <span class="title">Lock Duration</span>
-                                <span class="value text-[#0A5C66]">{{ $p['lockDuration'] }}</span>
-                            </div>
+                        <p class="text-[8.5px] text-slate-400 font-bold uppercase">Trusted Investors</p>
+                    </div>
+                    <div class="px-1">
+                        <div class="flex items-center justify-center gap-1 text-amber-500 mb-0.5">
+                            <i class="bi bi-star-fill text-[13px]"></i>
+                            <span class="text-[12px] font-black font-poppins">4.8 / 5</span>
                         </div>
-                        <div class="stat-card">
-                            <div class="icon bg-[#19B36B]/5 border border-[#19B36B]/10 text-[#19B36B]">
-                                <i class="bi bi-wallet2 text-[18px] text-[#19B36B]"></i>
-                            </div>
-                            <div class="flex flex-col min-w-0">
-                                <span class="title">Daily Profit</span>
-                                <span class="value text-[#19B36B]">{{ $p['dailyProfit'] }}</span>
-                            </div>
+                        <p class="text-[8.5px] text-slate-400 font-bold uppercase">Investor Rating</p>
+                    </div>
+                    <div class="px-1">
+                        <div class="flex items-center justify-center gap-1 text-[#0A5C66] mb-0.5">
+                            <i class="bi bi-shield-lock-fill text-[14px]"></i>
+                            <span class="text-[12px] font-black font-poppins">100% Safe</span>
                         </div>
-                        <div class="stat-card">
-                            <div class="icon bg-[#19B36B]/5 border border-[#19B36B]/10 text-[#19B36B]">
-                                <i class="bi bi-piggy-bank text-[18px] text-[#19B36B]"></i>
-                            </div>
-                            <div class="flex flex-col min-w-0">
-                                <span class="title">Total Return</span>
-                                <span class="value text-[#19B36B]">{{ $p['totalReturn'] }}</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="icon bg-[#0A5C66]/5 border border-[#0A5C66]/10 text-[#0A5C66]">
-                                <i class="bi bi-wallet2 text-[18px] text-[#0A5C66]"></i>
-                            </div>
-                            <div class="flex flex-col min-w-0">
-                                <span class="title">Plan Investment</span>
-                                <span class="value text-[#0A5C66]">{{ $p['planInvestment'] }}</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="icon bg-[#19B36B]/5 border border-[#19B36B]/10 text-[#19B36B]">
-                                <i class="bi bi-shield-check text-[18px] text-[#19B36B]"></i>
-                            </div>
-                            <div class="flex flex-col min-w-0">
-                                <span class="title">Secure Withdrawal</span>
-                                <span class="value text-[#19B36B]">Instant & Safe</span>
-                            </div>
-                        </div>
+                        <p class="text-[8.5px] text-slate-400 font-bold uppercase">Money is Safe</p>
                     </div>
                 </div>
 
-                <!-- BENEFITS -->
-                <div class="pd-tab-pane pd-tab-pane-benefits">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2">
-                            <div class="w-8 h-8 rounded-full bg-[#19B36B]/8 flex items-center justify-center text-[#19B36B]">
-                                <i class="bi bi-graph-up-arrow text-[18px]"></i>
-                            </div>
-                            <span class="text-[12px] font-black text-[#0A5C66] font-poppins">Verified Performance</span>
-                            <span class="text-[10px] text-slate-400 font-medium font-poppins leading-normal">Stable historical growth tracking</span>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2">
-                            <div class="w-8 h-8 rounded-full bg-[#3CCF91]/12 flex items-center justify-center text-[#3CCF91]">
-                                <i class="bi bi-stars text-[18px]"></i>
-                            </div>
-                            <span class="text-[12px] font-black text-[#0A5C66] font-poppins">Beginner Friendly</span>
-                            <span class="text-[10px] text-slate-400 font-medium font-poppins leading-normal">Start investing with simple steps</span>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2">
-                            <div class="w-8 h-8 rounded-full bg-[#0A5C66]/5 flex items-center justify-center text-[#0A5C66]">
-                                <i class="bi bi-shield-check text-[18px]"></i>
-                            </div>
-                            <span class="text-[12px] font-black text-[#0A5C66] font-poppins">Trusted Returns</span>
-                            <span class="text-[10px] text-slate-400 font-medium font-poppins leading-normal">Protected investment experience</span>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2">
-                            <div class="w-8 h-8 rounded-full bg-[#0A5C66]/5 flex items-center justify-center text-[#0A5C66]">
-                                <i class="bi bi-bullseye text-[18px]"></i>
-                            </div>
-                            <span class="text-[12px] font-black text-[#0A5C66] font-poppins">Smart Goal Planning</span>
-                            <span class="text-[10px] text-slate-400 font-medium font-poppins leading-normal">Designed for long-term goals</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- DETAILS -->
-                <div class="pd-tab-pane pd-tab-pane-details">
-                    <div class="bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm space-y-4 text-left">
-                        <div class="flex justify-between items-center py-2.5 border-b border-slate-100/50">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-poppins">Plan Category</span>
-                            <span class="text-[13px] font-black text-[#0A5C66] font-poppins">{{ $p['badge'] }}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2.5 border-b border-slate-100/50">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-poppins">Investment Type</span>
-                            <span class="text-[13px] font-black text-[#0A5C66] font-poppins">One-Time Goal Plan</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2.5 border-b border-slate-100/50">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-poppins">Maturity Period</span>
-                            <span class="text-[13px] font-black text-[#0A5C66] font-poppins">{{ $p['lockDuration'] }}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2.5 border-b border-slate-100/50">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-poppins">Withdrawal Policy</span>
-                            <span class="text-[13px] font-black text-[#0A5C66] font-poppins">{{ $p['lockDuration'] === 'Flexible' ? 'Withdraw anytime' : 'Available after lock-in ends' }}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2.5 border-b border-slate-100/50">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-poppins">Activation Time</span>
-                            <span class="text-[13px] font-black text-[#0A5C66] font-poppins">Instant after successful purchase</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2.5 border-b border-slate-100/50">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-poppins">Support</span>
-                            <span class="text-[13px] font-black text-[#0A5C66] font-poppins">24×7 Help Available</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2.5">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-poppins">Risk Level</span>
-                            <span class="text-[13px] font-black text-[#19B36B] font-poppins">{{ $plan->risk_level ?? 'Low' }} Risk</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- FAQS -->
-                <div class="pd-tab-pane pd-tab-pane-faqs">
-                    @php
-                        $faqs = $plan->faqs ?: [
-                            ['q' => 'How returns work?', 'a' => 'Returns are estimated based on selected plan performance and payout duration.'],
-                            ['q' => 'Can I withdraw anytime?', 'a' => 'Flexible plans allow easier withdrawals while locked plans unlock after maturity.'],
-                            ['q' => 'Is my investment secure?', 'a' => 'Your transactions and account activity are protected with secure verification systems.'],
-                            ['q' => 'When do payouts start?', 'a' => 'Daily growth tracking and payout timelines begin after successful activation.'],
-                        ];
-                    @endphp
-                    <div class="divide-y divide-slate-100 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                        @foreach ($faqs as $i => $faq)
-                            <div class="faq-item">
-                                <label class="w-full px-5 py-4 flex items-center justify-between text-left cursor-pointer active:bg-slate-50 transition-colors">
-                                    <input type="checkbox" class="hidden faq-check">
-                                    <span class="text-[13px] font-extrabold text-[#0A5C66] font-poppins pr-3">{{ $faq['q'] }}</span>
-                                    <i class="bi bi-chevron-down faq-chevron text-[16px] text-slate-400 shrink-0"></i>
-                                </label>
-                                <div class="faq-answer">
-                                    <p class="px-5 pb-4 text-[12px] text-slate-500 font-medium leading-relaxed font-poppins">{{ $faq['a'] }}</p>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- TERMS -->
-                <div class="pd-tab-pane pd-tab-pane-terms">
-                    <div class="bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm text-left">
-                        @if ($plan->terms)
-                            <p class="text-[12.5px] text-slate-600 font-medium leading-relaxed font-poppins whitespace-pre-line">{{ $plan->terms }}</p>
-                        @else
-                            <p class="text-[12.5px] text-slate-400 font-medium leading-relaxed font-poppins">Standard GullakPe investment terms apply to this plan. Returns shown are estimated and may vary depending on plan conditions.</p>
-                        @endif
-                    </div>
-                </div>
-
+                <div class="flex items-start gap-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500 font-medium leading-normal">
+                    <input type="checkbox" checked id="terms-check" class="accent-[#0A5C66] mt-0.5 rounded">
+                    <label for="terms-check" class="cursor-pointer">
+                        By proceeding, I agree to GullakPe's <a href="#" class="underline text-[#0A5C66] font-bold">Terms &amp; Conditions</a>, <a href="#" class="underline text-[#0A5C66] font-bold">Privacy Policy</a>, <a href="#" class="underline text-[#0A5C66] font-bold">Disclaimer</a> and consent to KYC processing.
+                    </label>
                 </div>
             </div>
 
-            <!-- BUY SECTION -->
-            @php
-                $potStillOpen = $activePot
-                    ? ((float) $plan->max_investment_amount - (float) $activePot->invested_amount) > 0
-                    : null;
-            @endphp
-            <div class="buy-action-card">
-                @auth
-                    @if ($activePot && ! $potStillOpen)
-                        <div class="w-full h-14 rounded-full bg-slate-100 text-slate-400 font-black text-[15px] font-poppins flex items-center justify-center gap-2">
-                            <i class="bi bi-check-circle-fill"></i> Maximum Investment Reached
+            <!-- 7. SECTION: "Higher Returns. Same Safety." -->
+            <div class="pt-3 text-center">
+                <!-- Title Header -->
+                <div class="inline-flex items-center justify-center gap-2 mb-4">
+                    <span class="w-6 h-[1px] bg-amber-300"></span>
+                    <h2 class="text-[20px] sm:text-[24px] font-extrabold text-[#0D1F3C] font-poppins leading-tight">
+                        Higher Returns.<br>
+                        <span class="text-amber-500">Same Safety.</span>
+                    </h2>
+                    <span class="w-6 h-[1px] bg-amber-300"></span>
+                </div>
+
+                <!-- 3 Feature Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
+                            <i class="bi bi-box-arrow-down text-[22px]"></i>
                         </div>
-                    @else
-                        <form id="plan-purchase-form" method="POST" action="{{ route('plans.purchase', $plan) }}">
-                            @csrf
-                            <button type="submit" class="w-full h-14 rounded-full bg-gradient-to-r from-[#0A5C66] to-[#0E7481] text-white font-black text-[15px] font-poppins flex items-center justify-center gap-2 shadow-lg shadow-[#0A5C66]/20 active:scale-[0.98] transition-all">
-                                @if ($activePot)
-                                    <span>Add <span id="pd-invest-btn-amount">₹{{ number_format($potDefaultAdd, 0) }}</span> to Investment</span>
-                                @elseif ($plan->isFlexibleAmount())
-                                    <span>Invest Now · <span id="pd-invest-btn-amount">₹{{ number_format((float) $plan->min_investment_amount, 0) }}</span></span>
-                                @else
-                                    <span>Invest Now · {{ $p['planInvestment'] }}</span>
-                                @endif
-                                <i class="bi bi-arrow-right"></i>
-                            </button>
-                            <p class="text-center text-[11px] text-slate-400 font-semibold font-poppins mt-2">Wallet balance: ₹{{ number_format($balance, 2) }} · Fast • Secure • Verified</p>
-                        </form>
-                    @endif
-                @else
-                    <a href="{{ route('login') }}" class="w-full h-14 rounded-full bg-gradient-to-r from-[#0A5C66] to-[#0E7481] text-white font-black text-[15px] font-poppins flex items-center justify-center gap-2 shadow-lg shadow-[#0A5C66]/20 active:scale-[0.98] transition-all">
-                        <span>Log In to Invest · {{ $p['planInvestment'] }}</span>
-                        <i class="bi bi-arrow-right"></i>
-                    </a>
-                @endauth
-            </div>
+                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Withdraw Anytime</h4>
+                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Withdraw your investment whenever eligible.</p>
+                    </div>
 
-            <!-- Trust & Security Strip -->
-            <div class="flex flex-wrap items-center justify-center gap-2 pt-2 pb-1">
-                <div class="flex items-center gap-1.5 bg-[#0A5C66]/5 border border-[#0A5C66]/10 px-3 py-1.5 rounded-full shadow-sm">
-                    <i class="bi bi-shield-check text-[14px] text-[#0A5C66]"></i>
-                    <span class="text-[10px] font-bold text-[#0A5C66] font-poppins">Secure Encryption</span>
-                </div>
-                <div class="flex items-center gap-1.5 bg-[#0A5C66]/5 border border-[#0A5C66]/10 px-3 py-1.5 rounded-full shadow-sm">
-                    <i class="bi bi-lock-fill text-[14px] text-[#0A5C66]"></i>
-                    <span class="text-[10px] font-bold text-[#0A5C66] font-poppins">Protected Transactions</span>
-                </div>
-                <div class="flex items-center gap-1.5 bg-[#0A5C66]/5 border border-[#0A5C66]/10 px-3 py-1.5 rounded-full shadow-sm">
-                    <i class="bi bi-check-circle-fill text-[14px] text-[#0A5C66]"></i>
-                    <span class="text-[10px] font-bold text-[#0A5C66] font-poppins">Verified Platform</span>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
+                            <i class="bi bi-shield-check text-[22px]"></i>
+                        </div>
+                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Secured Investment</h4>
+                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Your investment is backed by verified &amp; secure assets.</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
+                            <i class="bi bi-calendar-event text-[22px]"></i>
+                        </div>
+                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Regular Returns</h4>
+                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Profit is credited as per selected plan.</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Support Section -->
-            <div class="bg-white rounded-[24px] border border-slate-100 shadow-sm p-4 flex items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-[#0E7680]/10 flex items-center justify-center text-[#0E7680] shrink-0">
-                        <i class="bi bi-headset text-[20px]"></i>
+            <!-- 8. SECTION: "Historical Returns Growth" (AREA CHART) -->
+            <div class="bg-white p-4 sm:p-6 rounded-[24px] border border-slate-100 shadow-2xs space-y-4">
+                <div class="flex items-center justify-center gap-3">
+                    <span class="w-12 h-[1px] bg-slate-200"></span>
+                    <h3 class="text-[15px] font-extrabold text-[#0D1F3C] font-poppins">Historical Returns Growth</h3>
+                    <span class="w-12 h-[1px] bg-slate-200"></span>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2">
+                    <div class="shrink-0">
+                        <p class="text-[12px] font-bold text-slate-500 font-poppins">Investment Growth</p>
+                        <p class="text-[34px] font-black text-[#19B36B] font-poppins leading-none mt-1">172%</p>
+                        <p class="text-[11px] font-bold text-slate-400 font-poppins mt-1">in last 5 years</p>
+                    </div>
+
+                    <!-- SVG Gradient Growth Curve Chart -->
+                    <div class="w-full sm:w-2/3 h-[160px] relative">
+                        <svg class="w-full h-full overflow-visible" viewBox="0 0 400 140" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#19B36B" stop-opacity="0.35"/>
+                                    <stop offset="100%" stop-color="#19B36B" stop-opacity="0.0"/>
+                                </linearGradient>
+                            </defs>
+
+                            <!-- Y Grid lines -->
+                            <line x1="40" y1="20" x2="390" y2="20" stroke="#f1f5f9" stroke-dasharray="3,3" />
+                            <line x1="40" y1="50" x2="390" y2="50" stroke="#f1f5f9" stroke-dasharray="3,3" />
+                            <line x1="40" y1="80" x2="390" y2="80" stroke="#f1f5f9" stroke-dasharray="3,3" />
+                            <line x1="40" y1="110" x2="390" y2="110" stroke="#f1f5f9" stroke-dasharray="3,3" />
+
+                            <!-- Y Axis labels -->
+                            <text x="0" y="25" fill="#94a3b8" font-size="9" font-weight="bold">₹1,50,000</text>
+                            <text x="0" y="55" fill="#94a3b8" font-size="9" font-weight="bold">₹1,00,000</text>
+                            <text x="0" y="85" fill="#94a3b8" font-size="9" font-weight="bold">₹50,000</text>
+                            <text x="0" y="115" fill="#94a3b8" font-size="9" font-weight="bold">₹0</text>
+
+                            <!-- Gradient Area -->
+                            <polygon points="50,85 115,88 180,78 245,65 310,50 380,18 380,110 50,110" fill="url(#chartGrad)" />
+
+                            <!-- Curve Line -->
+                            <path d="M 50 85 Q 80 87, 115 88 T 180 78 T 245 65 T 310 50 T 380 18" fill="none" stroke="#0A5C66" stroke-width="3" stroke-linecap="round" />
+
+                            <!-- Data Points & Labels -->
+                            <circle cx="115" cy="88" r="4" fill="#0A5C66" />
+                            <text x="100" y="78" fill="#0D1F3C" font-size="8" font-weight="bold">₹50,151</text>
+
+                            <circle cx="180" cy="78" r="4" fill="#0A5C66" />
+                            <text x="165" y="68" fill="#0D1F3C" font-size="8" font-weight="bold">₹48,099</text>
+
+                            <circle cx="245" cy="65" r="4" fill="#0A5C66" />
+                            <text x="230" y="55" fill="#0D1F3C" font-size="8" font-weight="bold">₹55,017</text>
+
+                            <circle cx="310" cy="50" r="4" fill="#0A5C66" />
+                            <text x="295" y="40" fill="#0D1F3C" font-size="8" font-weight="bold">₹63,203</text>
+
+                            <circle cx="380" cy="18" r="5" fill="#19B36B" />
+                            <text x="345" y="10" fill="#19B36B" font-size="9" font-weight="extrabold">₹1,36,570</text>
+                        </svg>
+
+                        <!-- X Axis Years -->
+                        <div class="flex justify-between text-[10px] font-bold text-slate-400 pl-10 pr-2 mt-1">
+                            <span>2020</span>
+                            <span>2021</span>
+                            <span>2022</span>
+                            <span>2023</span>
+                            <span>2024</span>
+                            <span>2025</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-[9px] text-slate-400 font-medium text-center border-t border-slate-100 pt-2">
+                    Past performance is for illustration only and does not guarantee future returns.
+                </p>
+            </div>
+
+            <!-- 9. SECTION: "Real Investment. Real Benefits." -->
+            <div class="pt-2 text-center">
+                <div class="inline-flex items-center justify-center gap-3 mb-4">
+                    <span class="w-8 h-[1px] bg-slate-200"></span>
+                    <h3 class="text-[15px] font-extrabold text-[#0D1F3C] font-poppins">Real Investment. Real Benefits.</h3>
+                    <span class="w-8 h-[1px] bg-slate-200"></span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-2.5">
+                            <i class="bi bi-[#currency-rupee] bi-piggy-bank text-[22px]"></i>
+                        </div>
+                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Start from ₹199</h4>
+                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Minimum investment starts at ₹199.</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-teal-50 text-[#0A5C66] flex items-center justify-center mb-2.5">
+                            <i class="bi bi-arrow-repeat text-[22px]"></i>
+                        </div>
+                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Withdraw Anytime</h4>
+                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Flexible withdrawals as per plan terms.</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
+                            <i class="bi bi-shield-check text-[22px]"></i>
+                        </div>
+                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Safe &amp; Secure</h4>
+                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Bank-grade encrypted investment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10. SECTION: "Why Trust GullakPe" (WITH LAUREL WREATH) -->
+            <div class="pt-2 text-center">
+                <div class="inline-flex items-center justify-center gap-2 mb-4">
+                    <span class="text-amber-500 text-[18px]">🌿</span>
+                    <h3 class="text-[17px] font-black text-[#0D1F3C] font-poppins">Why Trust GullakPe</h3>
+                    <span class="text-amber-500 text-[18px]">🌿</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
+                            <i class="bi bi-patch-check-fill text-[22px]"></i>
+                        </div>
+                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Verified Platform</h4>
+                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Trusted digital investment experience.</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
+                            <i class="bi bi-shield-lock-fill text-[22px]"></i>
+                        </div>
+                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">Secure Plans</h4>
+                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">All plans are protected with bank-grade encryption.</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center mb-2.5">
+                            <i class="bi bi-lock-fill text-[22px]"></i>
+                        </div>
+                        <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins">100% Safe</h4>
+                        <p class="text-[10.5px] text-slate-400 font-medium mt-1 leading-relaxed">Your investment stays safe &amp; protected.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 11. SECURITY GRADIENT BANNER -->
+            <div class="bg-gradient-to-r from-[#032128] via-[#0A5C66] to-[#042A33] rounded-[22px] p-4 text-white flex items-center justify-between gap-3 shadow-md relative overflow-hidden">
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0">
+                        <i class="bi bi-shield-fill-check text-[22px] text-emerald-400"></i>
                     </div>
                     <div>
-                        <h5 class="text-[13px] font-black text-[#0A5C66] font-poppins">Need Help?</h5>
-                        <p class="text-[10.5px] text-slate-500 font-medium font-poppins leading-normal">Our support team is available to assist your goal journey.</p>
+                        <p class="text-[13px] font-extrabold font-poppins leading-tight">Your money is protected</p>
+                        <p class="text-[11px] text-white/80 font-medium leading-tight">with advanced security.</p>
                     </div>
                 </div>
-                <button onclick="window.contactSupport()" class="shrink-0 bg-[#0A5C66] text-white font-extrabold text-[11px] px-3.5 py-2.5 rounded-full active:scale-95 transition-all shadow-md shadow-[#0A5C66]/10 font-poppins">Contact Support</button>
+                <span class="bg-white text-emerald-600 font-extrabold text-[11px] px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1 shrink-0 relative z-10">
+                    <i class="bi bi-check-circle-fill text-[12px]"></i> Verified
+                </span>
             </div>
 
-            <!-- Legal Links -->
-            <div class="flex items-center justify-center gap-3 text-[10.5px] font-bold text-[#0A5C66] font-poppins opacity-60 pt-2">
-                <a href="#privacy" onclick="window.showLegal('Privacy Policy'); return false;" class="hover:underline hover:opacity-100 transition-opacity">Privacy Policy</a>
-                <span class="w-1 h-1 rounded-full bg-[#0A5C66]/30"></span>
-                <a href="#terms" onclick="window.showLegal('Terms & Conditions'); return false;" class="hover:underline hover:opacity-100 transition-opacity">Terms & Conditions</a>
-                <span class="w-1 h-1 rounded-full bg-[#0A5C66]/30"></span>
-                <a href="#refunds" onclick="window.showLegal('Refund Policy'); return false;" class="hover:underline hover:opacity-100 transition-opacity">Refund Policy</a>
-                <span class="w-1 h-1 rounded-full bg-[#0A5C66]/30"></span>
-                <a href="#support" onclick="window.contactSupport(); return false;" class="hover:underline hover:opacity-100 transition-opacity">Help & Support</a>
+            <!-- 12. FREQUENTLY ASKED QUESTIONS ACCORDION -->
+            <div class="bg-white rounded-[24px] border border-slate-100 shadow-2xs p-4 sm:p-5 space-y-3">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <span class="w-8 h-[1px] bg-slate-200"></span>
+                    <h3 class="text-[15px] font-extrabold text-[#0D1F3C] font-poppins">Frequently Asked Questions</h3>
+                    <span class="w-8 h-[1px] bg-slate-200"></span>
+                </div>
+
+                @php
+                    $faqs = [
+                        ['q' => 'How do I earn profit?', 'a' => 'Profit is calculated based on your invested amount and plan growth rate, credited directly to your GullakPe wallet.'],
+                        ['q' => 'Is my investment safe?', 'a' => 'Yes, 100% safe. All plans are backed by bank-grade 256-bit encryption and verified financial assets.'],
+                        ['q' => 'Can I withdraw before maturity?', 'a' => 'Flexible plans allow instant withdrawals anytime. Locked plans unlock automatically upon reaching maturity.'],
+                        ['q' => 'What is the minimum investment?', 'a' => 'Minimum investment starts at just ₹199 per plan.'],
+                        ['q' => 'How is profit calculated?', 'a' => 'Profit accrues daily based on the annual percentage rate (YTM) divided by 365 days.'],
+                    ];
+                @endphp
+
+                <div class="divide-y divide-slate-100">
+                    @foreach ($faqs as $i => $faq)
+                        <div class="faq-item">
+                            <label class="w-full py-3.5 flex items-center justify-between text-left cursor-pointer active:bg-slate-50 transition-colors">
+                                <input type="checkbox" class="hidden faq-check">
+                                <span class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins pr-3">{{ $faq['q'] }}</span>
+                                <i class="bi bi-chevron-down faq-chevron text-[14px] text-slate-400 shrink-0"></i>
+                            </label>
+                            <div class="faq-answer">
+                                <p class="pb-3 text-[12px] text-slate-500 font-medium leading-relaxed font-poppins">{{ $faq['a'] }}</p>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
 
-            <!-- Disclaimer -->
-            <p class="text-[9.5px] font-semibold text-slate-400 font-poppins text-center leading-normal max-w-[280px] mx-auto opacity-80 pt-1 pb-4">
+            <!-- DISCLAIMER & FOOTER -->
+            <p class="text-[9.5px] font-semibold text-slate-400 font-poppins text-center leading-normal max-w-[300px] mx-auto pt-2 pb-6">
                 Returns shown are estimated values and may vary depending on selected plan conditions.
             </p>
         </div>
+
+        <!-- HIDDEN REAL PURCHASE FORM -->
+        <form id="plan-purchase-form" method="POST" action="{{ route('plans.purchase', $plan) }}">
+            @csrf
+            <input type="hidden" name="amount" id="pd-flex-amount-input" value="{{ $flexMin }}">
+        </form>
+
+        <!-- 13. FIXED BOTTOM STICKY INVESTMENT BAR -->
+        <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 p-3 sm:p-4 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
+            <div class="max-w-3xl mx-auto flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-9 h-9 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center shrink-0 shadow-inner">
+                        <i class="bi bi-[#currency-rupee] bi-piggy-bank text-[18px]"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Invest</p>
+                        <p class="text-[15px] sm:text-[17px] font-black text-[#0D1F3C] font-poppins leading-none truncate">
+                            <span id="sticky-amount-display">₹{{ number_format($flexMin, 0) }}</span> <span class="text-[10px] font-bold text-slate-400">/ Monthly</span>
+                        </p>
+                    </div>
+                    <div class="h-6 w-[1px] bg-slate-200 mx-1 shrink-0"></div>
+                    <div class="hidden sm:block min-w-0">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Earn (1 Year)</p>
+                        <p class="text-[15px] font-black text-[#19B36B] font-poppins leading-none truncate">
+                            <span id="sticky-return-display">₹{{ number_format($flexMin * 1.25, 0) }}</span> <span class="text-[10px] text-[#19B36B] font-bold">(26.7%)</span>
+                        </p>
+                    </div>
+                </div>
+
+                @auth
+                    <button type="submit" form="plan-purchase-form" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[13.5px] sm:text-[15px] px-6 py-3 rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-2">
+                        <span class="relative z-10 flex items-center gap-2">
+                            Invest <span id="sticky-btn-amount">₹{{ number_format($flexMin, 0) }}</span> Monthly <i class="bi bi-arrow-right text-[15px]"></i>
+                        </span>
+                    </button>
+                @else
+                    <a href="{{ route('login') }}" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[13.5px] sm:text-[15px] px-6 py-3 rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-2">
+                        <span class="relative z-10 flex items-center gap-2">
+                            Log In to Invest <i class="bi bi-arrow-right text-[15px]"></i>
+                        </span>
+                    </a>
+                @endauth
+            </div>
+        </div>
     </div>
+
+    <!-- DYNAMIC SLIDER RECALCULATION SCRIPT -->
+    <script>
+    (function () {
+        var slider = document.getElementById('pd-amount-slider');
+        var amountDisplay = document.getElementById('pd-amount-display');
+        var hiddenInput = document.getElementById('pd-flex-amount-input');
+        var summaryAmount = document.getElementById('pd-calc-summary-amount');
+        var summaryInvested = document.getElementById('pd-calc-invested');
+        var summaryProfit = document.getElementById('pd-calc-profit');
+        var summaryReturn = document.getElementById('pd-flex-return');
+        var stickyAmount = document.getElementById('sticky-amount-display');
+        var stickyBtnAmount = document.getElementById('sticky-btn-amount');
+        var stickyReturn = document.getElementById('sticky-return-display');
+
+        function formatMoney(val) {
+            return '₹' + Math.round(val).toLocaleString('en-IN');
+        }
+
+        function updateValues() {
+            if (!slider) return;
+            var val = parseFloat(slider.value) || 199;
+            var formatted = formatMoney(val);
+
+            if (amountDisplay) amountDisplay.textContent = formatted;
+            if (hiddenInput) hiddenInput.value = val;
+            if (summaryAmount) summaryAmount.textContent = formatted;
+            if (stickyAmount) stickyAmount.textContent = formatted;
+            if (stickyBtnAmount) stickyBtnAmount.textContent = formatted;
+
+            var yearlyInvested = val * 12;
+            var yearlyProfit = val * 0.267 * 12;
+            var totalReturn = yearlyInvested + yearlyProfit;
+
+            if (summaryInvested) summaryInvested.textContent = formatMoney(yearlyInvested);
+            if (summaryProfit) summaryProfit.textContent = formatMoney(yearlyProfit) + '+';
+            if (summaryReturn) summaryReturn.textContent = formatMoney(totalReturn) + '+';
+            if (stickyReturn) stickyReturn.textContent = formatMoney(totalReturn);
+        }
+
+        if (slider) {
+            slider.addEventListener('input', updateValues);
+            updateValues();
+        }
+    })();
+    </script>
 @endsection
