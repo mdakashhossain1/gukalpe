@@ -47,8 +47,13 @@
     <x-insufficient-balance-popup />
     <x-purchase-success-popup />
 
-    <!-- Bottom Navigation Bar -->
-    <x-bottom-nav />
+    {{-- Bottom Navigation Bar: skipped on plan-details, which renders its own
+         fixed bottom invest CTA bar in the same screen region. Both are
+         `fixed bottom-0`; stacking them competes for the same space, so the
+         page-level CTA takes over instead of layering on top of the tab bar. --}}
+    @unless(request()->routeIs('plan-details'))
+        <x-bottom-nav />
+    @endunless
 
     <x-i18n-engine />
 

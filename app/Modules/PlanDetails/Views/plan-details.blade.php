@@ -23,13 +23,13 @@
 
             <!-- 1. HERO PLAN CARD & HEADER BANNER -->
             <div class="relative bg-gradient-to-br from-[#EAF4FB] via-[#E3EFFA] to-[#D6E8F7] rounded-[24px] overflow-hidden border border-slate-100 shadow-sm">
-                <div class="relative w-full h-[190px] sm:h-[230px]">
+                <div class="relative w-full h-[230px] sm:h-[270px]">
                     <!-- Building image faded into the light background on the left -->
                     <img src="{{ $p['image'] }}" class="absolute inset-y-0 right-0 h-full w-[62%] sm:w-[58%] object-cover"
                         style="mask-image: linear-gradient(to right, transparent, black 40%); -webkit-mask-image: linear-gradient(to right, transparent, black 40%);"
                         alt="{{ $p['title'] }}">
 
-                    <div class="absolute inset-0 p-4 sm:p-5 flex flex-col justify-between z-10">
+                    <div class="absolute inset-0 p-4 sm:p-5 flex flex-col z-10">
                         <!-- Top Badges -->
                         <div class="flex items-start justify-between gap-2">
                             <div class="flex items-center gap-2">
@@ -47,7 +47,7 @@
                         </div>
 
                         <!-- Main Title Block -->
-                        <div>
+                        <div class="mt-3 sm:mt-4">
                             <h1 class="text-[#0D1F3C] font-extrabold text-[22px] sm:text-[26px] font-poppins leading-tight tracking-tight">{{ $p['title'] }}</h1>
                             <div class="flex items-center gap-2 mt-1">
                                 <span class="text-slate-600 text-[12px] font-semibold font-poppins">{{ $p['badge'] }} Plan</span>
@@ -57,19 +57,15 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Effective Return Strip -->
-                <div class="relative -mt-4 mx-2 mb-2 p-4 rounded-2xl bg-white shadow-md border border-slate-100 flex items-center justify-between z-10">
-                    <div>
+                    <!-- Effective Return tab: inset white panel with a chamfered top-right corner, sitting directly on the banner -->
+                    <div class="absolute bottom-0 left-0 w-[64%] sm:w-[54%] bg-white p-4 sm:p-5 z-10"
+                        style="clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 0 100%);">
                         <div class="flex items-baseline gap-1.5">
                             <span class="text-[22px] font-black text-[#0D1F3C] font-poppins leading-none">{{ $p['growthRate'] ?? '11.35' }}%</span>
                             <span class="text-[11px] font-bold text-slate-400 font-poppins">YTM</span>
                         </div>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Effective Return (Yearly)</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-full bg-[#0A5C66]/8 flex items-center justify-center text-[#0A5C66]">
-                        <i class="bi bi-graph-up-arrow text-[18px]"></i>
                     </div>
                 </div>
             </div>
