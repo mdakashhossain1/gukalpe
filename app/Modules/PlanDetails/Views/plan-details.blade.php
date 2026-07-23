@@ -33,6 +33,7 @@
                          title length/font size across screens - sets the banner's own
                          height. pb-24/28 reserves room below for the YTM tab so a
                          wrapped 2-line title can never grow into it. --}}
+                    @php $badgeColors = $plan->marketingBadgeColorClasses(); @endphp
                     <div class="relative z-10 p-4 sm:p-5 pb-24 sm:pb-28 flex flex-col">
                         <!-- Top Badges -->
                         <div class="flex items-start justify-between gap-2">
@@ -40,8 +41,11 @@
                                 <div class="w-11 h-11 rounded-2xl bg-white shadow-md flex items-center justify-center text-[#0A5C66] shrink-0">
                                     <i class="bi {{ $p['icon'] ?? 'bi-building' }} text-[20px]"></i>
                                 </div>
-                                <span class="bg-purple-100 text-purple-700 text-[9.5px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
-                                    NEWLY ADDED
+                                <span class="{{ $badgeColors['bg'] }} {{ $badgeColors['text'] }} border {{ $badgeColors['border'] }} text-[9.5px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm inline-flex items-center gap-1">
+                                    @if($plan->marketing_badge_icon)
+                                        <i class="bi {{ $plan->marketing_badge_icon }} text-[10px]"></i>
+                                    @endif
+                                    {{ $plan->marketing_badge ?: 'Newly Added' }}
                                 </span>
                             </div>
                             <div class="bg-white shadow-md px-3.5 py-2 rounded-2xl text-center shrink-0">
@@ -53,11 +57,16 @@
                         <!-- Main Title Block -->
                         <div class="mt-3 sm:mt-4">
                             <h1 class="text-[#0D1F3C] font-extrabold text-[22px] sm:text-[26px] font-poppins leading-tight tracking-tight">{{ $p['title'] }}</h1>
-                            <div class="flex items-center gap-2 mt-1">
+                            <div class="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1">
                                 <span class="text-slate-600 text-[12px] font-semibold font-poppins">{{ $p['badge'] }} Plan</span>
                                 <span class="text-[#19B36B] text-[11px] font-bold flex items-center gap-1">
                                     <i class="bi bi-patch-check-fill text-[12px]"></i> Verified &amp; Secure
                                 </span>
+                                @if($plan->risk_level)
+                                    <span class="text-slate-500 text-[11px] font-bold flex items-center gap-1">
+                                        <i class="bi bi-speedometer2 text-[12px]"></i> {{ $plan->risk_level }} Risk
+                                    </span>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -73,6 +82,10 @@
                     </div>
                 </div>
             </div>
+
+            @if($plan->subtitle)
+                <p class="text-[12px] sm:text-[13px] text-slate-500 font-medium leading-relaxed -mt-1 px-1">{{ $plan->subtitle }}</p>
+            @endif
 
             <!-- HIDDEN DURATION RADIOS FOR FORM SUBMISSION -->
             @if ($plan->durations->isNotEmpty())
@@ -256,9 +269,39 @@
                 </div>
             @endif
 
-            <!-- 5. WHY CHOOSE THIS PLAN? (3 + 2 CARDS) -->
+            <!-- 5. WHY CHOOSE THIS PLAN? -->
+            {{-- Admin-authored highlights (Admin > Plans > Content) drive this
+                 when set - it used to always show the same 6 generic cards
+                 regardless of what an admin actually curated for this plan.
+                 Icon/color cycles through a small palette since highlights are
+                 plain strings with no per-item icon of their own. --}}
+            @php
+                $highlightPalette = [
+                    ['bg' => 'bg-emerald-50', 'icon' => 'why-choose-shield-check.png'],
+                    ['bg' => 'bg-blue-50', 'icon' => 'why-choose-daily-profit.png'],
+                    ['bg' => 'bg-amber-50', 'icon' => 'why-choose-lightning.png'],
+                    ['bg' => 'bg-purple-50', 'icon' => 'why-choose-encryption.png'],
+                    ['bg' => 'bg-teal-50', 'icon' => 'why-choose-support.png'],
+                ];
+                $highlightRows = array_chunk($plan->highlights ?? [], 3);
+            @endphp
             <div>
                 <h4 class="text-[13px] font-extrabold text-[#0D1F3C] font-poppins mb-3">Why choose this plan?</h4>
+                @if(!empty($plan->highlights))
+                    @foreach ($highlightRows as $rowIndex => $row)
+                        <div class="grid grid-cols-3 gap-2 sm:gap-3 {{ !$loop->last ? 'mb-2 sm:mb-3' : '' }}">
+                            @foreach ($row as $i => $highlight)
+                                @php $style = $highlightPalette[($rowIndex * 3 + $i) % count($highlightPalette)]; @endphp
+                                <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
+                                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full {{ $style['bg'] }} flex items-center justify-center mb-1.5 sm:mb-2.5">
+                                        <img src="{{ asset('assets/ui/'.$style['icon']) }}" alt="" class="w-5 h-5 sm:w-7 sm:h-7">
+                                    </div>
+                                    <p class="text-[10.5px] sm:text-[13px] font-extrabold text-[#0D1F3C] leading-tight font-poppins">{{ $highlight }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
+                @else
                 <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-3">
                     <div class="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-100 shadow-2xs text-center flex flex-col items-center justify-center">
                         <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-1.5 sm:mb-2.5">
@@ -307,6 +350,7 @@
                         <p class="text-[8.5px] sm:text-[10.5px] text-slate-400 font-medium mt-1 leading-tight">Withdraw anytime you like</p>
                     </div>
                 </div>
+                @endif
             </div>
 
             <!-- 6. SOCIAL PROOF & CONSENT CHECKBOX -->
@@ -336,11 +380,22 @@
                     </div>
                 </div>
 
-                <div class="flex items-start gap-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500 font-medium leading-normal">
-                    <input type="checkbox" checked id="terms-check" class="accent-[#0A5C66] mt-0.5 rounded">
-                    <label for="terms-check" class="cursor-pointer">
-                        By proceeding, I agree to GullakPe's <a href="#" class="underline text-[#0A5C66] font-bold">Terms &amp; Conditions</a>, <a href="#" class="underline text-[#0A5C66] font-bold">Privacy Policy</a>, <a href="#" class="underline text-[#0A5C66] font-bold">Disclaimer</a> and consent to KYC processing.
-                    </label>
+                <div class="faq-item">
+                    <div class="flex items-start gap-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500 font-medium leading-normal">
+                        <input type="checkbox" checked id="terms-check" class="accent-[#0A5C66] mt-0.5 rounded shrink-0">
+                        <div>
+                            <label for="terms-check" class="cursor-pointer">
+                                By proceeding, I agree to GullakPe's <a href="#" class="underline text-[#0A5C66] font-bold">Terms &amp; Conditions</a>, <a href="#" class="underline text-[#0A5C66] font-bold">Privacy Policy</a>, <a href="#" class="underline text-[#0A5C66] font-bold">Disclaimer</a> and consent to KYC processing.
+                            </label>
+                            @if($plan->terms)
+                                <label for="plan-terms-toggle" class="block mt-1 underline text-[#0A5C66] font-bold cursor-pointer">View this plan's specific terms</label>
+                                <input type="checkbox" class="hidden faq-check" id="plan-terms-toggle">
+                                <div class="faq-answer">
+                                    <p class="pt-1.5 text-[10px] text-slate-500 leading-relaxed whitespace-pre-line">{{ $plan->terms }}</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -593,7 +648,11 @@
                 </div>
 
                 @php
-                    $faqs = [
+                    // Admin-authored, plan-specific FAQs (set in Admin > Plans) take
+                    // priority - this used to always show the same 5 generic
+                    // questions regardless of what was actually saved for the plan.
+                    // Generic set only kicks in for plans that haven't added their own.
+                    $faqs = ! empty($plan->faqs) ? $plan->faqs : [
                         ['q' => 'How do I earn profit?', 'a' => 'Profit is calculated based on your invested amount and plan growth rate, credited directly to your GullakPe wallet.'],
                         ['q' => 'Is my investment safe?', 'a' => 'Yes, 100% safe. All plans are backed by bank-grade 256-bit encryption and verified financial assets.'],
                         ['q' => 'Can I withdraw before maturity?', 'a' => 'Flexible plans allow instant withdrawals anytime. Locked plans unlock automatically upon reaching maturity.'],
