@@ -111,28 +111,28 @@
                         <img src="{{ asset('assets/ui/metric-daily-profit.png') }}" alt="" class="w-4 h-4 sm:w-6 sm:h-6">
                     </div>
                     <span class="text-[7.5px] sm:text-[9.5px] font-bold text-slate-400 uppercase font-poppins leading-tight">Daily Profit</span>
-                    <span class="text-[11px] sm:text-[14px] font-black text-[#19B36B] font-poppins mt-0.5 truncate max-w-full">{{ $p['dailyProfit'] }}</span>
+                    <span id="pd-metric-daily-profit" class="text-[11px] sm:text-[14px] font-black text-[#19B36B] font-poppins mt-0.5 truncate max-w-full">{{ $p['dailyProfit'] }}</span>
                 </div>
                 <div class="bg-white p-2 sm:p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
                     <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-amber-50 flex items-center justify-center mb-1 sm:mb-1.5">
                         <img src="{{ asset('assets/ui/metric-total-profit.png') }}" alt="" class="w-4 h-4 sm:w-6 sm:h-6">
                     </div>
                     <span class="text-[7.5px] sm:text-[9.5px] font-bold text-slate-400 uppercase font-poppins leading-tight">Total Profit</span>
-                    <span class="text-[11px] sm:text-[14px] font-black text-[#19B36B] font-poppins mt-0.5 truncate max-w-full">{{ $p['totalReturn'] }}</span>
+                    <span id="pd-metric-total-profit" class="text-[11px] sm:text-[14px] font-black text-[#19B36B] font-poppins mt-0.5 truncate max-w-full">{{ $p['totalReturn'] }}</span>
                 </div>
                 <div class="bg-white p-2 sm:p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
                     <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-blue-50 flex items-center justify-center mb-1 sm:mb-1.5">
                         <img src="{{ asset('assets/ui/metric-duration.png') }}" alt="" class="w-4 h-4 sm:w-6 sm:h-6">
                     </div>
                     <span class="text-[7.5px] sm:text-[9.5px] font-bold text-slate-400 uppercase font-poppins leading-tight">Duration</span>
-                    <span class="text-[11px] sm:text-[14px] font-black text-[#19B36B] font-poppins mt-0.5 truncate max-w-full">{{ $p['lockDuration'] }}</span>
+                    <span id="pd-metric-duration" class="text-[11px] sm:text-[14px] font-black text-[#19B36B] font-poppins mt-0.5 truncate max-w-full">{{ $p['lockDuration'] }}</span>
                 </div>
                 <div class="bg-white p-2 sm:p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-col items-center text-center">
                     <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-purple-50 flex items-center justify-center mb-1 sm:mb-1.5">
                         <img src="{{ asset('assets/ui/metric-maturity.png') }}" alt="" class="w-4 h-4 sm:w-6 sm:h-6">
                     </div>
                     <span class="text-[7.5px] sm:text-[9.5px] font-bold text-slate-400 uppercase font-poppins leading-tight">Maturity</span>
-                    <span class="text-[11px] sm:text-[14px] font-black text-[#19B36B] font-poppins mt-0.5 truncate max-w-full">{{ $p['totalReturn'] }}</span>
+                    <span id="pd-metric-maturity" class="text-[11px] sm:text-[14px] font-black text-[#19B36B] font-poppins mt-0.5 truncate max-w-full">{{ $p['totalReturn'] }}</span>
                 </div>
             </div>
 
@@ -144,6 +144,9 @@
                         @foreach ($plan->durations as $dur)
                             <button type="button"
                                 onclick="selectDuration('pd-dur-{{ $dur->id }}', this)"
+                                data-label="{{ $dur->label }}"
+                                data-daily-profit="+₹{{ number_format((float) $dur->daily_profit, 2) }}/day"
+                                data-total-return="₹{{ number_format((float) $dur->total_return, 0) }}"
                                 class="dur-pill-btn relative p-2 sm:p-3 rounded-xl border border-slate-200 text-left transition-all {{ $dur->is_default ? 'bg-[#0A5C66] text-white shadow-md' : 'bg-slate-50/50 text-slate-700 hover:bg-slate-100' }}">
                                 @if($dur->is_default)
                                     <span class="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-900 text-[6.5px] sm:text-[8px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full shadow-2xs whitespace-nowrap">
@@ -774,6 +777,18 @@
         });
         button.classList.remove.apply(button.classList, unselected);
         button.classList.add.apply(button.classList, selected);
+
+        // Keep the 4 metric pods (Daily Profit / Total Profit / Duration /
+        // Maturity) in sync with whichever duration is now selected - they
+        // used to always show the plan's default duration's numbers.
+        var dailyProfitEl = document.getElementById('pd-metric-daily-profit');
+        var totalProfitEl = document.getElementById('pd-metric-total-profit');
+        var durationEl = document.getElementById('pd-metric-duration');
+        var maturityEl = document.getElementById('pd-metric-maturity');
+        if (dailyProfitEl) dailyProfitEl.textContent = button.dataset.dailyProfit;
+        if (totalProfitEl) totalProfitEl.textContent = button.dataset.totalReturn;
+        if (durationEl) durationEl.textContent = button.dataset.label;
+        if (maturityEl) maturityEl.textContent = button.dataset.totalReturn;
     }
     </script>
 
