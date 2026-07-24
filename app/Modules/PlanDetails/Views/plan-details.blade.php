@@ -214,10 +214,10 @@
                         </div>
                     @endif
                 </div>
-            @else
+            @elseif ($plan->isFlexibleAmount())
                 @php
-                    $flexMin = (float) ($plan->min_investment_amount ?? 199);
-                    $flexMax = (float) ($plan->max_investment_amount ?? 999);
+                    $flexMin = (float) $plan->min_investment_amount;
+                    $flexMax = (float) $plan->max_investment_amount;
                     $flexStep = max(1, (int) round(($flexMax - $flexMin) / 50));
                 @endphp
                 <div class="bg-white p-4 sm:p-5 rounded-[24px] border border-slate-100 shadow-2xs space-y-4" id="pd-flex-calc"
@@ -274,6 +274,18 @@
                         <p class="text-[9px] text-slate-400 font-medium text-center mt-2 border-t border-slate-200/50 pt-1.5">
                             *Projected value based on selected plan and expected returns.
                         </p>
+                    </div>
+                </div>
+            @else
+                @php $flexMin = (float) $plan->investment_amount; @endphp
+                <div class="bg-white p-4 sm:p-5 rounded-[24px] border border-slate-100 shadow-2xs">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <h3 class="text-[12.5px] sm:text-[14px] font-extrabold text-[#0D1F3C] font-poppins min-w-0 truncate">Investment Amount</h3>
+                        <span class="text-[9.5px] sm:text-[10.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 shrink-0">Fixed</span>
+                    </div>
+                    <div class="text-center py-2">
+                        <span class="text-[34px] font-black text-[#0D1F3C] font-poppins leading-none">₹{{ number_format($flexMin, 0) }}</span>
+                        <span class="text-[13px] font-bold text-slate-400 font-poppins block mt-0.5">One-Time Investment</span>
                     </div>
                 </div>
             @endif
