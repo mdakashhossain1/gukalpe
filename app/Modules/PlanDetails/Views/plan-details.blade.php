@@ -281,7 +281,7 @@
                 </div>
             @else
                 @php $flexMin = (float) $plan->investment_amount; @endphp
-                <div class="bg-white p-4 sm:p-5 rounded-[24px] border border-slate-100 shadow-2xs">
+                <div class="bg-white p-4 sm:p-5 rounded-[24px] border border-slate-100 shadow-2xs space-y-4" id="pd-fixed-calc" data-investment="{{ $flexMin }}">
                     <div class="flex items-center justify-between gap-2 mb-1">
                         <h3 class="text-[12.5px] sm:text-[14px] font-extrabold text-[#0D1F3C] font-poppins min-w-0 truncate">Investment Amount</h3>
                         <span class="text-[9.5px] sm:text-[10.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 shrink-0">Fixed</span>
@@ -289,6 +289,37 @@
                     <div class="text-center py-2">
                         <span class="text-[34px] font-black text-[#0D1F3C] font-poppins leading-none">₹{{ number_format($flexMin, 0) }}</span>
                         <span class="text-[13px] font-bold text-slate-400 font-poppins block mt-0.5">One-Time Investment</span>
+                    </div>
+
+                    <!-- Live Projection Calculation Card -->
+                    <div class="bg-[#F6FAFA] p-3 sm:p-4 rounded-2xl border border-[#E0EFEF]">
+                        <div class="flex items-center gap-1.5 sm:gap-3">
+                            <div class="shrink-0">
+                                <p class="text-[11px] sm:text-[13px] font-extrabold text-[#0D1F3C] font-poppins whitespace-nowrap leading-tight">
+                                    ₹{{ number_format($flexMin, 0) }} <span class="text-slate-400 font-bold">One-Time</span>
+                                </p>
+                                <p id="pd-fixed-calc-duration-label" class="text-[8.5px] sm:text-[10px] font-bold text-purple-500 mt-0.5 whitespace-nowrap">for {{ $p['lockDuration'] }}</p>
+                            </div>
+
+                            <span class="text-[14px] sm:text-[18px] font-black text-slate-300 shrink-0">=</span>
+
+                            <p id="pd-fixed-calc-return" class="text-[16px] sm:text-[22px] font-black text-[#19B36B] font-poppins leading-none flex-1 min-w-0 text-center truncate">{{ $p['totalReturn'] }}+</p>
+
+                            <div class="w-[1px] h-8 bg-slate-200 shrink-0"></div>
+
+                            <div class="shrink-0 flex items-center gap-1.5">
+                                <div class="text-[7.5px] sm:text-[10px] font-bold text-slate-500 leading-snug whitespace-nowrap">
+                                    <p>Investment: <strong class="text-slate-800">₹{{ number_format($flexMin, 0) }}</strong></p>
+                                    <p>Profit: <strong id="pd-fixed-calc-profit" class="text-[#19B36B]">₹{{ number_format(max(0, (float) $plan->total_return - $flexMin), 0) }}+</strong></p>
+                                </div>
+                                <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center shrink-0">
+                                    <i class="bi bi-graph-up-arrow text-[10px] sm:text-[12px]"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-medium text-center mt-2 border-t border-slate-200/50 pt-1.5">
+                            *Projected value based on selected plan and expected returns.
+                        </p>
                     </div>
                 </div>
             @endif
@@ -789,6 +820,21 @@
         if (totalProfitEl) totalProfitEl.textContent = button.dataset.totalReturn;
         if (durationEl) durationEl.textContent = button.dataset.label;
         if (maturityEl) maturityEl.textContent = button.dataset.totalReturn;
+
+        // Fixed-amount plans show a "Live Projection" card too (Investment
+        // is constant, only the return/profit/duration change per duration).
+        var fixedCalc = document.getElementById('pd-fixed-calc');
+        if (fixedCalc) {
+            var investment = parseFloat(fixedCalc.dataset.investment) || 0;
+            var totalReturn = parseFloat((button.dataset.totalReturn || '').replace(/[^0-9.]/g, '')) || 0;
+            var profit = Math.max(0, totalReturn - investment);
+            var returnEl = document.getElementById('pd-fixed-calc-return');
+            var profitEl = document.getElementById('pd-fixed-calc-profit');
+            var durationLabelEl = document.getElementById('pd-fixed-calc-duration-label');
+            if (returnEl) returnEl.textContent = button.dataset.totalReturn + '+';
+            if (profitEl) profitEl.textContent = '₹' + Math.round(profit).toLocaleString('en-IN') + '+';
+            if (durationLabelEl) durationLabelEl.textContent = 'for ' + button.dataset.label;
+        }
     }
     </script>
 
