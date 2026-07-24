@@ -161,7 +161,7 @@
 
                         <!-- LEFT: CIRCULAR ICON CONTAINER (PROMINENT POD) -->
                         <div class="flex items-center justify-center shrink-0">
-                            <div class="w-18 h-18 sm:w-28 sm:h-28 rounded-full bg-[#F2F7F8] border border-[#E4EFEF] flex items-center justify-center shadow-inner relative overflow-hidden group">
+                            <div class="w-[72px] h-[72px] sm:w-28 sm:h-28 rounded-full bg-[#F2F7F8] border border-[#E4EFEF] flex items-center justify-center shadow-inner relative overflow-hidden group">
                                 @if(!empty($cp['image']) && (str_starts_with($cp['image'], 'http') || str_contains($cp['image'], '/assets/') || str_contains($cp['image'], 'unsplash')))
                                     <img src="{{ $cp['image'] }}" alt="{{ $cp['title'] }}" class="w-12 h-12 sm:w-20 sm:h-20 object-contain transition-transform duration-300 group-hover:scale-105">
                                 @else
@@ -173,31 +173,31 @@
                         <!-- CENTER: METRICS & TRUST -->
                         <div class="min-w-0 flex flex-col justify-between">
                             <!-- 3-COLUMN METRICS GRID WITH VERTICAL DIVIDERS -->
-                            <div class="flex items-center gap-1.5 sm:gap-4 py-0.5 overflow-x-auto hide-scrollbar">
+                            <div class="flex items-center gap-1 sm:gap-4 py-0.5 overflow-x-auto hide-scrollbar">
                                 <!-- Col 1: Interest Rate -->
-                                <div class="pr-1.5 sm:pr-4 border-r border-slate-200/90 shrink-0">
-                                    <p class="text-[7px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-0.5 sm:mb-1 leading-tight">Interest Rate<br>(Yearly)</p>
-                                    <p class="text-[14px] sm:text-[24px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['growthRate'] }}%</p>
+                                <div class="pr-1 sm:pr-4 border-r border-slate-200/90 shrink-0">
+                                    <p class="text-[7.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide sm:tracking-wider font-poppins mb-0.5 sm:mb-1 leading-tight whitespace-nowrap">Interest Rate<br>(Yearly)</p>
+                                    <p class="text-[18px] sm:text-[24px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['growthRate'] }}%</p>
                                 </div>
                                 <!-- Col 2: Total Return -->
-                                <div class="px-1.5 sm:px-4 border-r border-slate-200/90 shrink-0">
-                                    <p class="text-[7px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-0.5 sm:mb-1">Total Return</p>
-                                    <p class="text-[14px] sm:text-[24px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['totalReturn'] }}</p>
+                                <div class="px-1 sm:px-4 border-r border-slate-200/90 shrink-0">
+                                    <p class="text-[7.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide sm:tracking-wider font-poppins mb-0.5 sm:mb-1 leading-tight whitespace-nowrap">Total<br class="sm:hidden"> Return</p>
+                                    <p class="text-[18px] sm:text-[24px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['totalReturn'] }}</p>
                                 </div>
                                 <!-- Col 3: Duration -->
                                 <div class="pl-1 shrink-0">
-                                    <p class="text-[7px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-0.5 sm:mb-1">Duration</p>
+                                    <p class="text-[7.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide sm:tracking-wider font-poppins mb-0.5 sm:mb-1 whitespace-nowrap">Duration</p>
                                     @if ($plan->durations && $plan->durations->count() > 1)
-                                        <div class="relative inline-flex items-center bg-white border border-slate-200/90 rounded-lg px-1.5 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-[13px] font-bold text-[#0D1F3C] shadow-2xs mt-0.5">
-                                            <select class="appearance-none bg-transparent pr-4 sm:pr-6 focus:outline-none cursor-pointer font-poppins text-[9px] sm:text-[13px] font-bold text-[#0D1F3C]">
+                                        <div class="relative inline-flex items-center bg-white border border-slate-200/90 rounded-lg px-1 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-[13px] font-bold text-[#0D1F3C] shadow-2xs mt-0.5">
+                                            <select class="appearance-none bg-transparent pr-3 sm:pr-6 focus:outline-none cursor-pointer font-poppins text-[10px] sm:text-[13px] font-bold text-[#0D1F3C]">
                                                 @foreach($plan->durations as $dur)
                                                     <option value="{{ $dur->id }}" {{ $dur->is_default ? 'selected' : '' }} class="text-slate-800 bg-white font-bold">{{ $dur->label ?? ($dur->duration_days ? $dur->duration_days . ' Days' : $cp['lockDuration']) }}</option>
                                                 @endforeach
                                             </select>
-                                            <i class="bi bi-chevron-down text-[7.5px] sm:text-[10px] text-slate-400 absolute right-1 sm:right-2.5 pointer-events-none"></i>
+                                            <i class="bi bi-chevron-down text-[7px] sm:text-[10px] text-slate-400 absolute right-0.5 sm:right-2.5 pointer-events-none"></i>
                                         </div>
                                     @else
-                                        <p class="text-[13px] sm:text-[22px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['lockDuration'] }}</p>
+                                        <p class="text-[16px] sm:text-[22px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['lockDuration'] }}</p>
                                     @endif
                                 </div>
                             </div>
@@ -205,14 +205,14 @@
                             <!-- TRUST INDICATORS ROW WITH DIVIDER -->
                             <div class="flex items-start gap-1.5 sm:gap-6 mt-2.5 sm:mt-4 pt-0.5">
                                 <div class="flex items-center gap-1 sm:gap-2 pr-1.5 sm:pr-4 border-r border-slate-200/80 min-w-0">
-                                    <i class="bi bi-lock text-[11px] sm:text-[20px] text-[#0A5C66] shrink-0"></i>
-                                    <div class="text-[7px] sm:text-[10px] font-extrabold text-[#0D1F3C] leading-tight font-poppins min-w-0">
+                                    <i class="bi bi-lock text-[13px] sm:text-[20px] text-[#0A5C66] shrink-0"></i>
+                                    <div class="text-[8.5px] sm:text-[10px] font-extrabold text-[#0D1F3C] leading-tight font-poppins min-w-0">
                                         End-to-End Encryption
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-1 sm:gap-2 min-w-0">
-                                    <i class="bi bi-shield-check text-[11px] sm:text-[20px] text-[#0A5C66] shrink-0"></i>
-                                    <div class="text-[7px] sm:text-[10px] font-extrabold text-[#0D1F3C] leading-tight font-poppins min-w-0">
+                                    <i class="bi bi-shield-check text-[13px] sm:text-[20px] text-[#0A5C66] shrink-0"></i>
+                                    <div class="text-[8.5px] sm:text-[10px] font-extrabold text-[#0D1F3C] leading-tight font-poppins min-w-0">
                                         100% Trusted &amp; Secure
                                     </div>
                                 </div>
@@ -234,11 +234,11 @@
                     <!-- PRICE & BUY NOW ROW (MOBILE ONLY BOTTOM ROW) -->
                     <div class="flex md:hidden items-center justify-between gap-2.5 mt-3.5 pt-3 border-t border-slate-100">
                         <div>
-                            <p class="text-[18px] font-black text-[#0D1F3C] font-poppins leading-none tracking-tight">{!! $priceLabel !!}</p>
-                            <p class="text-[9px] text-slate-400 font-semibold mt-0.5 tracking-tight">{{ $priceCaption }}</p>
+                            <p class="text-[21px] font-black text-[#0D1F3C] font-poppins leading-none tracking-tight">{!! $priceLabel !!}</p>
+                            <p class="text-[10px] text-slate-400 font-semibold mt-0.5 tracking-tight">{{ $priceCaption }}</p>
                         </div>
-                        <a href="{{ route('plan-details', $plan) }}" class="btn-shimmer inline-flex items-center gap-1.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[11.5px] px-5 py-2 rounded-xl active:scale-95 transition-all shadow-sm font-poppins btn-ripple shrink-0">
-                            <span class="relative z-10 flex items-center gap-1.5">Buy Now <i class="bi bi-arrow-right text-[12px]"></i></span>
+                        <a href="{{ route('plan-details', $plan) }}" class="btn-shimmer inline-flex items-center gap-1.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[13px] px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-sm font-poppins btn-ripple shrink-0">
+                            <span class="relative z-10 flex items-center gap-1.5">Buy Now <i class="bi bi-arrow-right text-[13px]"></i></span>
                         </a>
                     </div>
                 </div>
