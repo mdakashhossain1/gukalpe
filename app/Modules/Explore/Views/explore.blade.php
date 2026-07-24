@@ -152,7 +152,12 @@
 
                     <!-- TITLE & SUBTITLE HEADER (FULL WIDTH, NATURAL WRAPPING) -->
                     <div class="mb-3.5">
-                        <h3 class="text-[15px] sm:text-[21px] font-extrabold text-[#0D1F3C] font-poppins leading-tight tracking-tight">{{ $cp['title'] }}</h3>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-[15px] sm:text-[21px] font-extrabold text-[#0D1F3C] font-poppins leading-tight tracking-tight">{{ $cp['title'] }}</h3>
+                            {{-- Interest rate moves here on mobile since the metrics row's
+                                 own Interest Rate column is hidden there for space. --}}
+                            <span class="sm:hidden inline-flex items-center text-[10px] font-black text-[#19B36B] bg-[#19B36B]/10 px-2 py-0.5 rounded-full whitespace-nowrap">{{ $cp['growthRate'] }}% p.a.</span>
+                        </div>
                         <p class="text-[10.5px] sm:text-[13px] text-slate-500 font-medium leading-relaxed mt-0.5 max-w-full">{{ $cp['subtitle'] }}</p>
                     </div>
 
@@ -174,8 +179,8 @@
                         <div class="min-w-0 flex flex-col justify-between">
                             <!-- 3-COLUMN METRICS GRID WITH VERTICAL DIVIDERS -->
                             <div class="flex items-center gap-1 sm:gap-4 py-0.5 overflow-x-auto hide-scrollbar">
-                                <!-- Col 1: Interest Rate -->
-                                <div class="pr-1 sm:pr-4 border-r border-slate-200/90 shrink-0">
+                                <!-- Col 1: Interest Rate - hidden on mobile, shown as a badge next to the title instead -->
+                                <div class="hidden sm:block sm:pr-4 border-r border-slate-200/90 shrink-0">
                                     <p class="text-[7.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide sm:tracking-wider font-poppins mb-0.5 sm:mb-1 leading-tight whitespace-nowrap">Interest Rate<br>(Yearly)</p>
                                     <p class="text-[18px] sm:text-[24px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['growthRate'] }}%</p>
                                 </div>

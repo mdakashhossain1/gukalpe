@@ -556,8 +556,8 @@
                 </div>
 
                 <!-- SVG Gradient Growth Curve Chart -->
-                <div class="w-full h-[160px] relative">
-                    <svg class="w-full h-full overflow-visible" viewBox="0 0 400 140" preserveAspectRatio="none">
+                <div class="w-full max-w-[420px] mx-auto aspect-[400/140] relative">
+                    <svg class="w-full h-full overflow-visible" viewBox="0 0 400 140" preserveAspectRatio="xMidYMid meet">
                         <defs>
                             <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0%" stop-color="#19B36B" stop-opacity="0.35"/>
