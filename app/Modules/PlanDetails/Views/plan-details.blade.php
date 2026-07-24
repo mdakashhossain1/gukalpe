@@ -161,6 +161,8 @@
                 </div>
             @endif
 
+            @php $planRatePct = (float) ($plan->growth_rate ?? 0); @endphp
+
             <!-- 4. SET YOUR INVESTMENT AMOUNT / ACTIVE POT WIDGET -->
             @if ($activePot)
                 @php
@@ -260,14 +262,14 @@
 
                             <span class="text-[14px] sm:text-[18px] font-black text-slate-300 shrink-0">=</span>
 
-                            <p id="pd-flex-return" class="text-[16px] sm:text-[22px] font-black text-[#19B36B] font-poppins leading-none flex-1 min-w-0 text-center truncate">₹{{ number_format($flexMin * 1.25, 0) }}+</p>
+                            <p id="pd-flex-return" class="text-[16px] sm:text-[22px] font-black text-[#19B36B] font-poppins leading-none flex-1 min-w-0 text-center truncate">₹{{ number_format($flexMin * 12 * (1 + $planRatePct / 100), 0) }}+</p>
 
                             <div class="w-[1px] h-8 bg-slate-200 shrink-0"></div>
 
                             <div class="shrink-0 flex items-center gap-1.5">
                                 <div class="text-[7.5px] sm:text-[10px] font-bold text-slate-500 leading-snug whitespace-nowrap">
                                     <p>Investment: <strong id="pd-calc-invested" class="text-slate-800">₹{{ number_format($flexMin * 12, 0) }}</strong></p>
-                                    <p>Profit: <strong id="pd-calc-profit" class="text-[#19B36B]">₹{{ number_format($flexMin * 0.25 * 12, 0) }}+</strong></p>
+                                    <p>Profit: <strong id="pd-calc-profit" class="text-[#19B36B]">₹{{ number_format($flexMin * 12 * $planRatePct / 100, 0) }}+</strong></p>
                                 </div>
                                 <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center shrink-0">
                                     <i class="bi bi-graph-up-arrow text-[10px] sm:text-[12px]"></i>
@@ -581,6 +583,12 @@
                         <!-- Curve Line -->
                         <path d="{{ $chartPathD }}" fill="none" stroke="#0A5C66" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 
+                        <!-- Vertical Connector Lines - drop each point down to the axis -->
+                        @foreach ($chartPoints as $i => $pt)
+                            @continue($i === 0)
+                            <line x1="{{ $pt['x'] }}" y1="{{ $pt['y'] }}" x2="{{ $pt['x'] }}" y2="{{ $chartYBottom }}" stroke="#0A5C66" stroke-opacity="0.25" stroke-width="1" />
+                        @endforeach
+
                         <!-- Data Points - tappable, no permanent price labels (those live in
                              the headline above so the chart itself doesn't look like a flat
                              image with every number printed on it). -->
@@ -803,14 +811,23 @@
                     <div class="min-w-0 shrink">
                         <p class="text-[8.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Invest</p>
                         <p class="text-[13px] sm:text-[17px] font-black text-[#0D1F3C] font-poppins leading-none truncate">
-                            <span id="sticky-amount-display">₹{{ number_format($flexMin, 0) }}</span> <span class="text-[8.5px] sm:text-[10px] font-bold text-slate-400">/mo</span>
+                            <span id="sticky-amount-display">₹{{ number_format($flexMin, 0) }}</span> @if($plan->isFlexibleAmount())<span class="text-[8.5px] sm:text-[10px] font-bold text-slate-400">/mo</span>@endif
                         </p>
                     </div>
                     <div class="h-7 w-[1px] bg-slate-200 mx-1 shrink-0"></div>
+                    @php
+                        if ($plan->isFlexibleAmount()) {
+                            $stickyReturnVal = $flexMin * 12 * (1 + $planRatePct / 100);
+                            $stickyReturnPct = $planRatePct;
+                        } else {
+                            $stickyReturnVal = (float) $plan->total_return;
+                            $stickyReturnPct = $flexMin > 0 ? round((($stickyReturnVal / $flexMin) - 1) * 100, 1) : 0;
+                        }
+                    @endphp
                     <div class="min-w-0 shrink">
                         <p class="text-[8.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate">You Earn (1Y)</p>
                         <p class="text-[13px] sm:text-[15px] font-black text-[#19B36B] font-poppins leading-none truncate">
-                            <span id="sticky-return-display">₹{{ number_format($flexMin * 1.25, 0) }}</span> <span class="text-[8.5px] sm:text-[10px] text-[#19B36B] font-bold">(26.7%)</span>
+                            <span id="sticky-return-display">₹{{ number_format($stickyReturnVal, 0) }}</span> <span id="sticky-return-pct" class="text-[8.5px] sm:text-[10px] text-[#19B36B] font-bold">({{ rtrim(rtrim(number_format($stickyReturnPct, 1), '0'), '.') }}%)</span>
                         </p>
                     </div>
                 </div>
@@ -818,7 +835,7 @@
                 @auth
                     <button type="submit" form="plan-purchase-form" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[12px] sm:text-[15px] px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                         <span class="relative z-10 flex items-center gap-1.5 sm:gap-2">
-                            Invest <span id="sticky-btn-amount">₹{{ number_format($flexMin, 0) }}</span> <span class="hidden sm:inline">Monthly</span> <i class="bi bi-arrow-right text-[12px] sm:text-[15px]"></i>
+                            <i class="bi bi-bag-check-fill text-[13px] sm:text-[16px]"></i> Buy Now <i class="bi bi-arrow-right text-[12px] sm:text-[15px]"></i>
                         </span>
                     </button>
                 @else
@@ -875,6 +892,15 @@
             if (returnEl) returnEl.textContent = button.dataset.totalReturn + '+';
             if (profitEl) profitEl.textContent = '₹' + Math.round(profit).toLocaleString('en-IN') + '+';
             if (durationLabelEl) durationLabelEl.textContent = 'for ' + button.dataset.label;
+
+            // Sticky "You Earn" mirrors whichever duration is now selected too.
+            var stickyReturnEl = document.getElementById('sticky-return-display');
+            var stickyReturnPctEl = document.getElementById('sticky-return-pct');
+            if (stickyReturnEl) stickyReturnEl.textContent = button.dataset.totalReturn;
+            if (stickyReturnPctEl && investment > 0) {
+                var pct = ((totalReturn / investment) - 1) * 100;
+                stickyReturnPctEl.textContent = '(' + pct.toFixed(1).replace(/\.0$/, '') + '%)';
+            }
         }
     }
     </script>
@@ -919,6 +945,8 @@
         var stickyAmount = document.getElementById('sticky-amount-display');
         var stickyBtnAmount = document.getElementById('sticky-btn-amount');
         var stickyReturn = document.getElementById('sticky-return-display');
+        var stickyReturnPct = document.getElementById('sticky-return-pct');
+        var planRatePct = {{ $planRatePct }};
 
         function formatMoney(val) {
             return '₹' + Math.round(val).toLocaleString('en-IN');
@@ -926,7 +954,8 @@
 
         function updateValues() {
             if (!slider) return;
-            var val = parseFloat(slider.value) || 199;
+            var val = parseFloat(slider.value);
+            if (isNaN(val)) val = parseFloat(slider.min) || 0;
             var formatted = formatMoney(val);
 
             if (amountDisplay) amountDisplay.textContent = formatted;
@@ -936,13 +965,14 @@
             if (stickyBtnAmount) stickyBtnAmount.textContent = formatted;
 
             var yearlyInvested = val * 12;
-            var yearlyProfit = val * 0.267 * 12;
+            var yearlyProfit = yearlyInvested * (planRatePct / 100);
             var totalReturn = yearlyInvested + yearlyProfit;
 
             if (summaryInvested) summaryInvested.textContent = formatMoney(yearlyInvested);
             if (summaryProfit) summaryProfit.textContent = formatMoney(yearlyProfit) + '+';
             if (summaryReturn) summaryReturn.textContent = formatMoney(totalReturn) + '+';
             if (stickyReturn) stickyReturn.textContent = formatMoney(totalReturn);
+            if (stickyReturnPct) stickyReturnPct.textContent = '(' + planRatePct.toFixed(1).replace(/\.0$/, '') + '%)';
         }
 
         if (slider) {
