@@ -203,16 +203,16 @@
                             </div>
 
                             <!-- TRUST INDICATORS ROW WITH DIVIDER -->
-                            <div class="flex items-center gap-2 sm:gap-6 mt-2.5 sm:mt-4 pt-0.5">
-                                <div class="flex items-center gap-1.5 sm:gap-2 pr-2.5 sm:pr-4 border-r border-slate-200/80">
-                                    <i class="bi bi-lock text-[12px] sm:text-[20px] text-[#0A5C66] shrink-0"></i>
-                                    <div class="text-[7.5px] sm:text-[10px] font-extrabold text-[#0D1F3C] leading-tight font-poppins whitespace-nowrap">
+                            <div class="flex items-start gap-1.5 sm:gap-6 mt-2.5 sm:mt-4 pt-0.5">
+                                <div class="flex items-center gap-1 sm:gap-2 pr-1.5 sm:pr-4 border-r border-slate-200/80 min-w-0">
+                                    <i class="bi bi-lock text-[11px] sm:text-[20px] text-[#0A5C66] shrink-0"></i>
+                                    <div class="text-[7px] sm:text-[10px] font-extrabold text-[#0D1F3C] leading-tight font-poppins min-w-0">
                                         End-to-End Encryption
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-1.5 sm:gap-2">
-                                    <i class="bi bi-shield-check text-[12px] sm:text-[20px] text-[#0A5C66] shrink-0"></i>
-                                    <div class="text-[7.5px] sm:text-[10px] font-extrabold text-[#0D1F3C] leading-tight font-poppins whitespace-nowrap">
+                                <div class="flex items-center gap-1 sm:gap-2 min-w-0">
+                                    <i class="bi bi-shield-check text-[11px] sm:text-[20px] text-[#0A5C66] shrink-0"></i>
+                                    <div class="text-[7px] sm:text-[10px] font-extrabold text-[#0D1F3C] leading-tight font-poppins min-w-0">
                                         100% Trusted &amp; Secure
                                     </div>
                                 </div>
