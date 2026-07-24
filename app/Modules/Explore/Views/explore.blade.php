@@ -146,18 +146,17 @@
                         @endif
 
                         <span class="inline-flex items-center text-[8.5px] sm:text-[10.5px] font-black uppercase tracking-wider px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full {{ $tBadgeClass }}">
-                            {{ $cp['badge'] }}
+                            {{-- On mobile the metrics row's own Interest Rate column is
+                                 hidden for space, so this top badge shows the rate instead
+                                 of the category text there; desktop keeps the category text. --}}
+                            <span class="sm:hidden">{{ $cp['growthRate'] }}%</span>
+                            <span class="hidden sm:inline">{{ $cp['badge'] }}</span>
                         </span>
                     </div>
 
                     <!-- TITLE & SUBTITLE HEADER (FULL WIDTH, NATURAL WRAPPING) -->
                     <div class="mb-3.5">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <h3 class="text-[15px] sm:text-[21px] font-extrabold text-[#0D1F3C] font-poppins leading-tight tracking-tight">{{ $cp['title'] }}</h3>
-                            {{-- Interest rate moves here on mobile since the metrics row's
-                                 own Interest Rate column is hidden there for space. --}}
-                            <span class="sm:hidden inline-flex items-center text-[10px] font-black text-[#19B36B] bg-[#19B36B]/10 px-2 py-0.5 rounded-full whitespace-nowrap">{{ $cp['growthRate'] }}% p.a.</span>
-                        </div>
+                        <h3 class="text-[15px] sm:text-[21px] font-extrabold text-[#0D1F3C] font-poppins leading-tight tracking-tight">{{ $cp['title'] }}</h3>
                         <p class="text-[10.5px] sm:text-[13px] text-slate-500 font-medium leading-relaxed mt-0.5 max-w-full">{{ $cp['subtitle'] }}</p>
                     </div>
 
