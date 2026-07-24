@@ -540,60 +540,71 @@
                     <span class="w-12 h-[1px] bg-slate-200"></span>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2">
-                    <div class="shrink-0">
-                        <p class="text-[12px] font-bold text-slate-500 font-poppins">Investment Growth</p>
-                        <p class="text-[34px] font-black text-[#19B36B] font-poppins leading-none mt-1">{{ $chartGrowthPct }}%</p>
-                        <p class="text-[11px] font-bold text-slate-400 font-poppins mt-1">in last {{ $chartYears }} years</p>
-                    </div>
+                <!-- Dynamic headline - reflects whichever year point is selected below,
+                     not just a static "grew 101% over 5 years" line. -->
+                <div class="text-center pt-1">
+                    <p class="text-[12px] font-bold text-slate-500 font-poppins">
+                        ₹{{ number_format($chartBase, 0) }} grew to
+                        <span id="pd-chart-headline-amount" class="text-[18px] sm:text-[20px] font-black text-[#19B36B]">₹{{ number_format(end($chartValues), 0) }}</span>
+                    </p>
+                    <p class="text-[11px] font-bold text-slate-400 font-poppins mt-0.5">
+                        by <span id="pd-chart-headline-year">{{ end($chartYearLabels) }}</span>
+                        <span class="text-[#19B36B] font-black">(+<span id="pd-chart-headline-pct">{{ $chartGrowthPct }}</span>%)</span>
+                    </p>
+                </div>
 
-                    <!-- SVG Gradient Growth Curve Chart -->
-                    <div class="w-full sm:w-2/3 h-[160px] relative">
-                        <svg class="w-full h-full overflow-visible" viewBox="0 0 400 140" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#19B36B" stop-opacity="0.35"/>
-                                    <stop offset="100%" stop-color="#19B36B" stop-opacity="0.0"/>
-                                </linearGradient>
-                            </defs>
+                <!-- SVG Gradient Growth Curve Chart -->
+                <div class="w-full h-[160px] relative">
+                    <svg class="w-full h-full overflow-visible" viewBox="0 0 400 140" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#19B36B" stop-opacity="0.35"/>
+                                <stop offset="100%" stop-color="#19B36B" stop-opacity="0.0"/>
+                            </linearGradient>
+                        </defs>
 
-                            <!-- Y Grid lines -->
-                            <line x1="40" y1="20" x2="390" y2="20" stroke="#f1f5f9" stroke-dasharray="3,3" />
-                            <line x1="40" y1="50" x2="390" y2="50" stroke="#f1f5f9" stroke-dasharray="3,3" />
-                            <line x1="40" y1="80" x2="390" y2="80" stroke="#f1f5f9" stroke-dasharray="3,3" />
-                            <line x1="40" y1="110" x2="390" y2="110" stroke="#f1f5f9" stroke-dasharray="3,3" />
+                        <!-- Y Grid lines -->
+                        <line x1="40" y1="20" x2="390" y2="20" stroke="#f1f5f9" stroke-dasharray="3,3" />
+                        <line x1="40" y1="50" x2="390" y2="50" stroke="#f1f5f9" stroke-dasharray="3,3" />
+                        <line x1="40" y1="80" x2="390" y2="80" stroke="#f1f5f9" stroke-dasharray="3,3" />
+                        <line x1="40" y1="110" x2="390" y2="110" stroke="#f1f5f9" stroke-dasharray="3,3" />
 
-                            <!-- Y Axis labels -->
-                            <text x="0" y="25" fill="#94a3b8" font-size="9" font-weight="bold">₹{{ number_format($chartAxisMax, 0) }}</text>
-                            <text x="0" y="55" fill="#94a3b8" font-size="9" font-weight="bold">₹{{ number_format($chartAxisMax * 2 / 3, 0) }}</text>
-                            <text x="0" y="85" fill="#94a3b8" font-size="9" font-weight="bold">₹{{ number_format($chartAxisMax / 3, 0) }}</text>
-                            <text x="0" y="115" fill="#94a3b8" font-size="9" font-weight="bold">₹0</text>
+                        <!-- Y Axis labels -->
+                        <text x="0" y="25" fill="#94a3b8" font-size="9" font-weight="bold">₹{{ number_format($chartAxisMax, 0) }}</text>
+                        <text x="0" y="55" fill="#94a3b8" font-size="9" font-weight="bold">₹{{ number_format($chartAxisMax * 2 / 3, 0) }}</text>
+                        <text x="0" y="85" fill="#94a3b8" font-size="9" font-weight="bold">₹{{ number_format($chartAxisMax / 3, 0) }}</text>
+                        <text x="0" y="115" fill="#94a3b8" font-size="9" font-weight="bold">₹0</text>
 
-                            <!-- Gradient Area -->
-                            <polygon points="{{ $chartAreaPoints }}" fill="url(#chartGrad)" />
+                        <!-- Gradient Area -->
+                        <polygon points="{{ $chartAreaPoints }}" fill="url(#chartGrad)" />
 
-                            <!-- Curve Line -->
-                            <path d="{{ $chartPathD }}" fill="none" stroke="#0A5C66" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                        <!-- Curve Line -->
+                        <path d="{{ $chartPathD }}" fill="none" stroke="#0A5C66" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 
-                            <!-- Data Points & Labels -->
-                            @foreach ($chartPoints as $i => $pt)
-                                @continue($i === 0)
-                                @php
-                                    $isLast = $i === $chartYears;
-                                    $labelX = $isLast ? $pt['x'] - 34 : max(0, $pt['x'] - 15);
-                                    $labelY = $isLast ? $pt['y'] - 8 : $pt['y'] - 10;
-                                @endphp
-                                <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}" r="{{ $isLast ? 5 : 4 }}" fill="{{ $isLast ? '#19B36B' : '#0A5C66' }}" />
-                                <text x="{{ $labelX }}" y="{{ $labelY }}" fill="{{ $isLast ? '#19B36B' : '#0D1F3C' }}" font-size="{{ $isLast ? 9 : 8 }}" font-weight="bold">₹{{ number_format($pt['value'], 0) }}</text>
-                            @endforeach
-                        </svg>
+                        <!-- Data Points - tappable, no permanent price labels (those live in
+                             the headline above so the chart itself doesn't look like a flat
+                             image with every number printed on it). -->
+                        @foreach ($chartPoints as $i => $pt)
+                            @continue($i === 0)
+                            @php $isSelected = $i === $chartYears; @endphp
+                            <circle class="pd-chart-dot" onclick="selectChartPoint(this)" style="cursor:pointer"
+                                data-index="{{ $i }}" data-value="{{ round($pt['value']) }}" data-year="{{ $chartYearLabels[$i] }}"
+                                cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}"
+                                r="{{ $isSelected ? 6 : 5 }}"
+                                fill="{{ $isSelected ? '#19B36B' : '#0A5C66' }}"
+                                stroke="{{ $isSelected ? '#ffffff' : 'none' }}" stroke-width="2" />
+                        @endforeach
+                    </svg>
 
-                        <!-- X Axis Years -->
-                        <div class="flex justify-between text-[10px] font-bold text-slate-400 pl-10 pr-2 mt-1">
-                            @foreach ($chartYearLabels as $year)
-                                <span>{{ $year }}</span>
-                            @endforeach
-                        </div>
+                    <!-- X Axis Years - also the tap targets that drive the headline above -->
+                    <div class="flex justify-between text-[10px] font-bold pl-10 pr-2 mt-1">
+                        <span class="text-slate-300 px-1.5 py-0.5">{{ $chartYearLabels[0] }}</span>
+                        @foreach ($chartYearLabels as $i => $year)
+                            @continue($i === 0)
+                            <button type="button" onclick="selectChartPoint(this)"
+                                class="pd-chart-tab rounded-full px-1.5 py-0.5 transition-all {{ $i === $chartYears ? 'bg-[#0A5C66] text-white' : 'text-slate-400 hover:bg-slate-50' }}"
+                                data-index="{{ $i }}" data-value="{{ round($chartPoints[$i]['value']) }}" data-year="{{ $year }}">{{ $year }}</button>
+                        @endforeach
                     </div>
                 </div>
 
@@ -601,6 +612,36 @@
                     Past performance is for illustration only and does not guarantee future returns.
                 </p>
             </div>
+
+            <script>
+            function selectChartPoint(el) {
+                var index = el.dataset.index;
+                var value = parseInt(el.dataset.value, 10);
+                var year = el.dataset.year;
+                var base = {{ (int) $chartBase }};
+                var pct = base > 0 ? Math.round((value / base - 1) * 100) : 0;
+
+                var amountEl = document.getElementById('pd-chart-headline-amount');
+                var yearEl = document.getElementById('pd-chart-headline-year');
+                var pctEl = document.getElementById('pd-chart-headline-pct');
+                if (amountEl) amountEl.textContent = '₹' + value.toLocaleString('en-IN');
+                if (yearEl) yearEl.textContent = year;
+                if (pctEl) pctEl.textContent = pct;
+
+                document.querySelectorAll('.pd-chart-tab').forEach(function (btn) {
+                    var isSelected = btn.dataset.index === index;
+                    btn.classList.toggle('bg-[#0A5C66]', isSelected);
+                    btn.classList.toggle('text-white', isSelected);
+                    btn.classList.toggle('text-slate-400', !isSelected);
+                });
+                document.querySelectorAll('.pd-chart-dot').forEach(function (dot) {
+                    var isSelected = dot.dataset.index === index;
+                    dot.setAttribute('r', isSelected ? 6 : 5);
+                    dot.setAttribute('fill', isSelected ? '#19B36B' : '#0A5C66');
+                    dot.setAttribute('stroke', isSelected ? '#ffffff' : 'none');
+                });
+            }
+            </script>
 
             <!-- 9. SECTION: "Real Investment. Real Benefits." -->
             <div class="pt-2 text-center">
