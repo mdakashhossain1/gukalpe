@@ -302,7 +302,7 @@
         <!-- Trust Strip -->
         <div class="px-5 mt-4 mb-2">
             <div class="flex items-center justify-center gap-2.5 py-2">
-                <div class="flex items-center -space-x-2 shrink-0">
+                <div class="flex items-center gap-1.5 shrink-0">
                     @foreach (['A', 'B', 'C', 'D'] as $seed)
                         <div class="w-6 h-6 rounded-full border-2 border-[#F8FAFC] bg-slate-100 overflow-hidden">
                             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Home{{ $seed }}" class="w-full h-full">
