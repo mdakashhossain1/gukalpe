@@ -152,6 +152,20 @@
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('max_investment_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
+
+                <div id="range-preview" class="sm:col-span-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3.5 py-3" hidden>
+                    <p class="text-[10.5px] font-bold text-[#94A3B8] uppercase tracking-wide mb-2.5">Customer will see a slider like this on Plan Details</p>
+                    <div class="flex items-center gap-2.5">
+                        <span id="range-preview-min" class="text-[12.5px] font-black text-[#0F172A] whitespace-nowrap">₹0</span>
+                        <div class="relative flex-1 h-2 bg-slate-200 rounded-full">
+                            <div class="absolute inset-0 bg-[#0A5C66] rounded-full"></div>
+                            <div class="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-[#0A5C66] shadow"></div>
+                            <div class="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-[#0A5C66] shadow"></div>
+                        </div>
+                        <span id="range-preview-max" class="text-[12.5px] font-black text-[#0F172A] whitespace-nowrap">₹0</span>
+                    </div>
+                </div>
+
                 <p class="text-[11px] text-[#94A3B8] sm:col-span-2 -mt-1.5">Set both (max &gt; min) to show a real drag-slider on Plan Details letting the user invest any amount in this range - the return is then computed live from each duration's growth rate above rather than the fixed Investment amount. Requires at least one duration option below.</p>
 
                 <label class="sm:col-span-2 flex items-center gap-2.5 h-11 px-3.5 rounded-lg border border-[#CBD5E1] has-[:checked]:border-brand has-[:checked]:bg-brand/5 cursor-pointer transition-colors w-fit">
@@ -473,6 +487,34 @@
     iconInput.addEventListener('input', function () {
         iconPreview.className = 'bi ' + (this.value || 'bi-tag-fill') + ' text-[16px] text-[#0A5C66]';
     });
+})();
+
+(function () {
+    var minInput = document.getElementById('min_investment_amount');
+    var maxInput = document.getElementById('max_investment_amount');
+    var preview = document.getElementById('range-preview');
+    var previewMin = document.getElementById('range-preview-min');
+    var previewMax = document.getElementById('range-preview-max');
+
+    function formatRupees(n) {
+        return '₹' + Math.round(n).toLocaleString('en-IN');
+    }
+
+    function updatePreview() {
+        var min = parseFloat(minInput.value);
+        var max = parseFloat(maxInput.value);
+        if (!isNaN(min) && !isNaN(max) && max > min) {
+            previewMin.textContent = formatRupees(min);
+            previewMax.textContent = formatRupees(max);
+            preview.hidden = false;
+        } else {
+            preview.hidden = true;
+        }
+    }
+
+    minInput.addEventListener('input', updatePreview);
+    maxInput.addEventListener('input', updatePreview);
+    updatePreview();
 })();
 
 (function () {
