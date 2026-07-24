@@ -173,14 +173,14 @@
                         <!-- CENTER: METRICS & TRUST -->
                         <div class="min-w-0 flex flex-col justify-between">
                             <!-- 3-COLUMN METRICS GRID WITH VERTICAL DIVIDERS -->
-                            <div class="flex items-center gap-2 sm:gap-6 py-0.5 overflow-x-auto hide-scrollbar">
+                            <div class="flex items-center gap-1.5 sm:gap-4 py-0.5 overflow-x-auto hide-scrollbar">
                                 <!-- Col 1: Interest Rate -->
-                                <div class="pr-2 sm:pr-6 border-r border-slate-200/90 shrink-0">
+                                <div class="pr-1.5 sm:pr-4 border-r border-slate-200/90 shrink-0">
                                     <p class="text-[7px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-0.5 sm:mb-1 leading-tight">Interest Rate<br>(Yearly)</p>
                                     <p class="text-[14px] sm:text-[24px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['growthRate'] }}%</p>
                                 </div>
                                 <!-- Col 2: Total Return -->
-                                <div class="px-2 sm:px-6 border-r border-slate-200/90 shrink-0">
+                                <div class="px-1.5 sm:px-4 border-r border-slate-200/90 shrink-0">
                                     <p class="text-[7px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider font-poppins mb-0.5 sm:mb-1">Total Return</p>
                                     <p class="text-[14px] sm:text-[24px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['totalReturn'] }}</p>
                                 </div>
