@@ -7,7 +7,7 @@
     <meta name="description" content="Aapki Digital Gullak, Safe Aur Secure!">
     <title>GullakPe: Secure & Trusted Savings and Goal App in India</title>
 
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/favicon.ico') }}">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
     <!-- FontAwesome -->
