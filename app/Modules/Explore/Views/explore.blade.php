@@ -146,11 +146,7 @@
                         @endif
 
                         <span class="inline-flex items-center text-[8.5px] sm:text-[10.5px] font-black uppercase tracking-wider px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full {{ $tBadgeClass }}">
-                            {{-- On mobile the metrics row's own Interest Rate column is
-                                 hidden for space, so this top badge shows the rate instead
-                                 of the category text there; desktop keeps the category text. --}}
-                            <span class="sm:hidden">{{ $cp['growthRate'] }}%</span>
-                            <span class="hidden sm:inline">{{ $cp['badge'] }}</span>
+                            {{ $cp['badge'] }}
                         </span>
                     </div>
 
@@ -178,8 +174,8 @@
                         <div class="min-w-0 flex flex-col justify-between">
                             <!-- 3-COLUMN METRICS GRID WITH VERTICAL DIVIDERS -->
                             <div class="flex items-center gap-1 sm:gap-4 py-0.5 overflow-x-auto hide-scrollbar">
-                                <!-- Col 1: Interest Rate - hidden on mobile, shown as a badge next to the title instead -->
-                                <div class="hidden sm:block sm:pr-4 border-r border-slate-200/90 shrink-0">
+                                <!-- Col 1: Interest Rate -->
+                                <div class="pr-1 sm:pr-4 border-r border-slate-200/90 shrink-0">
                                     <p class="text-[7.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide sm:tracking-wider font-poppins mb-0.5 sm:mb-1 leading-tight whitespace-nowrap">Interest Rate<br>(Yearly)</p>
                                     <p class="text-[18px] sm:text-[24px] font-black text-[#19B36B] font-poppins leading-none">{{ $cp['growthRate'] }}%</p>
                                 </div>
