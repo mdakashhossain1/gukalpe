@@ -1,5 +1,17 @@
 # MEMORY.md — Project Log
 
+## 2026-07-25 — Fixed Ops Console sidebar being broken on mobile, replaced pill-nav with a real hamburger drawer
+
+User reported the admin panel "side" (sidebar) wasn't responsive on mobile. Asked which specific symptom via AskUserQuestion; user picked "the mobile version feels wrong" - wanted a real slide-out hamburger drawer instead of the existing mobile pattern (a horizontal scrollable pill-link row in the mobile top bar).
+
+**A real layout bug was found during the investigation, not just a UX preference**: every admin page wrapper was `<div class="flex min-h-screen">` (row direction, no `flex-col`). `admin-sidebar.blade.php` renders two top-level siblings into that row - the desktop `<aside>` (`hidden md:flex`) and a mobile-only `<header>` (`md:hidden`, `position: sticky`, so still in normal flow). On mobile the `<aside>` disappears (`display:none`) but the sticky `<header>` remained a flex-row sibling of `<main>`, so the two were squeezed side-by-side in the same row instead of stacking - not merely unpolished, an actual broken layout.
+
+**Fix**:
+- `resources/views/components/admin-sidebar.blade.php`: rebuilt as one real `<aside id="admin-sidebar">` used at both breakpoints instead of a completely separate mobile markup branch. Desktop: `md:sticky md:translate-x-0`, unchanged in-flow column behavior. Mobile: `fixed inset-y-0 left-0 -translate-x-full` (off-canvas, and `fixed` removes it from the flex flow entirely so it can never repeat the row/column bug) toggled via a small inline `<script>` (`admin-sidebar-open`/`-close` buttons, a `#admin-sidebar-backdrop` overlay, Escape-to-close, `body` scroll-lock while open). The old mobile pill-nav row is gone - the drawer reuses the exact same `$navItems` markup/order as desktop, so there's only one nav list to keep in sync now instead of two.
+- All 13 admin page views (`dashboard`, `deposits`, `withdrawals`, `payment-gateway/{index,upi-form,bank-form}`, `wallet-tools`, `simulations`, `settings`, `logs`, `push-notification`, `plans/{index,form}`): outer wrapper changed from `flex min-h-screen` to `flex flex-col md:flex-row min-h-screen` - this is what actually fixes the stacking bug (the sticky mobile header needs `flex-col` to land above `<main>` instead of beside it); the drawer's own `fixed` positioning would have masked the symptom but not the underlying mismatch. `login.blade.php` doesn't use the sidebar, left untouched.
+
+Verified via real HTTP (per CLAUDE.md's Tinker-is-unreliable note): `npm run build` clean, `php artisan view:clear`, logged into `/gullak-ops-4f2` with the real `.env` password via curl, fetched all 9 other admin pages while authenticated - all 200. Confirmed in the rendered HTML that `admin-sidebar`/`admin-sidebar-open`/`admin-sidebar-backdrop` render correctly and the old pill-nav markup is completely gone. **Not verified**: actual drawer open/close interaction and touch behavior in a real mobile browser - no browser/screenshot tool available this session, flagged explicitly rather than claimed.
+
 ## 2026-07-23 — Redesigned Explore Goal Plan cards to match reference screenshot
 
 Redesigned the plan cards layout in `app/Modules/Explore/Views/explore.blade.php` to match the exact visual style from the user-provided screenshot.

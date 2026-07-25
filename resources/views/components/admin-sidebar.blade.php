@@ -22,21 +22,67 @@
     ];
 @endphp
 
-{{-- No fixed h-screen here on purpose: a flex row's default align-items:
-     stretch already makes this match the row's real height (i.e. main's
-     content height, whatever that is) - h-screen instead capped it at
-     exactly one viewport, so on any page taller than that, scrolling past
-     the first screen ran past the sidebar's own box and left it behind,
-     showing empty page background where the white sidebar should still be. --}}
-<aside class="hidden md:flex md:flex-col w-60 shrink-0 border-r border-[#E5E9EB] bg-white px-4 py-6 sticky top-0 self-stretch">
-    <div class="flex items-center gap-2.5 px-2 mb-8">
-        <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-piggy-bank text-white text-[13px]"></i>
+{{-- Mobile top bar (md:hidden) - hamburger opens the SAME <aside> below as
+     a slide-in drawer instead of the old "different mobile nav" approach
+     (a separate horizontal pill-link row). One real sidebar, two
+     presentations: an in-flow column on desktop, a fixed off-canvas panel
+     on mobile toggled by the button here. `sticky` (not `fixed`) is
+     deliberate - every page wrapper is `flex flex-col md:flex-row`, so on
+     mobile this bar is a normal in-flow column item stacked above <main>,
+     not a row sibling next to it (that row/column mismatch - header and
+     main forced side-by-side in the default row direction - was the actual
+     bug behind "sidebar not responsive": with the old plain `flex` wrapper,
+     hiding the desktop <aside> on mobile left this header and <main> as two
+     items in the same row instead of stacked). --}}
+<header class="md:hidden sticky top-0 z-30 w-full bg-white/95 backdrop-blur border-b border-[#E5E9EB]">
+    <div class="px-4 h-16 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+            <button type="button" id="admin-sidebar-open" class="w-10 h-10 -ml-1 shrink-0 rounded-lg flex items-center justify-center text-[#334155] hover:bg-[#F1F5F9] transition-colors" aria-label="Open menu" aria-expanded="false" aria-controls="admin-sidebar">
+                <i class="fa-solid fa-bars text-[16px]"></i>
+            </button>
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-piggy-bank text-white text-[13px]"></i>
+                </div>
+                <span class="font-poppins font-extrabold text-[15px] tracking-tight text-[#0F172A] truncate">GullakPe <span class="font-semibold text-[#64748B]">Ops</span></span>
+            </div>
         </div>
-        <span class="font-poppins font-extrabold text-[15.5px] tracking-tight text-[#0F172A]">GullakPe <span class="font-semibold text-[#64748B]">Ops</span></span>
+        <div class="flex items-center gap-3 shrink-0">
+            <x-admin-notification-bell id="admin-notif-bell-mobile" />
+            <form method="POST" action="{{ route('admin.logout') }}">
+                @csrf
+                <button type="submit" class="text-[13px] font-semibold text-[#64748B] hover:text-[#0F172A] transition-colors">Sign out</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+{{-- Backdrop - mobile only. Dims the page and closes the drawer on click,
+     same as the X button or Escape. Starts hidden; JS below toggles it. --}}
+<div id="admin-sidebar-backdrop" class="hidden md:hidden fixed inset-0 bg-slate-900/50 z-40" aria-hidden="true"></div>
+
+{{-- The one real sidebar. Mobile: fixed off-canvas panel, translated out of
+     view by default and slid in via JS (`fixed` also takes it out of the
+     page's flex flow entirely, so it never competes for row/column space).
+     Desktop (md:): back to the original in-flow, sticky column - `md:static`
+     isn't enough on its own since sticky is what let it match the row's
+     real height per the note below, so `md:sticky` + the transform reset
+     (`md:translate-x-0`) restores the exact pre-drawer desktop behavior. --}}
+<aside id="admin-sidebar"
+    class="fixed md:sticky inset-y-0 left-0 md:inset-y-auto top-0 md:top-0 z-50 md:z-auto w-72 md:w-60 shrink-0 border-r border-[#E5E9EB] bg-white px-4 py-6 flex flex-col self-stretch -translate-x-full md:translate-x-0 transition-transform duration-200 ease-out">
+    <div class="flex items-center justify-between gap-2.5 px-2 mb-8">
+        <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-piggy-bank text-white text-[13px]"></i>
+            </div>
+            <span class="font-poppins font-extrabold text-[15.5px] tracking-tight text-[#0F172A] truncate">GullakPe <span class="font-semibold text-[#64748B]">Ops</span></span>
+        </div>
+        <button type="button" id="admin-sidebar-close" class="md:hidden shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#F1F5F9] transition-colors" aria-label="Close menu">
+            <i class="fa-solid fa-xmark text-[15px]"></i>
+        </button>
     </div>
 
-    <nav class="flex flex-col gap-1">
+    <nav class="flex flex-col gap-1 overflow-y-auto">
         @foreach ($navItems as $item)
             <a href="{{ route($item['route']) }}" class="ops-nav-item {{ $active === $item['key'] ? 'is-active' : '' }} flex items-center gap-3 h-10 px-3 rounded-lg text-left transition-colors">
                 <i class="fa-solid {{ $item['icon'] }} w-4 text-center text-[14px]"></i>
@@ -57,28 +103,40 @@
     </form>
 </aside>
 
-{{-- Mobile top bar (sidebar is md+ only) --}}
-<header class="md:hidden sticky top-0 z-10 w-full bg-white/95 backdrop-blur border-b border-[#E5E9EB]">
-    <div class="px-5 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-piggy-bank text-white text-[13px]"></i>
-            </div>
-            <span class="font-poppins font-extrabold text-[15.5px] tracking-tight text-[#0F172A]">GullakPe <span class="font-semibold text-[#64748B]">Ops</span></span>
-        </div>
-        <div class="flex items-center gap-3">
-            <x-admin-notification-bell id="admin-notif-bell-mobile" />
-            <form method="POST" action="{{ route('admin.logout') }}">
-                @csrf
-                <button type="submit" class="text-[13px] font-semibold text-[#64748B] hover:text-[#0F172A] transition-colors">Sign out</button>
-            </form>
-        </div>
-    </div>
-    <div class="flex gap-1.5 px-4 pb-3 overflow-x-auto">
-        @foreach ($navItems as $item)
-            <a href="{{ route($item['route']) }}" class="ops-nav-item {{ $active === $item['key'] ? 'is-active' : '' }} shrink-0 h-8 px-3 rounded-full text-[12.5px] font-semibold transition-colors">
-                {{ $item['label'] }} @if (($item['count'] ?? 0) > 0)<span class="ml-1 bg-[#DC2626] text-white text-[10px] font-bold px-1.5 rounded-full">{{ $item['count'] }}</span>@endif
-            </a>
-        @endforeach
-    </div>
-</header>
+<script>
+(function () {
+    var sidebar = document.getElementById('admin-sidebar');
+    var backdrop = document.getElementById('admin-sidebar-backdrop');
+    var openBtn = document.getElementById('admin-sidebar-open');
+    var closeBtn = document.getElementById('admin-sidebar-close');
+    if (!sidebar || !backdrop || !openBtn) return;
+
+    // Guard against this script running twice - admin-notification-bell is
+    // rendered once per breakpoint inside this component, but the sidebar
+    // itself (and this script) is only ever included once per page, so this
+    // is just cheap insurance, not a known duplication.
+    if (openBtn.dataset.drawerBound) return;
+    openBtn.dataset.drawerBound = '1';
+
+    function openDrawer() {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        openBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeDrawer() {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        openBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    openBtn.addEventListener('click', openDrawer);
+    closeBtn && closeBtn.addEventListener('click', closeDrawer);
+    backdrop.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeDrawer();
+    });
+})();
+</script>

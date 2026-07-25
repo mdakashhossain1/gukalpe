@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="flex min-h-screen">
+<div class="flex flex-col md:flex-row min-h-screen">
 
     <x-admin-sidebar active="overview" :pending-deposit-count="$pendingDepositCount" :pending-withdrawal-count="$pendingWithdrawalCount" />
 
