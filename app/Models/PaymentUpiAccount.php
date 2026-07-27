@@ -9,11 +9,13 @@ use Illuminate\Support\Str;
 class PaymentUpiAccount extends Model
 {
     protected $fillable = [
-        'upi_id', 'display_name', 'mobile_number', 'qr_image', 'is_active', 'sort_order',
+        'upi_id', 'display_name', 'mobile_number', 'qr_image', 'min_amount', 'max_amount', 'is_active', 'sort_order',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'min_amount' => 'decimal:2',
+        'max_amount' => 'decimal:2',
     ];
 
     protected static function booted(): void
@@ -36,6 +38,17 @@ class PaymentUpiAccount extends Model
     public function scopeOrdered(Builder $query): Builder
     {
         return $query->orderBy('sort_order')->orderBy('id');
+    }
+
+    // Amount-range routing (see DepositRequestController::create): an account is
+    // a candidate for a given deposit amount when the amount sits inside its
+    // [min_amount, max_amount] window. A null bound means that side is open, so
+    // an account with both bounds null matches every amount.
+    public function scopeCoversAmount(Builder $query, float $amount): Builder
+    {
+        return $query
+            ->where(fn ($q) => $q->whereNull('min_amount')->orWhere('min_amount', '<=', $amount))
+            ->where(fn ($q) => $q->whereNull('max_amount')->orWhere('max_amount', '>=', $amount));
     }
 
     // qr_image is always a path relative to public/ (saved by

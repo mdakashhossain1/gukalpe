@@ -12,6 +12,7 @@ use Illuminate\Support\Collection as SupportCollection;
 class UserPlan extends Model
 {
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_WITHDRAWN = 'withdrawn';
 
     protected $fillable = [
@@ -153,7 +154,7 @@ class UserPlan extends Model
             'title' => $plan->title,
             'subtitle' => $plan->subtitle,
             'image' => $plan->imageUrl(),
-            'icon' => $plan->icon,
+            'icon' => $plan->icon ?: 'bi-piggy-bank',
             'invested' => $invested,
             'dailyProfit' => $dailyProfit,
             'totalReturn' => $totalReturn,

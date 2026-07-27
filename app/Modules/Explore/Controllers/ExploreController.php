@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\Models\PlanCategory;
 use App\Models\UserPlan;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -107,7 +108,7 @@ class ExploreController extends Controller
             'lowest_investment' => $plans->sortBy(fn (Plan $p) => (float) $p->investment_amount),
             'highest_return' => $plans->sortByDesc(fn (Plan $p) => (float) $p->total_return),
             'newest' => $plans->sortByDesc(fn (Plan $p) => $p->created_at),
-            'ending_soon' => $plans->sortBy(fn (Plan $p) => $p->end_date ?? \Carbon\Carbon::maxValue()),
+            'ending_soon' => $plans->sortBy(fn (Plan $p) => $p->end_date ?? Carbon::maxValue()),
             'most_popular' => $plans->sortByDesc(fn (Plan $p) => $p->investorCount()),
             default => $plans,
         };
@@ -179,7 +180,7 @@ class ExploreController extends Controller
             'name' => $this->maskName($up->user->name ?? null),
             'city' => self::FILLER_CITIES[array_rand(self::FILLER_CITIES)],
             'planTitle' => $up->plan->title,
-            'planIcon' => $up->plan->icon,
+            'planIcon' => $up->plan->icon ?: 'bi-piggy-bank',
             'amount' => (float) $up->invested_amount,
             'minutesAgo' => max(0, (int) $up->purchased_at->diffInMinutes(now())),
         ])->values()->all();
@@ -216,7 +217,7 @@ class ExploreController extends Controller
                     'name' => $name,
                     'city' => $cities[$i % $cities->count()],
                     'planTitle' => $plan->title,
-                    'planIcon' => $plan->icon,
+                    'planIcon' => $plan->icon ?: 'bi-piggy-bank',
                     'amount' => (float) $plan->investment_amount,
                     'minutesAgo' => $minutesAgo,
                 ];

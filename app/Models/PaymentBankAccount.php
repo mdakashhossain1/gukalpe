@@ -9,11 +9,13 @@ use Illuminate\Support\Str;
 class PaymentBankAccount extends Model
 {
     protected $fillable = [
-        'account_holder_name', 'account_number', 'ifsc_code', 'bank_name', 'branch_name', 'is_active', 'sort_order',
+        'account_holder_name', 'account_number', 'ifsc_code', 'bank_name', 'branch_name', 'min_amount', 'max_amount', 'is_active', 'sort_order',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'min_amount' => 'decimal:2',
+        'max_amount' => 'decimal:2',
     ];
 
     protected static function booted(): void
@@ -36,5 +38,15 @@ class PaymentBankAccount extends Model
     public function scopeOrdered(Builder $query): Builder
     {
         return $query->orderBy('sort_order')->orderBy('id');
+    }
+
+    // Amount-range routing (see DepositRequestController::create): matches when
+    // the deposit amount falls inside this account's [min_amount, max_amount]
+    // window. A null bound is open on that side; both null matches everything.
+    public function scopeCoversAmount(Builder $query, float $amount): Builder
+    {
+        return $query
+            ->where(fn ($q) => $q->whereNull('min_amount')->orWhere('min_amount', '<=', $amount))
+            ->where(fn ($q) => $q->whereNull('max_amount')->orWhere('max_amount', '>=', $amount));
     }
 }

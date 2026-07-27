@@ -18,7 +18,7 @@
         </a>
 
         <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-1">{{ $account->exists ? 'Edit bank account' : 'Add bank account' }}</h1>
-        <p class="text-[13.5px] text-[#64748B] mb-6">Shown to users at random alongside every other active bank account whenever Bank Transfer is the selected method on Add Money.</p>
+        <p class="text-[13.5px] text-[#64748B] mb-6">Shown on Add Money when the deposit amount falls in this account's range (set below). If several accounts match the amount, one is picked at random.</p>
 
         <form method="POST" action="{{ $account->exists ? route('admin.payment-gateway.bank-accounts.update', $account) : route('admin.payment-gateway.bank-accounts.store') }}" class="flex flex-col gap-3.5 bg-white rounded-2xl border border-[#E5E9EB] p-6 max-w-xl">
             @csrf
@@ -59,6 +59,22 @@
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('branch_name')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label for="min_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Min amount (₹, optional)</label>
+                    <input type="number" name="min_amount" id="min_amount" min="0" step="0.01" placeholder="No lower limit" value="{{ old('min_amount', $account->min_amount) }}"
+                        class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                    @error('min_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label for="max_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max amount (₹, optional)</label>
+                    <input type="number" name="max_amount" id="max_amount" min="0" step="0.01" placeholder="No upper limit" value="{{ old('max_amount', $account->max_amount) }}"
+                        class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                    @error('max_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                </div>
+                <p class="text-[11px] text-[#94A3B8] sm:col-span-2 -mt-1.5">This account is only shown on Add Money when the deposit amount falls in this range. Leave both blank to accept every amount.</p>
             </div>
 
             <div>

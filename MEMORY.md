@@ -1,5 +1,24 @@
 # MEMORY.md — Project Log
 
+## 2026-07-28 — Amount-based payment routing (per-account ranges) + uploadable plan icon image on Explore
+
+Two admin-requested features.
+
+**1. Add Money now routes by deposit amount, not a global UPI/Bank toggle + random pick.**
+- New nullable `min_amount`/`max_amount` (decimal 12,2) columns on both `payment_upi_accounts` and `payment_bank_accounts` (migrations `2026_07_27_100000` / `_100100`). Blank bound = open on that side; both blank = matches every amount.
+- `PaymentUpiAccount`/`PaymentBankAccount`: added the two fields to `$fillable` + `decimal:2` casts, and a `scopeCoversAmount($amount)` (`(min IS NULL OR min<=amt) AND (max IS NULL OR max>=amt)`).
+- `DepositRequestController::create()` **replaced the old logic** (`AppSetting payment_mode` single-method + `inRandomOrder` within that method). Now: query active UPI and active bank accounts that `coversAmount($amount)`, build a candidate method list, `array_rand` one when both match (page renders one method at a time), else `payment-unavailable`. `store()` now accepts both methods (`$allowedMethods = ['upi','bank']`) since either can legitimately be shown; removed the unused `AppSetting` import. The `deposits/create.blade.php` view contract (`$activeMethod` + one non-null account) is unchanged, so no view edit there.
+- Admin: `payment-gateway/{upi-form,bank-form}.blade.php` got Min/Max ₹ inputs; `PaymentGatewayController::validatedUpi/validatedBank` validate `min_amount`/`max_amount` (`nullable numeric min:0`, max `gte:min_amount`). `payment-gateway/index.blade.php` **restructured**: removed the now-defunct "Collection mode" radio form (the `payment_mode` setting + `updateSettings` route still exist but no longer drive selection) and always shows BOTH UPI and Bank sections, each row showing a range pill ("Any amount" / "₹X+" / "Up to ₹Y" / "₹X – ₹Y").
+
+**2. Plans can have an uploaded icon image (from storage), shown on Explore alongside the main image.**
+- New nullable `icon_image` column on `plans` (migration `_100200`). Uploaded to `public/assets/plan-icons` (same no-symlink `public/assets/` convention as `imageUrl()`/QR).
+- `Plan`: `icon_image` in `$fillable`, `iconImageUrl()` helper (asset path or null), and `toLegacyArray()` now emits `iconImage` plus an `icon` fallback (`?: 'bi-piggy-bank'`).
+- The old plan-form "Icon (Bootstrap Icons class)" text field + Browse button was **replaced** by an `icon_image` file upload (with current-icon preview). The Bootstrap `icon` column is now **optional** in `PlanManagementController::validated()` (still NOT NULL in DB) — the controller keeps it populated: preserves the plan's existing class on edit, defaults to `bi-piggy-bank` on create. `store()`/`update()` validate + store `icon_image` (nullable image, untouched unless re-uploaded); `storeUploadedImage()` generalized to `(field, relativeDir)`. The category-icon and marketing-badge-icon pickers are untouched (still Bootstrap classes).
+- Explore card pod (`explore.blade.php`): shows the uploaded icon image when set, else the `bi` class; the separate main `image` now renders as a small avatar overlapping the pod's bottom-right so **both** appear (previously image-or-icon, image won). Admin `plans/index.blade.php` row icon also prefers `iconImageUrl()`.
+- Defensive `?: 'bi-piggy-bank'` fallbacks added where `$plan->icon` is printed directly and could now be null-ish: `ExploreController` ticker (×2), `UserPlan::toLegacyArray`, `SendDailyReturnsEmail`.
+
+Ran the 3 migrations + `php artisan view:clear`; `vendor/bin/pint` clean. **Not yet verified in a real browser** (no seeded payment accounts / no screenshot tool this session) — the amount-routing selection and the Explore icon+image layout should be eyeballed with real data.
+
 ## 2026-07-25 — Fixed Ops Console sidebar being broken on mobile, replaced pill-nav with a real hamburger drawer
 
 User reported the admin panel "side" (sidebar) wasn't responsive on mobile. Asked which specific symptom via AskUserQuestion; user picked "the mobile version feels wrong" - wanted a real slide-out hamburger drawer instead of the existing mobile pattern (a horizontal scrollable pill-link row in the mobile top bar).

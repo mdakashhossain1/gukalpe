@@ -193,6 +193,8 @@ class PaymentGatewayController extends Controller
             'upi_id' => ['required', 'string', 'max:100', 'regex:/^[\w.\-]{2,256}@[a-zA-Z]{2,64}$/'],
             'display_name' => ['nullable', 'string', 'max:100'],
             'mobile_number' => ['nullable', 'digits:10'],
+            'min_amount' => ['nullable', 'numeric', 'min:0'],
+            'max_amount' => ['nullable', 'numeric', 'min:0', 'gte:min_amount'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
@@ -214,6 +216,8 @@ class PaymentGatewayController extends Controller
             'ifsc_code' => ['required', 'string', 'regex:/^[A-Z]{4}0[A-Z0-9]{6}$/'],
             'bank_name' => ['required', 'string', 'max:100'],
             'branch_name' => ['nullable', 'string', 'max:100'],
+            'min_amount' => ['nullable', 'numeric', 'min:0'],
+            'max_amount' => ['nullable', 'numeric', 'min:0', 'gte:min_amount'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 

@@ -10,6 +10,7 @@ use App\Models\PlanDuration;
 use App\Models\WithdrawRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -52,11 +53,17 @@ class PlanManagementController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $request->validate(['image' => ['required', 'image', 'max:4096']]);
+        $request->validate([
+            'image' => ['required', 'image', 'max:4096'],
+            'icon_image' => ['nullable', 'image', 'max:4096'],
+        ]);
         $this->resolveCategoryInput($request);
 
         $data = $this->validated($request);
-        $data['image'] = $this->storeUploadedImage($request);
+        $data['image'] = $this->storeUploadedImage($request, 'image', 'assets/plans');
+        if ($request->hasFile('icon_image')) {
+            $data['icon_image'] = $this->storeUploadedImage($request, 'icon_image', 'assets/plan-icons');
+        }
 
         $this->syncCategoryIcon($data['badge'], $data['badge_icon']);
         unset($data['badge_icon']);
@@ -82,14 +89,21 @@ class PlanManagementController extends Controller
 
     public function update(Request $request, Plan $plan): RedirectResponse
     {
-        $request->validate(['image' => ['nullable', 'image', 'max:4096']]);
+        $request->validate([
+            'image' => ['nullable', 'image', 'max:4096'],
+            'icon_image' => ['nullable', 'image', 'max:4096'],
+        ]);
         $this->resolveCategoryInput($request);
 
         $data = $this->validated($request, $plan);
         // Only touch the image if a new file was actually uploaded - editing
         // a plan's price shouldn't force re-uploading its picture every time.
         if ($request->hasFile('image')) {
-            $data['image'] = $this->storeUploadedImage($request);
+            $data['image'] = $this->storeUploadedImage($request, 'image', 'assets/plans');
+        }
+        // Same for the custom icon image - left untouched unless replaced.
+        if ($request->hasFile('icon_image')) {
+            $data['icon_image'] = $this->storeUploadedImage($request, 'icon_image', 'assets/plan-icons');
         }
 
         $this->syncCategoryIcon($data['badge'], $data['badge_icon']);
@@ -141,7 +155,7 @@ class PlanManagementController extends Controller
         );
     }
 
-    private function categoryOptions(): \Illuminate\Support\Collection
+    private function categoryOptions(): Collection
     {
         return PlanCategory::query()->pluck('name')
             ->merge(Plan::query()->whereNotNull('badge')->distinct()->pluck('badge'))
@@ -158,7 +172,9 @@ class PlanManagementController extends Controller
                 ? 'unique:plans,title,'.$plan->id
                 : 'unique:plans,title'],
             'subtitle' => ['required', 'string', 'max:150'],
-            'icon' => ['required', 'string', 'max:50'],
+            // Optional now that admins can upload a custom icon image instead
+            // (icon_image, handled separately). Kept as a fallback class.
+            'icon' => ['nullable', 'string', 'max:50'],
             'badge' => ['required', 'string', 'max:30'],
             'badge_icon' => ['nullable', 'string', 'max:50'],
             'growth_rate' => ['required', 'integer', 'min:0', 'max:100'],
@@ -191,6 +207,13 @@ class PlanManagementController extends Controller
             'faqs.*.q' => ['nullable', 'string', 'max:200'],
             'faqs.*.a' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        // The Bootstrap-class icon field was replaced on the form by an icon
+        // image upload, so it no longer arrives in the POST body. Keep the
+        // column (still NOT NULL, and a fallback wherever no icon image is set)
+        // populated: preserve the plan's existing class on edit, default on
+        // create.
+        $validated['icon'] = $validated['icon'] ?? $plan?->icon ?? 'bi-piggy-bank';
 
         // Checkboxes absent from the POST body simply mean false - not
         // something 'nullable'/'boolean' validation rules can express, so
@@ -265,17 +288,17 @@ class PlanManagementController extends Controller
         }
     }
 
-    // Saved straight into public/assets/plans - deliberately NOT Laravel's
+    // Saved straight into public/assets/<subdir> - deliberately NOT Laravel's
     // 'public' disk (storage/app/public + a storage:link symlink); this
     // app is served directly out of public/ via a custom index.php (see
     // SECURITY.md), and everything else image-like already lives in
     // public/assets/ with no symlink involved, so uploads follow the same
     // pattern rather than introducing a second, inconsistent one.
-    private function storeUploadedImage(Request $request): string
+    private function storeUploadedImage(Request $request, string $field = 'image', string $relativeDir = 'assets/plans'): string
     {
-        $file = $request->file('image');
+        $file = $request->file($field);
         $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
-        $directory = public_path('assets/plans');
+        $directory = public_path($relativeDir);
 
         // UploadedFile::move() does not create missing directories itself.
         if (! is_dir($directory)) {
@@ -284,6 +307,6 @@ class PlanManagementController extends Controller
 
         $file->move($directory, $filename);
 
-        return 'assets/plans/'.$filename;
+        return $relativeDir.'/'.$filename;
     }
 }

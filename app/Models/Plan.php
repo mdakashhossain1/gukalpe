@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 class Plan extends Model
 {
     protected $fillable = [
-        'title', 'subtitle', 'image', 'icon', 'badge', 'growth_rate',
+        'title', 'subtitle', 'image', 'icon', 'icon_image', 'badge', 'growth_rate',
         'lock_duration', 'investment_amount', 'min_investment_amount', 'max_investment_amount', 'allow_topups',
         'daily_profit', 'total_return',
         'min_goal', 'is_active', 'sort_order',
@@ -183,6 +183,20 @@ class Plan extends Model
             : asset($this->image);
     }
 
+    // Admin-uploaded custom icon (public/assets/plan-icons, same
+    // no-symlink convention as imageUrl()/qrImageUrl()). Null when the admin
+    // hasn't uploaded one - callers fall back to the Bootstrap `icon` class.
+    public function iconImageUrl(): ?string
+    {
+        if (empty($this->icon_image)) {
+            return null;
+        }
+
+        return str_starts_with($this->icon_image, 'http://') || str_starts_with($this->icon_image, 'https://')
+            ? $this->icon_image
+            : asset($this->icon_image);
+    }
+
     // Reproduces the exact shape of the old hardcoded `plansData[title]`
     // entries in resources/js/modules/animations.js, including its
     // redundant derived fields (expectedGrowth/expectedReturn duplicate
@@ -205,7 +219,11 @@ class Plan extends Model
             'title' => $this->title,
             'subtitle' => $this->subtitle,
             'image' => $this->imageUrl(),
-            'icon' => $this->icon,
+            // Bootstrap-class icon is now optional (admins may upload a custom
+            // icon image instead - see iconImageUrl()), so fall back to a sane
+            // default class for the many render sites that print `bi {{ icon }}`.
+            'icon' => $this->icon ?: 'bi-piggy-bank',
+            'iconImage' => $this->iconImageUrl(),
             'badge' => $this->badge,
             'expectedGrowth' => "Up to {$this->growth_rate}% yearly",
             'growthRate' => $this->growth_rate,

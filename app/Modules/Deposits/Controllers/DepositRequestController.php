@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Mail\DepositRequestReceivedMail;
 use App\Mail\NewDepositRequestMail;
 use App\Models\AdminNotification;
-use App\Models\AppSetting;
 use App\Models\DepositRequest;
 use App\Models\PaymentBankAccount;
 use App\Models\PaymentUpiAccount;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -65,32 +65,40 @@ class DepositRequestController extends Controller
         if (! is_numeric($amount) || (float) $amount < 1) {
             return redirect()->route('home')->with('error', 'Please choose an amount to add first.');
         }
+        $amountValue = (float) $amount;
 
-        // A single flat choice - 'upi' | 'bank' - exactly one is ever
-        // active, so there's no user-facing tab/switch to resolve here.
-        $mode = AppSetting::get('payment_mode', AppSetting::DEFAULTS['payment_mode']);
-        $activeMethod = in_array($mode, ['upi', 'bank'], true) ? $mode : null;
+        // Amount-based routing (admin-configured per account, replacing the old
+        // single-global-method + random pick): every active account of EITHER
+        // method whose [min_amount, max_amount] window covers this deposit
+        // amount is a candidate. Re-queried fresh on every request, inRandomOrder
+        // so ties (overlapping ranges) still spread across matching accounts.
+        $upiAccount = PaymentUpiAccount::active()->coversAmount($amountValue)->inRandomOrder()->first();
+        $bankAccount = PaymentBankAccount::active()->coversAmount($amountValue)->inRandomOrder()->first();
 
-        // Re-queried fresh on every request (no caching/session pinning) -
-        // this is what makes the shown account genuinely random each time
-        // the page is opened, per the admin-facing requirement.
-        $upiAccount = $activeMethod === 'upi' ? PaymentUpiAccount::active()->inRandomOrder()->first() : null;
-        $bankAccount = $activeMethod === 'bank' ? PaymentBankAccount::active()->inRandomOrder()->first() : null;
+        // The page renders exactly one method at a time, so when both a UPI and
+        // a bank account match, pick one at random rather than favouring either.
+        $candidates = [];
+        if ($upiAccount) {
+            $candidates[] = 'upi';
+        }
+        if ($bankAccount) {
+            $candidates[] = 'bank';
+        }
 
-        $noAccountAvailable = ($activeMethod === 'upi' && ! $upiAccount) || ($activeMethod === 'bank' && ! $bankAccount);
-
-        if ($activeMethod === null || $noAccountAvailable) {
+        if ($candidates === []) {
             return view('Deposits::payment-unavailable', [
                 'title' => 'Deposits temporarily unavailable',
-                'message' => 'No payment method is available right now. Please try again shortly.',
+                'message' => 'No payment method is available for this amount right now. Please try a different amount or again shortly.',
             ]);
         }
+
+        $activeMethod = $candidates[array_rand($candidates)];
 
         return view('Deposits::create', [
             'amount' => (int) $amount,
             'activeMethod' => $activeMethod,
-            'upiAccount' => $upiAccount,
-            'bankAccount' => $bankAccount,
+            'upiAccount' => $activeMethod === 'upi' ? $upiAccount : null,
+            'bankAccount' => $activeMethod === 'bank' ? $bankAccount : null,
         ]);
     }
 
@@ -105,10 +113,11 @@ class DepositRequestController extends Controller
             return redirect()->route('login')->with('error', 'Please log in to add money to your wallet.');
         }
 
-        // Only the currently-active method may be submitted - whatever the
-        // admin has set payment_mode to is the only accepted value here too.
-        $mode = AppSetting::get('payment_mode', AppSetting::DEFAULTS['payment_mode']);
-        $allowedMethods = in_array($mode, ['upi', 'bank'], true) ? [$mode] : [];
+        // Routing is now per-account by amount (see create()), so either method
+        // can legitimately reach this submit depending on which account the user
+        // was shown - both are accepted here and the real check stays manual UTR
+        // verification by an admin.
+        $allowedMethods = ['upi', 'bank'];
 
         // Bank transfer references (NEFT/RTGS UTRs, IMPS ref numbers) aren't
         // reliably 12 digits the way a UPI UTR is, so the format rule
@@ -155,7 +164,7 @@ class DepositRequestController extends Controller
                 'status' => DepositRequest::STATUS_PENDING,
                 'submitted_at' => now(),
             ]);
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             if (str_contains($e->getMessage(), 'utr')) {
                 return back()->withInput()->withErrors([
                     'utr' => 'This UTR/reference number has already been used for another deposit.',

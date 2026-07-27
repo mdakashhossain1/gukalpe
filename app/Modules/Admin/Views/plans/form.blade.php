@@ -97,18 +97,19 @@
                     @error('image')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="icon" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Icon (Bootstrap Icons class)</label>
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-10 h-10 rounded-lg bg-[#0A5C66]/5 border border-[#E5E9EB] flex items-center justify-center shrink-0">
-                            <i id="icon-preview" class="bi {{ old('icon', $plan->icon) ?: 'bi-tag-fill' }} text-[16px] text-[#0A5C66]"></i>
+                    <label for="icon_image" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Icon image {{ $plan->exists && $plan->icon_image ? '(leave empty to keep current)' : '(shown on Explore)' }}</label>
+                    @if ($plan->exists && $plan->iconImageUrl())
+                        <div class="mb-2 flex items-center gap-2.5">
+                            <div class="w-14 h-14 rounded-lg bg-[#0A5C66]/5 border border-[#E5E9EB] flex items-center justify-center overflow-hidden shrink-0">
+                                <img src="{{ $plan->iconImageUrl() }}" alt="{{ $plan->title }}" class="w-full h-full object-contain">
+                            </div>
+                            <span class="text-[11.5px] text-[#94A3B8]">Current icon</span>
                         </div>
-                        <input type="text" name="icon" id="icon" maxlength="50" placeholder="e.g. bi-piggy-bank" value="{{ old('icon', $plan->icon) }}" required
-                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                        <button type="button" data-icon-picker-target="icon" data-icon-picker-preview="icon-preview" class="icon-picker-open shrink-0 h-10 px-3 rounded-lg border border-[#CBD5E1] text-[12.5px] font-semibold text-[#334155] hover:border-brand hover:text-brand transition-colors whitespace-nowrap">
-                            <i class="bi bi-grid-3x3-gap"></i> Browse
-                        </button>
-                    </div>
-                    @error('icon')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                    @endif
+                    <input type="file" name="icon_image" id="icon_image" accept="image/png,image/jpeg,image/webp"
+                        class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[13px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15 file:mr-3 file:h-full file:border-0 file:bg-[#0A5C66]/10 file:text-[#0A5C66] file:font-semibold file:px-3 file:rounded-l-lg file:cursor-pointer">
+                    <p class="text-[11px] text-[#94A3B8] mt-1">PNG, JPG, or WebP · up to 4MB · saved to public/assets/plan-icons. Shown in the Explore card's circular icon, alongside the main image.</p>
+                    @error('icon_image')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
             </div>
 

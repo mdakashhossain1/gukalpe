@@ -27,8 +27,12 @@
             @forelse ($plans as $plan)
                 <div class="bg-white rounded-xl border border-[#E5E9EB] p-4 flex items-center gap-4 flex-wrap {{ $plan->is_active ? '' : 'opacity-60' }}">
                     <img src="{{ $plan->imageUrl() }}" alt="{{ $plan->title }}" class="w-11 h-11 rounded-lg object-cover shrink-0 border border-[#E5E9EB]">
-                    <div class="w-9 h-9 rounded-full bg-[#0A5C66]/10 flex items-center justify-center shrink-0">
-                        <i class="bi {{ $plan->icon }} text-[14px] text-[#0A5C66]"></i>
+                    <div class="w-9 h-9 rounded-full bg-[#0A5C66]/10 flex items-center justify-center shrink-0 overflow-hidden">
+                        @if ($plan->iconImageUrl())
+                            <img src="{{ $plan->iconImageUrl() }}" alt="{{ $plan->title }} icon" class="w-full h-full object-contain">
+                        @else
+                            <i class="bi {{ $plan->icon ?: 'bi-piggy-bank' }} text-[14px] text-[#0A5C66]"></i>
+                        @endif
                     </div>
                     <div class="flex flex-col gap-0.5 min-w-[200px] flex-1">
                         <div class="flex items-center gap-2">

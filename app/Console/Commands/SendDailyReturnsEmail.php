@@ -54,7 +54,7 @@ class SendDailyReturnsEmail extends Command
                 if ($todaysIncrement > 0) {
                     $rows[] = [
                         'title' => $plan->title,
-                        'icon' => $plan->icon,
+                        'icon' => $plan->icon ?: 'bi-piggy-bank',
                         'amount' => $todaysIncrement,
                     ];
                     $totalToday += $todaysIncrement;
