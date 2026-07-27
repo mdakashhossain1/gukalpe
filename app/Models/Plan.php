@@ -14,11 +14,11 @@ class Plan extends Model
         'title', 'subtitle', 'image', 'icon', 'icon_image', 'badge', 'growth_rate',
         'lock_duration', 'investment_amount', 'min_investment_amount', 'max_investment_amount', 'allow_topups',
         'daily_profit', 'total_return',
-        'min_goal', 'is_active', 'sort_order',
+        'is_active', 'sort_order',
         'plan_type', 'max_purchase_per_user', 'cooldown_days', 'requires_plan_id',
         'unlock_enabled', 'unlock_message', 'marketing_badge', 'marketing_badge_icon',
         'marketing_badge_color', 'risk_level',
-        'max_slots', 'start_date', 'end_date', 'auto_mature', 'early_close_allowed',
+        'start_date', 'end_date', 'auto_mature',
         'terms', 'faqs', 'highlights',
     ];
 
@@ -42,11 +42,9 @@ class Plan extends Model
         'allow_topups' => 'boolean',
         'daily_profit' => 'decimal:2',
         'total_return' => 'decimal:2',
-        'min_goal' => 'decimal:2',
         'is_active' => 'boolean',
         'unlock_enabled' => 'boolean',
         'auto_mature' => 'boolean',
-        'early_close_allowed' => 'boolean',
         'start_date' => 'datetime',
         'end_date' => 'datetime',
         'faqs' => 'array',
@@ -98,18 +96,6 @@ class Plan extends Model
     public function marketingBadgeColorClasses(): array
     {
         return self::MARKETING_BADGE_COLORS[$this->marketing_badge_color] ?? self::MARKETING_BADGE_COLORS['amber'];
-    }
-
-    // null = unlimited slots (no cap configured). Never negative - a plan
-    // that's oversold by an admin lowering max_slots after the fact just
-    // shows 0 remaining, not a confusing negative count.
-    public function availableSlots(): ?int
-    {
-        if ($this->max_slots === null) {
-            return null;
-        }
-
-        return max(0, $this->max_slots - $this->investorCount());
     }
 
     // A plan only gets the drag-slider "invest any amount" UI on Plan
@@ -208,7 +194,6 @@ class Plan extends Model
         $investment = (float) $this->investment_amount;
         $dailyProfit = (float) $this->daily_profit;
         $totalReturn = (float) $this->total_return;
-        $minGoal = (float) $this->min_goal;
 
         $planInvestment = $this->isFlexibleAmount()
             ? '₹'.number_format((float) $this->min_investment_amount, 0).' - ₹'.number_format((float) $this->max_investment_amount, 0)
@@ -233,8 +218,6 @@ class Plan extends Model
             'dailyProfit' => '+₹'.number_format($dailyProfit, 2).'/day',
             'dailyProfitVal' => $dailyProfit,
             'totalReturn' => '₹'.number_format($totalReturn, 0),
-            'minGoal' => '₹'.number_format($minGoal, 0),
-            'minGoalVal' => $minGoal,
             'expectedReturn' => '₹'.number_format($totalReturn, 0),
             'unlockDate' => $this->lock_duration,
             'timelineEnd' => $this->lock_duration === 'Flexible' ? 'Flexible Withdrawal' : 'Month '.preg_replace('/\D/', '', $this->lock_duration).' Unlock',

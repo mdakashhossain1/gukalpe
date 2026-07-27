@@ -184,7 +184,6 @@ class PlanManagementController extends Controller
             'max_investment_amount' => ['nullable', 'numeric', 'min:1', 'gt:min_investment_amount'],
             'daily_profit' => ['required', 'numeric', 'min:0'],
             'total_return' => ['required', 'numeric', 'min:0'],
-            'min_goal' => ['required', 'numeric', 'min:0'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'plan_type' => ['nullable', 'in:trust_builder,growth'],
             'max_purchase_per_user' => ['nullable', 'integer', 'min:1'],
@@ -197,7 +196,6 @@ class PlanManagementController extends Controller
             'marketing_badge_icon' => ['nullable', 'string', 'max:50'],
             'marketing_badge_color' => ['nullable', 'in:'.implode(',', array_keys(Plan::MARKETING_BADGE_COLORS))],
             'risk_level' => ['nullable', 'in:Low,Medium,High'],
-            'max_slots' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'terms' => ['nullable', 'string', 'max:8000'],
@@ -221,7 +219,6 @@ class PlanManagementController extends Controller
         $validated['is_active'] = $request->boolean('is_active');
         $validated['unlock_enabled'] = $request->boolean('unlock_enabled');
         $validated['auto_mature'] = $request->boolean('auto_mature');
-        $validated['early_close_allowed'] = $request->boolean('early_close_allowed');
         $validated['allow_topups'] = $request->boolean('allow_topups');
 
         $validated['highlights'] = collect($validated['highlights'] ?? [])

@@ -24,9 +24,16 @@ class AppSetting extends Model
         'cashback_amount' => '100',
         'settlement_time' => '00:00',
         'max_deposit_limit' => '50000',
-        // A single flat choice - 'upi' | 'bank' - only one manual method
-        // can ever be active at a time, so one key is enough.
-        'payment_mode' => 'upi',
+        // Method-level amount routing for Add Money. The deposit amount decides
+        // which METHOD is shown; the specific account stays a random pick among
+        // all active accounts of that method (see DepositRequestController).
+        // A range is [min, max]; blank max = no upper limit. A method with BOTH
+        // blank is disabled (never shown). Default = UPI for every amount, bank
+        // off - matching the old "UPI only" default.
+        'upi_min_amount' => '0',
+        'upi_max_amount' => '',
+        'bank_min_amount' => '',
+        'bank_max_amount' => '',
     ];
 
     protected $fillable = ['key', 'value'];

@@ -162,6 +162,15 @@
             @endif
 
             <!-- 4. SET YOUR INVESTMENT AMOUNT / ACTIVE POT WIDGET -->
+            @php
+                // Defined up front so the sticky buy-bar and hidden amount input
+                // further down (which reference $flexMin) always have a value -
+                // the active-pot branch below renders its own widget and never
+                // set these, which crashed Plan Details for anyone with an open
+                // pot. The flexible/fixed branches still override them.
+                $flexMin = $plan->isFlexibleAmount() ? (float) $plan->min_investment_amount : (float) $plan->investment_amount;
+                $flexMax = $plan->isFlexibleAmount() ? (float) $plan->max_investment_amount : (float) $plan->investment_amount;
+            @endphp
             @if ($activePot)
                 @php
                     $potMax = (float) $plan->max_investment_amount;

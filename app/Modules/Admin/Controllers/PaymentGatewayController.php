@@ -43,17 +43,25 @@ class PaymentGatewayController extends Controller
 
     public function updateSettings(Request $request): RedirectResponse
     {
+        // Method-level amount ranges: one [min, max] for UPI, one for Bank. Both
+        // bounds optional - a blank max means "no upper limit", and leaving BOTH
+        // blank disables that method (it's never shown). max must be >= min.
         $validated = $request->validate([
-            'payment_mode' => ['required', 'in:upi,bank'],
+            'upi_min_amount' => ['nullable', 'numeric', 'min:0'],
+            'upi_max_amount' => ['nullable', 'numeric', 'min:0', 'gte:upi_min_amount'],
+            'bank_min_amount' => ['nullable', 'numeric', 'min:0'],
+            'bank_max_amount' => ['nullable', 'numeric', 'min:0', 'gte:bank_min_amount'],
         ]);
 
-        AppSetting::set('payment_mode', $validated['payment_mode']);
+        foreach (['upi_min_amount', 'upi_max_amount', 'bank_min_amount', 'bank_max_amount'] as $key) {
+            // Store '' for a blank field so the deposit-side range logic reads it
+            // as "no bound" rather than 0.
+            AppSetting::set($key, isset($validated[$key]) && $validated[$key] !== null ? (string) $validated[$key] : '');
+        }
 
-        Log::channel('admin_security')->info('Payment gateway settings updated', [
-            'payment_mode' => $validated['payment_mode'],
-        ]);
+        Log::channel('admin_security')->info('Payment gateway amount ranges updated', $validated);
 
-        return redirect()->route('admin.payment-gateway')->with('success', 'Payment gateway settings updated.');
+        return redirect()->route('admin.payment-gateway')->with('success', 'Payment ranges updated.');
     }
 
     // --- UPI accounts -----------------------------------------------------
@@ -193,8 +201,6 @@ class PaymentGatewayController extends Controller
             'upi_id' => ['required', 'string', 'max:100', 'regex:/^[\w.\-]{2,256}@[a-zA-Z]{2,64}$/'],
             'display_name' => ['nullable', 'string', 'max:100'],
             'mobile_number' => ['nullable', 'digits:10'],
-            'min_amount' => ['nullable', 'numeric', 'min:0'],
-            'max_amount' => ['nullable', 'numeric', 'min:0', 'gte:min_amount'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
@@ -216,8 +222,6 @@ class PaymentGatewayController extends Controller
             'ifsc_code' => ['required', 'string', 'regex:/^[A-Z]{4}0[A-Z0-9]{6}$/'],
             'bank_name' => ['required', 'string', 'max:100'],
             'branch_name' => ['nullable', 'string', 'max:100'],
-            'min_amount' => ['nullable', 'numeric', 'min:0'],
-            'max_amount' => ['nullable', 'numeric', 'min:0', 'gte:min_amount'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 

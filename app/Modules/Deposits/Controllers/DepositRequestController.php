@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\DepositRequestReceivedMail;
 use App\Mail\NewDepositRequestMail;
 use App\Models\AdminNotification;
+use App\Models\AppSetting;
 use App\Models\DepositRequest;
 use App\Models\PaymentBankAccount;
 use App\Models\PaymentUpiAccount;
@@ -67,22 +68,26 @@ class DepositRequestController extends Controller
         }
         $amountValue = (float) $amount;
 
-        // Amount-based routing (admin-configured per account, replacing the old
-        // single-global-method + random pick): every active account of EITHER
-        // method whose [min_amount, max_amount] window covers this deposit
-        // amount is a candidate. Re-queried fresh on every request, inRandomOrder
-        // so ties (overlapping ranges) still spread across matching accounts.
-        $upiAccount = PaymentUpiAccount::active()->coversAmount($amountValue)->inRandomOrder()->first();
-        $bankAccount = PaymentBankAccount::active()->coversAmount($amountValue)->inRandomOrder()->first();
+        // Method-level amount routing: the admin sets ONE amount range for UPI
+        // and ONE for Bank (app_settings). The deposit amount decides which
+        // METHOD is eligible; the specific account is then a random pick among
+        // ALL active accounts of that method. When both methods' ranges cover
+        // the amount, one method is chosen at random.
+        $settings = AppSetting::many([
+            'upi_min_amount' => AppSetting::DEFAULTS['upi_min_amount'],
+            'upi_max_amount' => AppSetting::DEFAULTS['upi_max_amount'],
+            'bank_min_amount' => AppSetting::DEFAULTS['bank_min_amount'],
+            'bank_max_amount' => AppSetting::DEFAULTS['bank_max_amount'],
+        ]);
 
-        // The page renders exactly one method at a time, so when both a UPI and
-        // a bank account match, pick one at random rather than favouring either.
         $candidates = [];
-        if ($upiAccount) {
-            $candidates[] = 'upi';
+        if ($this->rangeCoversAmount($settings['upi_min_amount'], $settings['upi_max_amount'], $amountValue)
+            && ($upiAccount = PaymentUpiAccount::active()->inRandomOrder()->first())) {
+            $candidates['upi'] = $upiAccount;
         }
-        if ($bankAccount) {
-            $candidates[] = 'bank';
+        if ($this->rangeCoversAmount($settings['bank_min_amount'], $settings['bank_max_amount'], $amountValue)
+            && ($bankAccount = PaymentBankAccount::active()->inRandomOrder()->first())) {
+            $candidates['bank'] = $bankAccount;
         }
 
         if ($candidates === []) {
@@ -92,14 +97,37 @@ class DepositRequestController extends Controller
             ]);
         }
 
-        $activeMethod = $candidates[array_rand($candidates)];
+        $activeMethod = array_rand($candidates);
 
         return view('Deposits::create', [
             'amount' => (int) $amount,
             'activeMethod' => $activeMethod,
-            'upiAccount' => $activeMethod === 'upi' ? $upiAccount : null,
-            'bankAccount' => $activeMethod === 'bank' ? $bankAccount : null,
+            'upiAccount' => $activeMethod === 'upi' ? $candidates['upi'] : null,
+            'bankAccount' => $activeMethod === 'bank' ? $candidates['bank'] : null,
         ]);
+    }
+
+    /**
+     * A method's amount range is [min, max] where a blank max means "no upper
+     * limit". A method with BOTH bounds blank is disabled (never matches) - so
+     * an admin can turn a method off entirely just by clearing its range.
+     */
+    private function rangeCoversAmount(?string $min, ?string $max, float $amount): bool
+    {
+        $minSet = $min !== null && $min !== '';
+        $maxSet = $max !== null && $max !== '';
+
+        if (! $minSet && ! $maxSet) {
+            return false;
+        }
+        if ($minSet && $amount < (float) $min) {
+            return false;
+        }
+        if ($maxSet && $amount > (float) $max) {
+            return false;
+        }
+
+        return true;
     }
 
     public function store(Request $request): RedirectResponse

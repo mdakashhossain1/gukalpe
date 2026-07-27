@@ -113,31 +113,53 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mt-2 pt-3 border-t border-[#E5E9EB]">
-                <div>
-                    <label for="investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Investment (₹, one-time)</label>
-                    <input type="number" name="investment_amount" id="investment_amount" min="1" step="0.01" value="{{ old('investment_amount', $plan->investment_amount) }}" required
-                        class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                    @error('investment_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+            <div class="mt-2 pt-3 border-t border-[#E5E9EB]">
+                <div class="flex items-center justify-between gap-2 mb-2.5">
+                    <h2 class="font-poppins font-bold text-[14px] text-[#0F172A]">Investment &amp; returns</h2>
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#0A5C66] bg-[#0A5C66]/8 px-2.5 py-1 rounded-full"><i class="bi bi-magic text-[11px]"></i> Auto-calculated</span>
                 </div>
-                <div>
-                    <label for="growth_rate" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Growth rate (%/yr)</label>
-                    <input type="number" name="growth_rate" id="growth_rate" min="0" max="100" value="{{ old('growth_rate', $plan->growth_rate) }}" required
-                        class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                    @error('growth_rate')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+
+                {{-- You enter these three; Daily profit & Total return below fill in
+                     automatically (see the calculator script at the foot of this form). --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                    <div>
+                        <label for="investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Investment (₹, one-time)</label>
+                        <input type="number" name="investment_amount" id="investment_amount" min="1" step="0.01" value="{{ old('investment_amount', $plan->investment_amount) }}" required
+                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        @error('investment_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label for="growth_rate" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Growth rate (%/yr)</label>
+                        <input type="number" name="growth_rate" id="growth_rate" min="0" max="100" value="{{ old('growth_rate', $plan->growth_rate) }}" required
+                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        @error('growth_rate')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label for="term_days_calc" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Term (days)</label>
+                        {{-- Not saved on the plan (there is no plan-level days column - only
+                             durations have one); purely the multiplier that turns the yearly
+                             rate above into the headline Daily/Total figures below. --}}
+                        <input type="number" id="term_days_calc" min="1" placeholder="e.g. 365"
+                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        <p class="text-[11px] text-[#94A3B8] mt-1">Length used to compute the numbers below. Not stored.</p>
+                    </div>
                 </div>
-                <div>
-                    <label for="daily_profit" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Daily profit (₹)</label>
-                    <input type="number" name="daily_profit" id="daily_profit" min="0" step="0.01" value="{{ old('daily_profit', $plan->daily_profit) }}" required
-                        class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                    @error('daily_profit')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3.5">
+                    <div>
+                        <label for="daily_profit" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Daily profit (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, editable</span></label>
+                        <input type="number" name="daily_profit" id="daily_profit" min="0" step="0.01" value="{{ old('daily_profit', $plan->daily_profit) }}" required
+                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        @error('daily_profit')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label for="total_return" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Total return (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, editable</span></label>
+                        <input type="number" name="total_return" id="total_return" min="0" step="0.01" value="{{ old('total_return', $plan->total_return) }}" required
+                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        @error('total_return')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                    </div>
                 </div>
-                <div>
-                    <label for="total_return" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Total return (₹)</label>
-                    <input type="number" name="total_return" id="total_return" min="0" step="0.01" value="{{ old('total_return', $plan->total_return) }}" required
-                        class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                    @error('total_return')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
-                </div>
+                <p class="text-[11px] text-[#94A3B8] mt-2">Formula: <span class="font-semibold text-[#64748B]">Total = Investment × (1 + Rate%⁄yr × Days⁄365)</span>, and <span class="font-semibold text-[#64748B]">Daily = (Total − Investment) ⁄ Days</span>. Type in either field to override the auto value.</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -176,13 +198,7 @@
                 <p class="text-[11px] text-[#94A3B8] sm:col-span-2 -mt-1.5">Only applies with a real Min/Max range above. A user's first contribution opens one ongoing pot; every later contribution adds to that SAME pot (one shared maturity date) up to Max investment, instead of each investment being a separate independent purchase.</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                <div>
-                    <label for="min_goal" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Min goal (₹)</label>
-                    <input type="number" name="min_goal" id="min_goal" min="0" step="0.01" value="{{ old('min_goal', $plan->min_goal) }}" required
-                        class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                    @error('min_goal')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                     <label for="lock_duration" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Lock duration</label>
                     <input type="text" name="lock_duration" id="lock_duration" maxlength="30" placeholder="e.g. Flexible, 12 Months, 36 Months" value="{{ old('lock_duration', $plan->lock_duration) }}" required
@@ -257,7 +273,7 @@
             {{-- ================= Marketing & availability ================= --}}
             <div class="pt-4 mt-1 border-t border-[#E5E9EB]">
                 <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-3">Marketing & availability</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                     <div>
                         <label for="marketing_badge" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Marketing badge</label>
                         <input type="text" name="marketing_badge" id="marketing_badge" maxlength="40" placeholder="Most Popular" value="{{ old('marketing_badge', $plan->marketing_badge) }}"
@@ -288,12 +304,6 @@
                             @endforeach
                         </select>
                         @error('risk_level')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
-                    </div>
-                    <div>
-                        <label for="max_slots" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max slots</label>
-                        <input type="number" name="max_slots" id="max_slots" min="0" placeholder="Unlimited" value="{{ old('max_slots', $plan->max_slots) }}"
-                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                        @error('max_slots')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
                 </div>
 
@@ -340,17 +350,13 @@
                         <input type="checkbox" name="auto_mature" value="1" class="accent-brand" {{ old('auto_mature', $plan->auto_mature) ? 'checked' : '' }}>
                         <span class="text-[13.5px] font-semibold text-[#0F172A]">Auto-mature (credit wallet automatically)</span>
                     </label>
-                    <label class="flex items-center gap-2.5 h-11 px-3.5 rounded-lg border border-[#CBD5E1] has-[:checked]:border-brand has-[:checked]:bg-brand/5 cursor-pointer transition-colors w-fit">
-                        <input type="checkbox" name="early_close_allowed" value="1" class="accent-brand" {{ old('early_close_allowed', $plan->early_close_allowed) ? 'checked' : '' }}>
-                        <span class="text-[13.5px] font-semibold text-[#0F172A]">Allow early close</span>
-                    </label>
                 </div>
             </div>
 
             {{-- ================= Multiple durations (max 4) ================= --}}
             <div class="pt-4 mt-1 border-t border-[#E5E9EB]">
                 <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-1">Duration options (max 4)</h2>
-                <p class="text-[12px] text-[#64748B] mb-3">Leave a row's label blank to skip it. When set, users pick one of these on Plan Details instead of the single duration/return above. Mark one row as the default.</p>
+                <p class="text-[12px] text-[#64748B] mb-3">Leave a row's label blank to skip it. When set, users pick one of these on Plan Details instead of the single duration/return above. Mark one row as the default. <span class="text-[#0A5C66] font-semibold">Enter Days + Rate % and each row's Daily ₹ / Total ₹ fill in automatically</span> (from the Investment above; edit to override).</p>
 
                 @php
                     $existingDurations = old('durations') ? collect() : ($plan->durations ?? collect())->values();
@@ -359,10 +365,10 @@
                         $defaultDurationIndex = $existingDurations->isEmpty() ? '0' : (string) $existingDurations->keys()->first();
                     }
                 @endphp
-                <div class="flex flex-col gap-3">
+                <div id="duration-rows" class="flex flex-col gap-3">
                     @for ($i = 0; $i < 4; $i++)
                         @php $d = $existingDurations[$i] ?? null; @endphp
-                        <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 items-end p-3 rounded-lg border border-[#E5E9EB]">
+                        <div data-duration-row class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 items-end p-3 rounded-lg border border-[#E5E9EB]">
                             <input type="hidden" name="durations[{{ $i }}][id]" value="{{ old("durations.$i.id", $d?->id) }}">
                             <div class="col-span-2 sm:col-span-1">
                                 <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Default</label>
@@ -648,6 +654,87 @@
         if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
     });
     searchInput.addEventListener('input', runSearch);
+})();
+
+// Returns auto-calculator - stops the admin from computing Daily/Total by hand
+// in a separate tool. Same formula the purchase engine uses for flexible
+// amounts (PlanPurchaseController::proportionalReturn):
+//   total = amount * (1 + (rate/100) * days/365);  daily = (total - amount)/days
+// Auto-filled fields stay editable; a manual edit is respected until one of the
+// source inputs (amount/rate/days) changes again.
+(function () {
+    function computeReturn(amount, ratePct, days) {
+        if (!(amount > 0) || !(ratePct >= 0) || !(days > 0)) return null;
+        var total = amount * (1 + (ratePct / 100) * (days / 365));
+        var daily = (total - amount) / days;
+        return { total: Math.round(total * 100) / 100, daily: Math.round(daily * 100) / 100 };
+    }
+
+    function num(el) {
+        if (!el) return NaN;
+        var v = parseFloat(el.value);
+        return isNaN(v) ? NaN : v;
+    }
+
+    // Fill an output field only if the admin hasn't manually typed over it. We
+    // track "manually edited" via a data flag cleared whenever a source input
+    // fires (so recomputation resumes) and set on direct user input.
+    function fill(outEl, value) {
+        if (!outEl || outEl.dataset.manual === '1') return;
+        outEl.value = value;
+    }
+    function markManual(outEl) {
+        outEl.addEventListener('input', function () { outEl.dataset.manual = '1'; });
+    }
+
+    var investmentEl = document.getElementById('investment_amount');
+
+    // --- Plan-level headline figures (Investment + Growth rate + Term days) ---
+    var rateEl = document.getElementById('growth_rate');
+    var termEl = document.getElementById('term_days_calc');
+    var dailyEl = document.getElementById('daily_profit');
+    var totalEl = document.getElementById('total_return');
+    [dailyEl, totalEl].forEach(markManual);
+
+    function recalcPlanLevel(clearManual) {
+        if (clearManual) { dailyEl.dataset.manual = ''; totalEl.dataset.manual = ''; }
+        var r = computeReturn(num(investmentEl), num(rateEl), num(termEl));
+        if (!r) return;
+        fill(dailyEl, r.daily);
+        fill(totalEl, r.total);
+    }
+    [investmentEl, rateEl, termEl].forEach(function (el) {
+        if (el) el.addEventListener('input', function () { recalcPlanLevel(true); });
+    });
+
+    // --- Duration rows (Days + Rate %, against the plan's Investment) ---
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#duration-rows [data-duration-row]'));
+    var rowState = rows.map(function (row) {
+        var daysEl = row.querySelector('input[name$="[duration_days]"]');
+        var rRateEl = row.querySelector('input[name$="[growth_rate]"]');
+        var rDailyEl = row.querySelector('input[name$="[daily_profit]"]');
+        var rTotalEl = row.querySelector('input[name$="[total_return]"]');
+        [rDailyEl, rTotalEl].forEach(markManual);
+
+        function recalcRow(clearManual) {
+            if (clearManual) { rDailyEl.dataset.manual = ''; rTotalEl.dataset.manual = ''; }
+            var r = computeReturn(num(investmentEl), num(rRateEl), num(daysEl));
+            if (!r) return;
+            fill(rDailyEl, r.daily);
+            fill(rTotalEl, r.total);
+        }
+        [daysEl, rRateEl].forEach(function (el) {
+            if (el) el.addEventListener('input', function () { recalcRow(true); });
+        });
+        return recalcRow;
+    });
+
+    // A change to the shared Investment cascades into every duration row too.
+    if (investmentEl) {
+        investmentEl.addEventListener('input', function () {
+            rowState.forEach(function (recalc) { recalc(true); });
+        });
+    }
 })();
 </script>
 

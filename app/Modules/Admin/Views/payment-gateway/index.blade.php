@@ -15,27 +15,68 @@
 
         <div>
             <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-1">Payment gateway</h1>
-            <p class="text-[13.5px] text-[#64748B]">Controls what every user sees on the Add Money page. The account shown is chosen by the deposit <strong>amount</strong> - each account below has an optional amount range. If several accounts (UPI or bank) match the amount, one is picked at random.</p>
+            <p class="text-[13.5px] text-[#64748B]">Controls what every user sees on the Add Money page. The deposit <strong>amount</strong> decides which <strong>method</strong> is shown; the specific account is then a random pick among all active accounts of that method.</p>
         </div>
 
-        @php
-            // Human-readable amount window for an account row - both bounds are
-            // optional, so a row with neither set accepts every amount.
-            $rangeLabel = function ($account) {
-                $min = $account->min_amount;
-                $max = $account->max_amount;
-                if ($min === null && $max === null) {
-                    return 'Any amount';
-                }
-                if ($min !== null && $max !== null) {
-                    return '₹'.number_format((float) $min).' – ₹'.number_format((float) $max);
-                }
-                if ($min !== null) {
-                    return '₹'.number_format((float) $min).'+';
-                }
-                return 'Up to ₹'.number_format((float) $max);
-            };
-        @endphp
+        {{-- Method-level amount ranges. The amount picks the method (UPI vs
+             Bank); a blank Max means "no upper limit"; leaving BOTH blank turns
+             that method off. If both ranges cover the amount, one is chosen at
+             random. --}}
+        <form method="POST" action="{{ route('admin.payment-gateway.settings') }}" class="flex flex-col gap-4 bg-white rounded-2xl border border-[#E5E9EB] p-6">
+            @csrf
+            <div>
+                <h2 class="font-poppins font-bold text-[15px] text-[#0F172A]">Amount ranges</h2>
+                <p class="text-[12.5px] text-[#64748B] mt-0.5">e.g. UPI ₹1–₹200, Bank ₹201 and up. Blank Max = no upper limit. Leave a whole row blank to disable that method.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="rounded-xl border border-[#E5E9EB] p-4 flex flex-col gap-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-mobile-screen-button text-[#0A5C66] text-[13px]"></i>
+                        <span class="text-[13.5px] font-bold text-[#0F172A]">UPI range</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="upi_min_amount" class="block text-[11.5px] font-semibold text-[#334155] mb-1">Min ₹</label>
+                            <input type="number" name="upi_min_amount" id="upi_min_amount" min="0" step="0.01" placeholder="0" value="{{ old('upi_min_amount', $settings['upi_min_amount']) }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                            @error('upi_min_amount')<p class="text-[12px] font-semibold text-red-500 mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="upi_max_amount" class="block text-[11.5px] font-semibold text-[#334155] mb-1">Max ₹</label>
+                            <input type="number" name="upi_max_amount" id="upi_max_amount" min="0" step="0.01" placeholder="No limit" value="{{ old('upi_max_amount', $settings['upi_max_amount']) }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                            @error('upi_max_amount')<p class="text-[12px] font-semibold text-red-500 mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-[#E5E9EB] p-4 flex flex-col gap-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-building-columns text-[#0A5C66] text-[13px]"></i>
+                        <span class="text-[13.5px] font-bold text-[#0F172A]">Bank range</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="bank_min_amount" class="block text-[11.5px] font-semibold text-[#334155] mb-1">Min ₹</label>
+                            <input type="number" name="bank_min_amount" id="bank_min_amount" min="0" step="0.01" placeholder="0" value="{{ old('bank_min_amount', $settings['bank_min_amount']) }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                            @error('bank_min_amount')<p class="text-[12px] font-semibold text-red-500 mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="bank_max_amount" class="block text-[11.5px] font-semibold text-[#334155] mb-1">Max ₹</label>
+                            <input type="number" name="bank_max_amount" id="bank_max_amount" min="0" step="0.01" placeholder="No limit" value="{{ old('bank_max_amount', $settings['bank_max_amount']) }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                            @error('bank_max_amount')<p class="text-[12px] font-semibold text-red-500 mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="h-10 rounded-lg bg-brand text-white font-semibold text-[13.5px] hover:bg-brand-light transition-colors active:scale-[0.99] sm:w-fit sm:px-6">
+                Save ranges
+            </button>
+        </form>
 
         {{-- UPI accounts --}}
         <div class="flex flex-col gap-3">
@@ -55,9 +96,6 @@
                                 <span class="text-[14px] font-bold text-[#0F172A]">{{ $account->upi_id }}</span>
                                 <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border {{ $account->is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
                                     {{ $account->is_active ? 'Active' : 'Disabled' }}
-                                </span>
-                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full border bg-[#0A5C66]/5 text-[#0A5C66] border-[#0A5C66]/20">
-                                    <i class="fa-solid fa-indian-rupee-sign text-[9px]"></i> {{ $rangeLabel($account) }}
                                 </span>
                             </div>
                             <span class="text-[12px] text-[#64748B]">{{ $account->display_name ?: 'No display name' }}{{ $account->mobile_number ? ' · '.$account->mobile_number : '' }}</span>
@@ -103,9 +141,6 @@
                                 <span class="text-[14px] font-bold text-[#0F172A]">{{ $account->bank_name }}</span>
                                 <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border {{ $account->is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
                                     {{ $account->is_active ? 'Active' : 'Disabled' }}
-                                </span>
-                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full border bg-[#0A5C66]/5 text-[#0A5C66] border-[#0A5C66]/20">
-                                    <i class="fa-solid fa-indian-rupee-sign text-[9px]"></i> {{ $rangeLabel($account) }}
                                 </span>
                             </div>
                             <span class="text-[12px] text-[#64748B]">{{ $account->account_holder_name }} · {{ \Illuminate\Support\Str::mask($account->account_number, '*', 0, -4) }} · {{ $account->ifsc_code }}</span>
