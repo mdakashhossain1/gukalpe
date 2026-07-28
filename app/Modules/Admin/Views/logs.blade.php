@@ -55,11 +55,11 @@
             </div>
 
             <div id="log-panel-referral" data-log-panel="referral" role="tabpanel"
-                class="min-h-[72px] max-h-[420px] rounded-lg bg-[#0F172A] p-3 text-[11.5px] font-mono text-[#6EE7B7] overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                class="h-[65vh] min-h-[420px] rounded-lg bg-[#0F172A] p-3 text-[11.5px] font-mono text-[#6EE7B7] overflow-y-auto whitespace-pre-wrap leading-relaxed">
                 No log entries yet.
             </div>
             <div id="log-panel-commission" data-log-panel="commission" role="tabpanel" hidden
-                class="min-h-[72px] max-h-[420px] rounded-lg bg-[#0F172A] p-3 text-[11.5px] font-mono text-[#6EE7B7] overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                class="h-[65vh] min-h-[420px] rounded-lg bg-[#0F172A] p-3 text-[11.5px] font-mono text-[#6EE7B7] overflow-y-auto whitespace-pre-wrap leading-relaxed">
                 No log entries yet.
             </div>
         </div>
