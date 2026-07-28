@@ -4,6 +4,29 @@
 
 @section('content')
 
+{{-- Self-hosted vanilla datatable (no jQuery). Files live in
+     public/libs/simple-datatables/ - see MEMORY.md. Gives the plans table
+     built-in search + pagination + column sorting. --}}
+<link rel="stylesheet" href="{{ asset('libs/simple-datatables/style.css') }}">
+<style>
+    /* Theme simple-datatables to match the admin console */
+    #plans-table-card .datatable-top { padding: 0 0 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    #plans-table-card .datatable-bottom { padding: 14px 0 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    #plans-table-card .datatable-search input {
+        height: 38px; border: 1px solid #E5E9EB; border-radius: 8px; padding: 0 12px;
+        font-size: 13px; color: #0F172A; outline: none; min-width: 220px;
+    }
+    #plans-table-card .datatable-search input:focus { border-color: #0A5C66; box-shadow: 0 0 0 3px rgba(10,92,102,.12); }
+    #plans-table-card .datatable-selector { height: 38px; border: 1px solid #E5E9EB; border-radius: 8px; padding: 0 8px; font-size: 13px; color: #334155; }
+    #plans-table-card .datatable-info { font-size: 12.5px; color: #64748B; }
+    #plans-table-card .datatable-container { overflow-x: auto; border: 0; }
+    #plans-table-card table.datatable-table { min-width: 900px; }
+    #plans-table-card .datatable-pagination a { border-radius: 8px; padding: 6px 11px; font-size: 12.5px; font-weight: 600; color: #334155; }
+    #plans-table-card .datatable-pagination a:hover { background: #F1F5F9; }
+    #plans-table-card .datatable-pagination .datatable-active a { background: #0A5C66; color: #fff; }
+    #plans-table-card .datatable-empty { text-align: center; color: #94A3B8; font-style: italic; padding: 32px 0; }
+</style>
+
 <div class="flex flex-col md:flex-row min-h-screen">
 
     <x-admin-sidebar active="plans" :pending-deposit-count="$pendingDepositCount" :pending-withdrawal-count="$pendingWithdrawalCount" />
@@ -23,9 +46,9 @@
             </a>
         </div>
 
-        <div class="bg-white rounded-xl border border-[#E5E9EB] overflow-hidden">
+        <div class="bg-white rounded-xl border border-[#E5E9EB] p-4" id="plans-table-card">
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse min-w-[900px]">
+                <table id="plans-table" class="w-full text-left border-collapse min-w-[900px]">
                     <thead>
                         <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Plan</th>
@@ -112,5 +135,31 @@
         </div>
     </main>
 </div>
+
+@if ($plans->isNotEmpty())
+    <script src="{{ asset('libs/simple-datatables/simple-datatables.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof simpleDatatables === 'undefined') return;
+
+            new simpleDatatables.DataTable('#plans-table', {
+                searchable: true,
+                paging: true,
+                perPage: 10,
+                perPageSelect: [10, 25, 50, 100],
+                sortable: true,
+                // Actions column holds buttons/forms - sorting it is meaningless.
+                columns: [{ select: 5, sortable: false }],
+                labels: {
+                    placeholder: 'Search plans...',
+                    perPage: '{select} per page',
+                    noRows: 'No plans found',
+                    noResults: 'No plans match your search',
+                    info: 'Showing {start}–{end} of {rows} plans',
+                },
+            });
+        });
+    </script>
+@endif
 
 @endsection
