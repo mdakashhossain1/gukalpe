@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\AdminAuthenticate;
 use App\Models\AdminNotification;
 use App\Models\AppSetting;
 use App\Models\DepositRequest;
@@ -14,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
@@ -40,7 +42,9 @@ class AdminController extends Controller
 
     public function login(Request $request): View|RedirectResponse
     {
-        if ($request->session()->get('admin_authenticated')) {
+        $remember = (string) $request->cookie(AdminAuthenticate::REMEMBER_COOKIE, '');
+        if ($request->session()->get('admin_authenticated')
+            || ($remember !== '' && hash_equals(AdminAuthenticate::rememberToken(), $remember))) {
             return redirect()->route('admin.dashboard');
         }
 
@@ -107,6 +111,14 @@ class AdminController extends Controller
 
         $request->session()->regenerate();
         $request->session()->put('admin_authenticated', true);
+
+        // Keep the admin logged in for 30 days via a long-lived remember cookie
+        // (see AdminAuthenticate). The session alone expires far sooner.
+        Cookie::queue(Cookie::make(
+            AdminAuthenticate::REMEMBER_COOKIE,
+            AdminAuthenticate::rememberToken(),
+            AdminAuthenticate::REMEMBER_MINUTES,
+        ));
 
         return redirect()->route('admin.dashboard');
     }
@@ -477,6 +489,9 @@ class AdminController extends Controller
 
         $request->session()->forget('admin_authenticated');
         $request->session()->regenerate();
+
+        // Kill the 30-day remember cookie so logout is a real logout.
+        Cookie::queue(Cookie::forget(AdminAuthenticate::REMEMBER_COOKIE));
 
         return redirect()->route('admin.login');
     }
