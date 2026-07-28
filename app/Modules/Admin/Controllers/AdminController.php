@@ -7,8 +7,10 @@ use App\Http\Middleware\AdminAuthenticate;
 use App\Models\AdminNotification;
 use App\Models\AppSetting;
 use App\Models\DepositRequest;
+use App\Models\Plan;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Models\UserPlan;
 use App\Models\WalletBalance;
 use App\Models\WithdrawRequest;
 use Illuminate\Http\JsonResponse;
@@ -166,12 +168,43 @@ class AdminController extends Controller
             ];
         })->values();
 
+        // Money flow - all real, approved-only sums so they mean "actually
+        // credited / actually paid out", not just "requested".
+        $totalDeposited = (float) DepositRequest::status(DepositRequest::STATUS_APPROVED)->sum('amount');
+        $totalWithdrawn = (float) WithdrawRequest::status(WithdrawRequest::STATUS_APPROVED)->sum('amount');
+        $totalInvested = (float) UserPlan::where('status', UserPlan::STATUS_ACTIVE)->sum('invested_amount');
+
         return view('Admin::dashboard', [
             'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
             'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
             'totalUsers' => User::count(),
             'totalWalletBalance' => (float) WalletBalance::sum('balance'),
             'series' => $series,
+
+            // Money
+            'totalDeposited' => $totalDeposited,
+            'totalWithdrawn' => $totalWithdrawn,
+            'netInflow' => $totalDeposited - $totalWithdrawn,
+            'totalInvested' => $totalInvested,
+            'activeHoldings' => UserPlan::where('status', UserPlan::STATUS_ACTIVE)->count(),
+
+            // Users
+            'signupsToday' => User::whereDate('created_at', today())->count(),
+            'signups7d' => User::where('created_at', '>=', now()->subDays(7))->count(),
+            'bannedUsers' => User::whereNotNull('banned_at')->count(),
+            'googleUsers' => User::whereNotNull('google_id')->count(),
+
+            // Requests breakdown
+            'depApprovedCount' => DepositRequest::status(DepositRequest::STATUS_APPROVED)->count(),
+            'depRejectedCount' => DepositRequest::status(DepositRequest::STATUS_REJECTED)->count(),
+            'pendingDepositAmount' => (float) DepositRequest::status(DepositRequest::STATUS_PENDING)->sum('amount'),
+            'wdApprovedCount' => WithdrawRequest::status(WithdrawRequest::STATUS_APPROVED)->count(),
+            'wdRejectedCount' => WithdrawRequest::status(WithdrawRequest::STATUS_REJECTED)->count(),
+            'pendingWithdrawalAmount' => (float) WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->sum('amount'),
+
+            // Plans
+            'totalPlans' => Plan::count(),
+            'activePlans' => Plan::active()->count(),
         ]);
     }
 

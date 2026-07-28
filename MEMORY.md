@@ -1,5 +1,13 @@
 # MEMORY.md — Project Log
 
+## 2026-07-28 — Admin: expanded Overview with more real metrics
+
+Overview only had 4 tiles + 2 charts; user wanted more data. Added real, DB-backed aggregates grouped into sections.
+- `dashboard()` now also computes: Money (totalDeposited/totalWithdrawn = approved sums, netInflow, totalInvested = active `user_plans.invested_amount` sum, activeHoldings), Users (signupsToday, signups7d, bannedUsers, googleUsers), Requests breakdown (dep/wd approved+rejected counts, pending amounts), Plans (totalPlans, activePlans). Imports `Plan` + `UserPlan`.
+- `dashboard.blade.php`: sectioned into **Money** (6 tiles), **Users** (5 tiles), **Requests & plans** (3 breakdown cards: deposits/withdrawals pending·approved·rejected with amounts, plans total/active/disabled), **Trends** (the original 2 charts kept). Net inflow tile is green when ≥0 else red.
+- Gotcha: `x-admin-stat-tile` hardcodes `fa-solid`, so brand icons don't render — used `fa-user-check` for Google sign-ins, not `fa-google`.
+- Ran `npm run build` (new `xl:grid-cols-5` etc. now in compiled CSS). Verified render (200) with seeded data: deposited ₹2000, withdrawn ₹300, net ₹1700, pending ₹500 all correct.
+
 ## 2026-07-28 — Admin: Activity logs — on/off toggle + tighter panel height (still localStorage-only)
 
 User wanted to be able to turn logging off and clear it, explicitly WITHOUT using the database (space concerns). Kept it 100% localStorage.
