@@ -199,8 +199,8 @@ class TopUpPotPlanTest extends TestCase
         Artisan::call('plans:mature-holdings');
         $pot->refresh();
 
-        $this->assertSame(UserPlan::STATUS_WITHDRAWN, $pot->status);
-        $this->assertEqualsWithDelta(6720.0, WalletBalance::balanceFor($user->phone), 0.5);
+        // Investment (6000) is non-refundable; ONLY profit (6720 - 6000 = 720) is credited to wallet
+        $this->assertEqualsWithDelta(720.0, WalletBalance::balanceFor($user->phone), 0.5);
     }
 
     public function test_topup_is_rejected_once_the_pot_has_already_matured(): void

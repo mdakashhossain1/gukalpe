@@ -20,6 +20,7 @@ class Plan extends Model
         'marketing_badge_color', 'risk_level',
         'start_date', 'end_date', 'auto_mature',
         'terms', 'faqs', 'highlights',
+        'max_purchases', 'total_purchases_count',
     ];
 
     // Curated colour schemes for the marketing badge ribbon (Explore/Plan
@@ -49,6 +50,8 @@ class Plan extends Model
         'end_date' => 'datetime',
         'faqs' => 'array',
         'highlights' => 'array',
+        'max_purchases' => 'integer',
+        'total_purchases_count' => 'integer',
     ];
 
     protected static function booted(): void
@@ -120,6 +123,14 @@ class Plan extends Model
     public function isTopupPot(): bool
     {
         return $this->allow_topups && $this->isFlexibleAmount();
+    }
+
+    // Catalog-wide stock check — null max_purchases means unlimited.
+    // Called from PlanPurchaseController before debiting wallet.
+    public function isOutOfStock(): bool
+    {
+        return $this->max_purchases !== null
+            && $this->total_purchases_count >= $this->max_purchases;
     }
 
     // Both bounds are optional - a plan with neither is always in schedule,

@@ -187,6 +187,7 @@ class PlanManagementController extends Controller
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'plan_type' => ['nullable', 'in:trust_builder,growth'],
             'max_purchase_per_user' => ['nullable', 'integer', 'min:1'],
+            'max_purchases' => ['nullable', 'integer', 'min:1'],
             'cooldown_days' => ['nullable', 'integer', 'min:0'],
             'requires_plan_id' => ['nullable', 'integer', $plan
                 ? 'exists:plans,id|not_in:'.$plan->id

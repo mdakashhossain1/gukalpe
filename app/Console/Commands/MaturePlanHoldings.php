@@ -36,9 +36,11 @@ class MaturePlanHoldings extends Command
                 continue;
             }
 
-            $creditAmount = $holding->currentHolding()['currentValue'];
+            $holdingData = $holding->currentHolding();
+            // The spec rule: "Investment Amount is NEVER returned. ONLY Profit credited."
+            $profitAmount = $holdingData['accruedProfit'];
 
-            WalletBalance::credit($holding->user->phone, $creditAmount);
+            WalletBalance::credit($holding->user->phone, $profitAmount);
 
             $holding->update([
                 'status' => UserPlan::STATUS_WITHDRAWN,
@@ -48,15 +50,16 @@ class MaturePlanHoldings extends Command
             UserNotification::notify(
                 $holding->user,
                 'plan_matured',
-                "{$holding->plan->title} matured",
-                'Your investment of ₹'.number_format((float) $holding->invested_amount, 2)." in {$holding->plan->title} has matured. ₹".number_format($creditAmount, 2).' has been credited to your wallet.'
+                "{$holding->plan->title} matured — profit credited",
+                "Your {$holding->plan->title} plan has matured! ₹".number_format($profitAmount, 2).' profit has been credited to your wallet. (Investment of ₹'.number_format((float) $holding->invested_amount, 2).' is non-refundable as per plan terms.)'
             );
 
             Log::info('Plan holding matured', [
                 'user_plan_id' => $holding->id,
                 'user_id' => $holding->user_id,
                 'plan_id' => $holding->plan_id,
-                'credited' => $creditAmount,
+                'profit_credited' => $profitAmount,
+                'invested_amount' => (float) $holding->invested_amount,
             ]);
 
             $maturedCount++;

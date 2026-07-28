@@ -46,6 +46,10 @@ class PlanPurchaseController extends Controller
             return back()->withErrors(['plan' => 'This plan is no longer available.']);
         }
 
+        if ($plan->isOutOfStock()) {
+            return back()->withErrors(['plan' => 'This plan is currently out of stock.']);
+        }
+
         $user = Auth::user();
         if (! $user->phone) {
             return back()->withErrors(['plan' => 'Add a phone number to your account before investing.']);
@@ -152,6 +156,8 @@ class PlanPurchaseController extends Controller
         if ($plan->isTopupPot()) {
             PlanTopup::create(['user_plan_id' => $userPlan->id, 'amount' => $amount]);
         }
+
+        $plan->increment('total_purchases_count');
 
         Log::info('Plan purchased', [
             'user_id' => $user->id,

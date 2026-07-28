@@ -38,6 +38,43 @@ class WithdrawRequestController extends Controller
             ]);
         }
 
+        $settings = \App\Models\AppSetting::many([
+            'withdrawal_min_amount' => '300',
+            'withdrawal_daily_limit' => '5000',
+            'withdrawal_max_per_day' => '3',
+        ]);
+
+        $minAmount = (float) $settings['withdrawal_min_amount'];
+        $dailyLimit = (float) $settings['withdrawal_daily_limit'];
+        $maxPerDay = (int) $settings['withdrawal_max_per_day'];
+
+        if ($validated['amount'] < $minAmount) {
+            return back()->withInput()->withErrors([
+                'amount' => 'Minimum withdrawal amount is ₹'.number_format($minAmount, 0).'.',
+            ]);
+        }
+
+        $todayTotal = WithdrawRequest::where('phone', $validated['phone'])
+            ->whereDate('created_at', today())
+            ->sum('amount');
+
+        if (($todayTotal + $validated['amount']) > $dailyLimit) {
+            $remaining = max(0, $dailyLimit - $todayTotal);
+            return back()->withInput()->withErrors([
+                'amount' => 'Daily withdrawal limit is ₹'.number_format($dailyLimit, 0).'. You can withdraw up to ₹'.number_format($remaining, 0).' more today.',
+            ]);
+        }
+
+        $todayCount = WithdrawRequest::where('phone', $validated['phone'])
+            ->whereDate('created_at', today())
+            ->count();
+
+        if ($todayCount >= $maxPerDay) {
+            return back()->withInput()->withErrors([
+                'amount' => "You have reached the maximum of {$maxPerDay} withdrawal requests for today.",
+            ]);
+        }
+
         $withdraw = WithdrawRequest::create([
             'phone' => $validated['phone'],
             'amount' => $validated['amount'],

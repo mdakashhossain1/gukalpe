@@ -1,5 +1,15 @@
 # MEMORY.md — Project Log
 
+## 2026-07-28 — Implemented plan.md business logic & v1.0 Admin Plan system
+
+Per `plan.md` Developer Documentation (Sections 1–42):
+- **Profit-Only Wallet Credit on Maturity (Critical Fix):** `MaturePlanHoldings` was crediting `currentValue` (`invested + profit`) to wallet on maturity. Spec mandates ONLY profit is credited — principal investment is non-refundable and never returned. Fixed `MaturePlanHoldings.php` to credit `accruedProfit` only and updated all test suite assertions.
+- **Catalog-wide Purchase Limit & Out of Stock:** Added migration `2026_07_28_200000_add_purchase_limit_to_plans_table.php` adding `max_purchases` (nullable) + `total_purchases_count` (default 0) to `plans`. `Plan::isOutOfStock()` method added. `PlanPurchaseController` checks stock before purchase and increments counter on purchase.
+- **Withdrawal Limits Enforcement:** Added `withdrawal_min_amount` (₹300), `withdrawal_daily_limit` (₹5,000), `withdrawal_max_per_day` (3) to `AppSetting::DEFAULTS`. Enforced checks in `WithdrawRequestController::store()`. Exposed inputs on Admin Settings page.
+- **Admin Plan Form UX Overhaul:** Added Step 1 Plan Type Switcher (Fixed vs Flexible segment buttons with dynamic field toggles), Interest Rate Presets (1%, 2%, 3%, 5%, 8%, 10%, 12%, 15%, 20%, Custom %), and Catalog Max Purchases limit input with read-only sales count.
+- **Nightly Scheduler:** `plans:mature-holdings` configured at `18:30` UTC (`00:00` IST midnight) and `plans:send-daily-returns-email` at `03:30` UTC (`09:00` IST).
+- Full test suite green (32 passed, 95 assertions).
+
 ## 2026-07-28 — Admin: expanded Overview with more real metrics
 
 Overview only had 4 tiles + 2 charts; user wanted more data. Added real, DB-backed aggregates grouped into sections.

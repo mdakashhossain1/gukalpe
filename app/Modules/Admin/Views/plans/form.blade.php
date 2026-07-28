@@ -23,6 +23,29 @@
         <form method="POST" action="{{ $plan->exists ? route('admin.plans.update', $plan) : route('admin.plans.store') }}" enctype="multipart/form-data" class="flex flex-col gap-3.5 bg-white rounded-2xl border border-[#E5E9EB] p-6">
             @csrf
 
+            {{-- ===== Step 1: Select Plan Type Switcher ===== --}}
+            <div class="mb-4 p-4 bg-[#F8FAFC] rounded-xl border border-[#E5E9EB]">
+                <label class="block text-[12.5px] font-semibold text-[#334155] mb-2.5">
+                    <i class="bi bi-toggles mr-1"></i>Step 1 — Select Plan Type
+                </label>
+                <div class="inline-flex rounded-xl border border-[#CBD5E1] overflow-hidden" id="plan-type-switcher">
+                    <button type="button" id="btn-fixed" onclick="window.setPlanMode('fixed')"
+                        class="px-5 py-2.5 text-[13.5px] font-bold transition-colors">
+                        <i class="bi bi-lock-fill mr-1.5"></i>Fixed Investment Plan
+                    </button>
+                    <button type="button" id="btn-flexible" onclick="window.setPlanMode('flexible')"
+                        class="px-5 py-2.5 text-[13.5px] font-bold transition-colors">
+                        <i class="bi bi-sliders mr-1.5"></i>Flexible Investment Plan
+                    </button>
+                </div>
+                <input type="hidden" name="investment_mode" id="investment_mode"
+                    value="{{ (old('min_investment_amount', $plan->min_investment_amount) !== null) ? 'flexible' : 'fixed' }}">
+                <p class="text-[11px] text-[#94A3B8] mt-2">
+                    <strong>Fixed:</strong> Single fixed investment amount (e.g. ₹199). &nbsp;
+                    <strong>Flexible:</strong> User selects amount from a range slider (e.g. ₹100–₹1,000).
+                </p>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                     <label for="title" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Title</label>
@@ -122,7 +145,7 @@
                 {{-- You enter these three; Daily profit & Total return below fill in
                      automatically (see the calculator script at the foot of this form). --}}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                    <div>
+                    <div id="fixed-investment-section">
                         <label for="investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Investment (₹, one-time)</label>
                         <input type="number" name="investment_amount" id="investment_amount" min="1" step="0.01" value="{{ old('investment_amount', $plan->investment_amount) }}" required
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
@@ -130,6 +153,17 @@
                     </div>
                     <div>
                         <label for="growth_rate" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Growth rate (%/yr)</label>
+                        <div class="mb-2">
+                            <span class="block text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide mb-1.5">Quick presets</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach ([1, 2, 3, 5, 8, 10, 12, 15, 20] as $rp)
+                                    <button type="button" class="rate-preset px-2.5 py-0.5 rounded-full border border-[#CBD5E1] text-[11px] font-bold text-[#334155] hover:border-[#0A5C66] hover:text-[#0A5C66] transition-all"
+                                        data-rate="{{ $rp }}" onclick="window.applyRatePreset({{ $rp }})">{{ $rp }}%</button>
+                                @endforeach
+                                <button type="button" class="rate-preset px-2.5 py-0.5 rounded-full border border-[#CBD5E1] text-[11px] font-bold text-[#334155] hover:border-[#0A5C66] hover:text-[#0A5C66] transition-all"
+                                    data-rate="custom" onclick="window.applyRatePreset(null)">Custom %</button>
+                            </div>
+                        </div>
                         <input type="number" name="growth_rate" id="growth_rate" min="0" max="100" value="{{ old('growth_rate', $plan->growth_rate) }}" required
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                         @error('growth_rate')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
@@ -162,7 +196,7 @@
                 <p class="text-[11px] text-[#94A3B8] mt-2">Formula: <span class="font-semibold text-[#64748B]">Total = Investment × (1 + Rate%⁄yr × Days⁄365)</span>, and <span class="font-semibold text-[#64748B]">Daily = (Total − Investment) ⁄ Days</span>. Type in either field to override the auto value.</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div id="flexible-investment-section" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                     <label for="min_investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Min investment (₹, optional)</label>
                     <input type="number" name="min_investment_amount" id="min_investment_amount" min="1" step="0.01" placeholder="Leave both blank for a fixed amount" value="{{ old('min_investment_amount', $plan->min_investment_amount) }}"
@@ -350,6 +384,29 @@
                         <input type="checkbox" name="auto_mature" value="1" class="accent-brand" {{ old('auto_mature', $plan->auto_mature) ? 'checked' : '' }}>
                         <span class="text-[13.5px] font-semibold text-[#0F172A]">Auto-mature (credit wallet automatically)</span>
                     </label>
+                </div>
+
+                {{-- Catalog-wide purchase limit --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3.5 border-t border-[#E5E9EB] pt-3.5">
+                    <div>
+                        <label for="max_purchases" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">
+                            Max total purchases (catalog-wide, optional)
+                        </label>
+                        <input type="number" name="max_purchases" id="max_purchases" min="1" placeholder="Unlimited"
+                            value="{{ old('max_purchases', $plan->max_purchases) }}"
+                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        <p class="text-[11px] text-[#94A3B8] mt-1">Leave blank for unlimited. Plan automatically blocks purchases when this limit is reached.</p>
+                        @error('max_purchases')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Sales count (read-only)</label>
+                        <div class="h-10 flex items-center px-3 rounded-lg bg-[#F8FAFC] border border-[#E5E9EB] text-[14px] font-bold text-[#0F172A]">
+                            {{ number_format($plan->total_purchases_count ?? 0) }}
+                            @if ($plan->max_purchases)
+                                <span class="text-[#94A3B8] font-normal ml-1.5">/ {{ number_format($plan->max_purchases) }}</span>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -735,6 +792,44 @@
             rowState.forEach(function (recalc) { recalc(true); });
         });
     }
+
+    // --- Plan Type Switcher (Fixed vs Flexible) ---
+    window.setPlanMode = function(mode) {
+        var modeInput = document.getElementById('investment_mode');
+        if (modeInput) modeInput.value = mode;
+        var isFixed = mode === 'fixed';
+        var fixedEl = document.getElementById('fixed-investment-section');
+        var flexEl  = document.getElementById('flexible-investment-section');
+        var btnFixed = document.getElementById('btn-fixed');
+        var btnFlex  = document.getElementById('btn-flexible');
+
+        if (fixedEl) fixedEl.style.display = isFixed ? '' : 'none';
+        if (flexEl)  flexEl.style.display  = isFixed ? 'none' : '';
+
+        var activeClass   = 'px-5 py-2.5 text-[13.5px] font-bold transition-colors bg-[#0A5C66] text-white';
+        var inactiveClass = 'px-5 py-2.5 text-[13.5px] font-bold transition-colors bg-white text-[#64748B]';
+        if (btnFixed) btnFixed.className = isFixed ? activeClass : inactiveClass;
+        if (btnFlex)  btnFlex.className  = isFixed ? inactiveClass : activeClass;
+    };
+
+    // --- Interest Rate Presets ---
+    window.applyRatePreset = function(value) {
+        var rateInput = document.getElementById('growth_rate');
+        if (rateInput && value !== null) {
+            rateInput.value = value;
+            rateInput.dispatchEvent(new Event('input'));
+        }
+        document.querySelectorAll('.rate-preset').forEach(function(btn) {
+            var active = value !== null ? btn.dataset.rate === String(value) : btn.dataset.rate === 'custom';
+            btn.classList.toggle('bg-[#0A5C66]', active);
+            btn.classList.toggle('text-white', active);
+            btn.classList.toggle('border-[#0A5C66]', active);
+        });
+    };
+
+    // Initialize switcher state on load
+    var currentMode = (document.getElementById('investment_mode') || {}).value || 'fixed';
+    window.setPlanMode(currentMode);
 })();
 </script>
 

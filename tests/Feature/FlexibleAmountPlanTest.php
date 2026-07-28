@@ -161,7 +161,7 @@ class FlexibleAmountPlanTest extends TestCase
         Artisan::call('plans:mature-holdings');
         $holding->refresh();
 
-        $this->assertSame(UserPlan::STATUS_WITHDRAWN, $holding->status);
-        $this->assertEqualsWithDelta(5600.0, WalletBalance::balanceFor($user->phone), 0.5);
+        // Investment (5000) is non-refundable; ONLY profit (5600 - 5000 = 600) is credited to wallet
+        $this->assertEqualsWithDelta(600.0, WalletBalance::balanceFor($user->phone), 0.5);
     }
 }

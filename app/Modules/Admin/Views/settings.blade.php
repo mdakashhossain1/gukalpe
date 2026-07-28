@@ -53,6 +53,27 @@
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     </div>
                 </div>
+
+                <div class="pt-4 mt-2 border-t border-[#E5E9EB]">
+                    <h3 class="text-[13.5px] font-bold text-[#0F172A] mb-3">Withdrawal Limits (Global Policy)</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label for="setting-withdrawal-min-amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Min withdrawal (₹)</label>
+                            <input type="number" name="withdrawal_min_amount" id="setting-withdrawal-min-amount" min="0" step="1" value="{{ old('withdrawal_min_amount', $settings['withdrawal_min_amount'] ?? '300') }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        </div>
+                        <div>
+                            <label for="setting-withdrawal-daily-limit" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Daily withdrawal limit (₹)</label>
+                            <input type="number" name="withdrawal_daily_limit" id="setting-withdrawal-daily-limit" min="0" step="1" value="{{ old('withdrawal_daily_limit', $settings['withdrawal_daily_limit'] ?? '5000') }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        </div>
+                        <div>
+                            <label for="setting-withdrawal-max-per-day" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max requests / day</label>
+                            <input type="number" name="withdrawal_max_per_day" id="setting-withdrawal-max-per-day" min="1" step="1" value="{{ old('withdrawal_max_per_day', $settings['withdrawal_max_per_day'] ?? '3') }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        </div>
+                    </div>
+                </div>
                 <button type="submit" class="h-10 rounded-lg bg-[#0F172A] text-white font-semibold text-[13.5px] hover:bg-[#1E293B] transition-colors active:scale-[0.99] mt-1 sm:w-fit sm:px-6">
                     Save settings
                 </button>

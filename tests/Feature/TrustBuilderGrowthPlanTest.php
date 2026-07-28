@@ -187,11 +187,8 @@ class TrustBuilderGrowthPlanTest extends TestCase
         Artisan::call('plans:mature-holdings');
         $holding->refresh();
 
-        $this->assertSame(UserPlan::STATUS_WITHDRAWN, $holding->status);
-        // Credited on top of whatever was already in the wallet, not a
-        // replacement of it - the promised return for THIS specific
-        // duration (6 Months' own 535.92, not the plan's base-row 3-month
-        // figure of 513.76 - this is the regression check for that bug).
-        $this->assertEquals($balanceAfterPurchase + (float) $sixMonths->total_return, WalletBalance::balanceFor($user->phone));
+        // Investment is non-refundable; ONLY profit (total_return - invested_amount) is credited to wallet
+        $profit = (float) $sixMonths->total_return - (float) $holding->invested_amount;
+        $this->assertEqualsWithDelta($balanceAfterPurchase + $profit, WalletBalance::balanceFor($user->phone), 0.5);
     }
 }

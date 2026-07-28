@@ -34,6 +34,10 @@ class AppSetting extends Model
         'upi_max_amount' => '',
         'bank_min_amount' => '',
         'bank_max_amount' => '',
+        // Withdrawal policy limits — enforced on every withdrawal request submission
+        'withdrawal_min_amount' => '300',
+        'withdrawal_daily_limit' => '5000',
+        'withdrawal_max_per_day' => '3',
     ];
 
     protected $fillable = ['key', 'value'];

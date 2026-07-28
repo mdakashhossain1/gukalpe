@@ -22,18 +22,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withSchedule(function (Schedule $schedule): void {
-        // Drives Trust Builder / Growth Plan auto-maturity (Phase 1). No OS
-        // cron exists in this repo/deployment yet - this closure only runs
-        // when something actually invokes `php artisan schedule:run`, so a
-        // real cron entry (`* * * * * php artisan schedule:run`) still needs
-        // to be added wherever this app is deployed for maturity to be timely.
-        $schedule->command('plans:mature-holdings')->everyMinute();
+        // Matures holdings and credits ONLY profit to wallet.
+        // Runs at 18:30 UTC = 00:00 IST (midnight India time) per spec Section 15/16.
+        $schedule->command('plans:mature-holdings')->dailyAt('18:30');
 
-        // Daily "your investments grew today" digest email - once a day is
-        // enough (the command itself is idempotent per-holding via
-        // last_daily_return_email_sent_at, so a missed/retried run can't
-        // double-send), timed for a morning send in IST.
-        $schedule->command('plans:send-daily-returns-email')->dailyAt('09:00');
+        // Daily "your investments grew today" digest email — 09:00 IST = 03:30 UTC.
+        $schedule->command('plans:send-daily-returns-email')->dailyAt('03:30');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
