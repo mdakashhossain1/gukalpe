@@ -25,6 +25,7 @@ Route::prefix($slug)->group(function () {
         Route::get('/notifications/poll', [AdminController::class, 'pollNotifications'])->name('admin.notifications.poll');
         Route::post('/notifications/read', [AdminController::class, 'markNotificationsRead'])->name('admin.notifications.read');
         Route::get('/wallet-tools', [AdminController::class, 'walletTools'])->name('admin.wallet-tools');
+        Route::post('/wallet-tools/adjust', [AdminController::class, 'adjustWallet'])->name('admin.wallet-tools.adjust');
         Route::get('/simulations', [AdminController::class, 'simulations'])->name('admin.simulations');
         Route::get('/settings', [AdminController::class, 'settingsPage'])->name('admin.settings');
         Route::post('/settings/referral-toggle', [AdminController::class, 'toggleReferral'])->name('admin.settings.referral-toggle');

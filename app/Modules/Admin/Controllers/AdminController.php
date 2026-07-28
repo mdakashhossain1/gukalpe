@@ -183,6 +183,68 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Manually increase or decrease a real user's wallet balance (DB-backed,
+     * shows on Overview). Mirrors the deposit-approval flow: adjust the
+     * WalletBalance, notify the user, and log to the admin_security channel.
+     * A decrease is re-checked against the live balance so it can't drive the
+     * wallet negative.
+     */
+    public function adjustWallet(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'phone' => ['required', 'regex:/^\d{10}$/'],
+            'direction' => ['required', 'in:increase,decrease'],
+            'amount' => ['required', 'numeric', 'gt:0'],
+        ], [
+            'phone.regex' => 'Enter a valid 10-digit phone number.',
+            'amount.gt' => 'Enter an amount greater than zero.',
+        ]);
+
+        $phone = $validated['phone'];
+        $amount = round((float) $validated['amount'], 2);
+        $increase = $validated['direction'] === 'increase';
+
+        $user = User::where('phone', $phone)->first();
+        if (! $user) {
+            return back()->withInput()->with('error', "No user found with phone {$phone}.");
+        }
+
+        if (! $increase) {
+            $available = WalletBalance::balanceFor($phone);
+            if ($amount > $available) {
+                return back()->withInput()->with('error', 'Cannot decrease: current balance (₹'.number_format($available, 2).') is less than ₹'.number_format($amount, 2).'.');
+            }
+        }
+
+        $wallet = $increase
+            ? WalletBalance::credit($phone, $amount)
+            : WalletBalance::debit($phone, $amount);
+
+        $newBalance = (float) $wallet->balance;
+
+        UserNotification::notify(
+            $user,
+            'wallet_adjustment',
+            $increase ? 'Wallet credited' : 'Wallet debited',
+            $increase
+                ? '₹'.number_format($amount, 2).' has been added to your wallet by support. New balance: ₹'.number_format($newBalance, 2).'.'
+                : '₹'.number_format($amount, 2).' has been deducted from your wallet by support. New balance: ₹'.number_format($newBalance, 2).'.'
+        );
+
+        Log::channel('admin_security')->info('Wallet manually adjusted', [
+            'phone' => $phone,
+            'direction' => $validated['direction'],
+            'amount' => $amount,
+            'new_balance' => $newBalance,
+            'ip' => $request->ip(),
+        ]);
+
+        $verb = $increase ? 'Increased' : 'Decreased';
+
+        return back()->with('success', "{$verb} {$phone}'s wallet by ₹".number_format($amount, 2).'. New balance ₹'.number_format($newBalance, 2).'.');
+    }
+
     public function simulations(): View
     {
         return view('Admin::simulations', [

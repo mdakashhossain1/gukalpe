@@ -1,5 +1,21 @@
 # MEMORY.md — Project Log
 
+## 2026-07-28 — Admin: 30-day persistent login, plans table+search/pagination, real wallet adjustment
+
+Batch of admin-panel changes this session.
+
+**1. Admin login now persists 30 days from a single sign-in.**
+- `AdminAuthenticate` middleware gained a long-lived `admin_remember` cookie (`REMEMBER_COOKIE`, `REMEMBER_MINUTES = 43200`). On a request with no `admin_authenticated` session flag, a valid remember cookie restores the flag and re-issues the cookie (sliding 30-day window). Token = `hash_hmac('sha256','admin-remember-v1', admin.password.app.key)` via `AdminAuthenticate::rememberToken()` — bound to the admin password so rotating it invalidates every outstanding cookie; cookie is also encrypted by Laravel's EncryptCookies.
+- `AdminController::authenticate()` queues the cookie on success; `logout()` forgets it; `login()` redirects a remembered admin straight to the dashboard.
+
+**2. Investment plans list is now a real `<table>` with built-in search + pagination + sorting.**
+- `Admin/Views/plans/index.blade.php` converted from stacked cards to a table (Plan / Financials / Type & access / Durations / Status / Actions).
+- Uses **simple-datatables v9.0.3** (vanilla JS, no jQuery — app has none), self-hosted at `public/libs/simple-datatables/` (`.js` + `style.css`). NOT `public/vendor/` because root `.htaccess` blocks `/vendor/`; `/libs/` is served by root `index.php`'s static-file handler. Init script guarded by `@if ($plans->isNotEmpty())`, Actions column non-sortable, themed to brand color. Client-side only (fine for this catalog size; revisit if it grows to thousands).
+
+**3. Wallet adjustment is now REAL (DB-backed), not localStorage demo — with explicit Increase/Decrease.**
+- User chose "make it real" over keeping demo-only. New route `POST wallet-tools/adjust` → `AdminController::adjustWallet()`. Validates phone (10 digits), direction (`increase`/`decrease`), amount (`gt:0`); requires an existing `User`; a decrease re-checks live balance so it can't go negative. Uses `WalletBalance::credit/debit`, sends a `wallet_adjustment` `UserNotification`, logs to `admin_security`. Flash via shared `<x-toast />`.
+- `Admin/Views/wallet-tools.blade.php` rewritten: removed the amber demo banner + localStorage JS, added a real POST form with a segmented Increase/Decrease radio toggle (peer-checked styling). Verified end-to-end through the HTTP kernel (increase, decrease, overdraw-blocked, unknown-user, negative-amount), DB rolled back.
+
 ## 2026-07-28 — Method-level payment routing + uploadable plan icon + plan-form simplification (+ pre-existing Plan Details crash fix)
 
 Several admin-requested changes plus one latent bug found along the way. Full suite green afterwards (25 passed, 79 assertions).
