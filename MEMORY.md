@@ -1,5 +1,18 @@
 # MEMORY.md — Project Log
 
+## 2026-07-28 — Admin: wallet adjustment moved inline into the Users table (standalone page removed)
+
+Per user request, wallet adjustment is no longer its own section — it's a per-row action in the Users list.
+- `Admin/Views/users.blade.php`: added a "Wallet action" column with a per-row **Adjust** button carrying `data-phone`/`data-name`/`data-balance`. One shared `#wallet-modal` (Increase/Decrease toggle + amount) is filled by a delegated click handler (delegation because simple-datatables re-renders rows on search/paging) and POSTs to the unchanged `admin.wallet-tools.adjust` endpoint. Actions column is `sortable:false` (column index 7); table min-width bumped 860→980.
+- Removed the standalone page: sidebar "Wallet adjustment" nav item, `GET /wallet-tools` route, `AdminController::walletTools()`, and `wallet-tools.blade.php` deleted. The POST `wallet-tools/adjust` route + `adjustWallet()` are kept (now driven only by the modal). Verified: users page renders the button+modal, POST increase 500→575.25 works, old GET `/wallet-tools` now 404s.
+
+## 2026-07-28 — Admin: added a Users list page
+
+New "Users" section in the Ops Console (was missing entirely).
+- Sidebar: new nav item `key => 'users'`, `fa-users`, placed right after Overview. Route `GET /users` → `AdminController::users()` (name `admin.users`).
+- `users()`: `User::withCount('referrals')->latest()->get()`, plus a single `WalletBalance::pluck('balance','phone')` map attached as a dynamic `wallet_balance` per row (no N+1).
+- `Admin/Views/users.blade.php`: table (User+avatar/initials, Phone, Email, Wallet, Referral code, Referrals, Joined) using the same self-hosted **simple-datatables** as the plans list (search + pagination + sorting), 15/page. Phone signups (synthetic `@phone.gullakpe.local` email, via `hasRealEmail()`) render as an italic "Phone signup" instead of leaking the placeholder address. Verified via HTTP-kernel render (200, both a phone user and a Google user, wallet ₹ formatting, referral pill, synthetic email hidden).
+
 ## 2026-07-28 — Admin: 30-day persistent login, plans table+search/pagination, real wallet adjustment
 
 Batch of admin-panel changes this session.

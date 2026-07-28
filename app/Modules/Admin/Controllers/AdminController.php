@@ -175,9 +175,25 @@ class AdminController extends Controller
         ]);
     }
 
-    public function walletTools(): View
+    /**
+     * Full registered-user list. Wallet balances are keyed by phone (see
+     * WalletBalance), so pull them once as a phone=>balance map and attach
+     * to each row instead of a per-user query (no N+1). Referral count comes
+     * from withCount on the self-referencing referrals() relation.
+     */
+    public function users(): View
     {
-        return view('Admin::wallet-tools', [
+        $balances = WalletBalance::pluck('balance', 'phone');
+
+        $users = User::withCount('referrals')
+            ->latest()
+            ->get()
+            ->each(function (User $user) use ($balances) {
+                $user->wallet_balance = (float) ($balances[$user->phone] ?? 0);
+            });
+
+        return view('Admin::users', [
+            'users' => $users,
             'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
             'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
         ]);

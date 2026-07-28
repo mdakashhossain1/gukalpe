@@ -10,10 +10,10 @@
 @php
     $navItems = [
         ['route' => 'admin.dashboard', 'key' => 'overview', 'icon' => 'fa-chart-line', 'label' => 'Overview'],
+        ['route' => 'admin.users', 'key' => 'users', 'icon' => 'fa-users', 'label' => 'Users'],
         ['route' => 'admin.deposits', 'key' => 'deposits', 'icon' => 'fa-money-bill-transfer', 'label' => 'Deposit requests', 'count' => $pendingDepositCount],
         ['route' => 'admin.withdrawals', 'key' => 'withdrawals', 'icon' => 'fa-money-bill-transfer fa-flip-horizontal', 'label' => 'Withdrawal requests', 'count' => $pendingWithdrawalCount],
         ['route' => 'admin.payment-gateway', 'key' => 'payment-gateway', 'icon' => 'fa-qrcode', 'label' => 'Payment gateway'],
-        ['route' => 'admin.wallet-tools', 'key' => 'wallet', 'icon' => 'fa-wallet', 'label' => 'Wallet adjustment'],
         ['route' => 'admin.simulations', 'key' => 'simulations', 'icon' => 'fa-bolt', 'label' => 'Simulations'],
         ['route' => 'admin.settings', 'key' => 'settings', 'icon' => 'fa-sliders', 'label' => 'Referral program'],
         ['route' => 'admin.logs', 'key' => 'logs', 'icon' => 'fa-list', 'label' => 'Activity logs'],

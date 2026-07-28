@@ -16,6 +16,7 @@ Route::prefix($slug)->group(function () {
 
     Route::middleware('admin.auth')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+        Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
         Route::get('/deposits', [AdminController::class, 'deposits'])->name('admin.deposits');
         Route::post('/deposits/{deposit}/approve', [AdminController::class, 'approveDeposit'])->name('admin.deposits.approve');
         Route::post('/deposits/{deposit}/reject', [AdminController::class, 'rejectDeposit'])->name('admin.deposits.reject');
@@ -24,7 +25,8 @@ Route::prefix($slug)->group(function () {
         Route::post('/withdrawals/{withdraw}/reject', [AdminController::class, 'rejectWithdrawal'])->name('admin.withdrawals.reject');
         Route::get('/notifications/poll', [AdminController::class, 'pollNotifications'])->name('admin.notifications.poll');
         Route::post('/notifications/read', [AdminController::class, 'markNotificationsRead'])->name('admin.notifications.read');
-        Route::get('/wallet-tools', [AdminController::class, 'walletTools'])->name('admin.wallet-tools');
+        // Wallet adjustment has no standalone page anymore - it lives inline in
+        // the Users table (per-row "Adjust" -> shared modal posts here).
         Route::post('/wallet-tools/adjust', [AdminController::class, 'adjustWallet'])->name('admin.wallet-tools.adjust');
         Route::get('/simulations', [AdminController::class, 'simulations'])->name('admin.simulations');
         Route::get('/settings', [AdminController::class, 'settingsPage'])->name('admin.settings');
