@@ -1,5 +1,12 @@
 # MEMORY.md — Project Log
 
+## 2026-07-28 — Admin: deposits & withdrawals converted to searchable tables
+
+Both were stacked-card lists; now they match the plans/users table pattern (simple-datatables search + pagination + sorting).
+- `Admin/Views/deposits.blade.php`: table (Amount, Phone, Method, UTR, Status, Submitted, Actions) in `#deposits-table-card`. `Admin/Views/withdrawals.blade.php`: (Amount, Phone, Payout UPI, Status, Submitted, Actions) in `#withdrawals-table-card`.
+- Kept the existing Pending/Approved/Rejected filter tabs above each table (server-side status filter unchanged). Approve/Reject forms stay in the Actions column for pending rows only (non-pending shows "—"); Actions column is `sortable:false`. Init guarded by `@if(...->isNotEmpty())`.
+- Note: deposit/withdraw models use **UUID route keys**, so approve/reject form actions carry the UUID not the id. Verified both pages render (200), search/actions/amounts present, empty state works.
+
 ## 2026-07-28 — Registration: real Indian-mobile validation via Google libphonenumber
 
 Phone entry used to be just `digits:10` (accepted 0000000000, 1234567890, etc.). Now validates a genuinely valid Indian mobile.
