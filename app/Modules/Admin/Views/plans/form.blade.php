@@ -84,20 +84,20 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label for="image" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Image {{ $plan->exists ? '(leave empty to keep current)' : '' }}</label>
+                    <label for="image" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Thumbnail image {{ $plan->exists ? '(leave empty to keep current)' : '' }}</label>
                     @if ($plan->exists && $plan->image)
                         <div class="mb-2 flex items-center gap-2.5">
                             <img src="{{ $plan->imageUrl() }}" alt="{{ $plan->title }}" class="w-14 h-14 rounded-lg object-cover border border-[#E5E9EB]">
-                            <span class="text-[11.5px] text-[#94A3B8]">Current image</span>
+                            <span class="text-[11.5px] text-[#94A3B8]">Current thumbnail</span>
                         </div>
                     @endif
                     <input type="file" name="image" id="image" accept="image/png,image/jpeg,image/webp" {{ $plan->exists ? '' : 'required' }}
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[13px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15 file:mr-3 file:h-full file:border-0 file:bg-[#0A5C66]/10 file:text-[#0A5C66] file:font-semibold file:px-3 file:rounded-l-lg file:cursor-pointer">
-                    <p class="text-[11px] text-[#94A3B8] mt-1">JPG, PNG, or WebP · up to 4MB · saved to public/assets/plans</p>
+                    <p class="text-[11px] text-[#94A3B8] mt-1">Photo shown on <strong>Plan Details</strong> &amp; the admin lists (not on Explore). JPG, PNG, or WebP · up to 4MB.</p>
                     @error('image')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="icon_image" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Icon image {{ $plan->exists && $plan->icon_image ? '(leave empty to keep current)' : '(shown on Explore)' }}</label>
+                    <label for="icon_image" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Explore icon {{ $plan->exists && $plan->icon_image ? '(leave empty to keep current)' : '(shown on Explore)' }}</label>
                     @if ($plan->exists && $plan->iconImageUrl())
                         <div class="mb-2 flex items-center gap-2.5">
                             <div class="w-14 h-14 rounded-lg bg-[#0A5C66]/5 border border-[#E5E9EB] flex items-center justify-center overflow-hidden shrink-0">
@@ -108,7 +108,7 @@
                     @endif
                     <input type="file" name="icon_image" id="icon_image" accept="image/png,image/jpeg,image/webp"
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[13px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15 file:mr-3 file:h-full file:border-0 file:bg-[#0A5C66]/10 file:text-[#0A5C66] file:font-semibold file:px-3 file:rounded-l-lg file:cursor-pointer">
-                    <p class="text-[11px] text-[#94A3B8] mt-1">PNG, JPG, or WebP · up to 4MB · saved to public/assets/plan-icons. Shown in the Explore card's circular icon, alongside the main image.</p>
+                    <p class="text-[11px] text-[#94A3B8] mt-1">The single icon shown in the <strong>Explore</strong> card's circle. PNG, JPG, or WebP · up to 4MB · saved to public/assets/plan-icons.</p>
                     @error('icon_image')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
             </div>

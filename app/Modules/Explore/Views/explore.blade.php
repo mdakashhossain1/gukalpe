@@ -161,19 +161,15 @@
 
                         <!-- LEFT: CIRCULAR ICON CONTAINER (PROMINENT POD) -->
                         <div class="flex items-center justify-center shrink-0">
-                            <div class="relative w-[72px] h-[72px] sm:w-28 sm:h-28 rounded-full bg-[#F2F7F8] border border-[#E4EFEF] flex items-center justify-center shadow-inner group">
-                                {{-- Icon: the admin-uploaded custom icon image when set, otherwise
-                                     the Bootstrap Icons class fallback. --}}
+                            <div class="w-[72px] h-[72px] sm:w-28 sm:h-28 rounded-full bg-[#F2F7F8] border border-[#E4EFEF] flex items-center justify-center shadow-inner overflow-hidden group">
+                                {{-- Explore shows the plan's ICON only - the uploaded Icon image
+                                     when set, otherwise its Bootstrap Icons class. The Thumbnail
+                                     (`image`) is deliberately NOT shown here; it's used on Plan
+                                     Details and the admin lists instead. --}}
                                 @if (!empty($cp['iconImage']))
-                                    <img src="{{ $cp['iconImage'] }}" alt="{{ $cp['title'] }}" class="w-11 h-11 sm:w-[68px] sm:h-[68px] object-contain transition-transform duration-300 group-hover:scale-105">
+                                    <img src="{{ $cp['iconImage'] }}" alt="{{ $cp['title'] }}" class="w-12 h-12 sm:w-[72px] sm:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105">
                                 @else
                                     <i class="bi {{ $cp['icon'] ?? 'bi-shield-check' }} text-[32px] sm:text-[44px] text-[#0A5C66] transition-transform duration-300 group-hover:scale-110"></i>
-                                @endif
-
-                                {{-- Separate main image, shown as a small avatar overlapping the
-                                     pod so the icon and the photo both appear on the card. --}}
-                                @if (!empty($cp['image']) && (str_starts_with($cp['image'], 'http') || str_contains($cp['image'], '/assets/') || str_contains($cp['image'], 'unsplash')))
-                                    <img src="{{ $cp['image'] }}" alt="{{ $cp['title'] }}" class="absolute -bottom-0.5 -right-0.5 w-7 h-7 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-white shadow-md">
                                 @endif
                             </div>
                         </div>
