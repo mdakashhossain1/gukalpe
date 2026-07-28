@@ -200,6 +200,29 @@ class AdminController extends Controller
     }
 
     /**
+     * Ban or unban a user (toggle). A ban sets banned_at=now(); the user is
+     * refused at every login path and force-logged-out on their next request
+     * (EnsureUserNotBanned). Unban clears it.
+     */
+    public function toggleBanUser(User $user): RedirectResponse
+    {
+        $nowBanned = ! $user->isBanned();
+        $user->banned_at = $nowBanned ? now() : null;
+        $user->save();
+
+        Log::channel('admin_security')->info($nowBanned ? 'User banned' : 'User unbanned', [
+            'user_id' => $user->id,
+            'phone' => $user->phone,
+        ]);
+
+        $label = $user->name ?: ($user->phone ?: '#'.$user->id);
+
+        return back()->with('success', $nowBanned
+            ? "Banned {$label}. They can no longer log in."
+            : "Unbanned {$label}. They can log in again.");
+    }
+
+    /**
      * Manually increase or decrease a real user's wallet balance (DB-backed,
      * shows on Overview). Mirrors the deposit-approval flow: adjust the
      * WalletBalance, notify the user, and log to the admin_security channel.

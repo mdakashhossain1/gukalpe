@@ -32,6 +32,7 @@ class User extends Authenticatable
         'mpin',
         'referral_code',
         'referred_by',
+        'banned_at',
     ];
 
     /**
@@ -56,7 +57,18 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'mpin' => 'hashed',
+            'banned_at' => 'datetime',
         ];
+    }
+
+    /**
+     * A banned account can't log in and is force-logged-out on its next
+     * request (see EnsureUserNotBanned middleware). Toggled from the admin
+     * Users table. Null banned_at = active.
+     */
+    public function isBanned(): bool
+    {
+        return $this->banned_at !== null;
     }
 
     /**

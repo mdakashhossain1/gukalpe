@@ -1,5 +1,15 @@
 # MEMORY.md — Project Log
 
+## 2026-07-28 — Admin: user ban/unban (real, enforced at every login + mid-session)
+
+Admins can ban/unban any user from the Users table; a ban actually locks them out.
+- Schema: migration `2026_07_28_120000` adds nullable `users.banned_at` (null = active, timestamp = banned + when). `User` model: `banned_at` in `$fillable`, cast `datetime`, new `isBanned()`.
+- Enforcement (belt + suspenders):
+  - New `EnsureUserNotBanned` middleware appended to the **web** group in `bootstrap/app.php` — force-logs-out + redirects to `login` any authed user whose account got banned mid-session, on their next request.
+  - Login paths refuse banned users up front: `PhoneAuthController::verifyMpin()` (after Hash check) and `setMpin()` (existing user), and `GoogleAuthController::callback()` (existing user) — each returns a "suspended" message without establishing a session.
+- Admin action: `POST users/{user}/toggle-ban` → `AdminController::toggleBanUser()` (route model binding), toggles `banned_at`, logs to `admin_security`, flashes result. Users table shows a red "Banned" badge under the name and a Ban (red) / Unban (green) button next to Adjust, with a JS confirm.
+- Verified via HTTP kernel: login works pre-ban → ban → login refused w/ message → banned mid-session request 302s and logs out → unban → login works again; and the table renders the badge + both buttons.
+
 ## 2026-07-28 — Admin: fixed the Increase/Decrease selector in the wallet modal
 
 The modal's direction picker used `sr-only` radios + Tailwind `peer-checked:` utilities, which aren't in the built admin CSS, so the selected state had no visible feedback and read as "can't select". Replaced with two `type="button"` buttons (`.wallet-dir-btn`, `data-dir`) + a hidden `#wallet-direction` input; a small JS `setDirection()` toggles an `.is-active` class and the hidden value. Active-state styling is plain CSS in the page `<style>` block (green for increase, red for decrease), so it never depends on the Tailwind build. Verified render + both increase and decrease POSTs.

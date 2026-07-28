@@ -147,6 +147,12 @@ class PhoneAuthController extends Controller
         $user = User::where('phone', $phone)->first();
         $isNewUser = ! $user;
 
+        if ($user && $user->isBanned()) {
+            $request->session()->forget(['auth_flow_phone', 'auth_flow_purpose', 'auth_flow_otp_verified']);
+
+            return redirect()->route('login')->with('error', 'This account has been suspended. Please contact support.');
+        }
+
         $rules = [
             'mpin' => ['required', 'digits:4', 'confirmed'],
         ];
@@ -224,6 +230,10 @@ class PhoneAuthController extends Controller
             Cache::put($lockKey, $failures + 1, self::MPIN_LOCKOUT_SECONDS);
 
             return back()->withErrors(['mpin' => 'Incorrect MPIN. Please try again.']);
+        }
+
+        if ($user->isBanned()) {
+            return back()->withErrors(['mpin' => 'This account has been suspended. Please contact support.']);
         }
 
         Cache::forget($lockKey);

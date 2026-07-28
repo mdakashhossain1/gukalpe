@@ -40,6 +40,12 @@ class GoogleAuthController extends Controller
 
         $isNew = ! $user->exists;
 
+        if (! $isNew && $user->isBanned()) {
+            Log::warning('Banned user blocked at Google login', ['user_id' => $user->id]);
+
+            return redirect('/')->with('google_auth_error', 'This account has been suspended. Please contact support.');
+        }
+
         $user->fill([
             'google_id' => $googleUser->getId(),
             'name' => $googleUser->getName() ?: ($googleUser->getNickname() ?: 'GullakPe User'),

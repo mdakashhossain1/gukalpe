@@ -17,6 +17,7 @@ Route::prefix($slug)->group(function () {
     Route::middleware('admin.auth')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
         Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
+        Route::post('/users/{user}/toggle-ban', [AdminController::class, 'toggleBanUser'])->name('admin.users.toggle-ban');
         Route::get('/deposits', [AdminController::class, 'deposits'])->name('admin.deposits');
         Route::post('/deposits/{deposit}/approve', [AdminController::class, 'approveDeposit'])->name('admin.deposits.approve');
         Route::post('/deposits/{deposit}/reject', [AdminController::class, 'rejectDeposit'])->name('admin.deposits.reject');

@@ -68,7 +68,7 @@
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Referral code</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Referrals</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Joined</th>
-                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Wallet action</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,7 +83,14 @@
                                                 {{ mb_substr($user->name ?: '?', 0, 1) }}
                                             </div>
                                         @endif
-                                        <span class="text-[13.5px] font-bold text-[#0F172A]">{{ $user->name ?: '—' }}</span>
+                                        <div class="flex flex-col gap-0.5 min-w-0">
+                                            <span class="text-[13.5px] font-bold text-[#0F172A]">{{ $user->name ?: '—' }}</span>
+                                            @if ($user->isBanned())
+                                                <span class="w-fit text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-red-50 text-red-700 border-red-200">
+                                                    <i class="fa-solid fa-ban text-[9px]"></i> Banned
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 align-middle text-[13px] font-mono text-[#334155] whitespace-nowrap">{{ $user->phone ?: '—' }}</td>
@@ -107,18 +114,26 @@
                                     {{ $user->created_at?->format('d M Y') ?? '—' }}
                                 </td>
                                 <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
-                                    @if ($user->phone)
-                                        <button type="button"
-                                            data-adjust-wallet
-                                            data-phone="{{ $user->phone }}"
-                                            data-name="{{ $user->name ?: $user->phone }}"
-                                            data-balance="{{ number_format($user->wallet_balance, 2) }}"
-                                            class="h-9 px-3.5 rounded-lg border border-[#0A5C66]/30 text-[#0A5C66] text-[12.5px] font-bold hover:bg-[#0A5C66]/[0.06] transition-colors active:scale-95 inline-flex items-center gap-1.5">
-                                            <i class="fa-solid fa-wallet text-[11px]"></i> Adjust
-                                        </button>
-                                    @else
-                                        <span class="text-[12px] text-[#94A3B8]">No phone</span>
-                                    @endif
+                                    <div class="inline-flex items-center gap-2 justify-end">
+                                        @if ($user->phone)
+                                            <button type="button"
+                                                data-adjust-wallet
+                                                data-phone="{{ $user->phone }}"
+                                                data-name="{{ $user->name ?: $user->phone }}"
+                                                data-balance="{{ number_format($user->wallet_balance, 2) }}"
+                                                class="h-9 px-3.5 rounded-lg border border-[#0A5C66]/30 text-[#0A5C66] text-[12.5px] font-bold hover:bg-[#0A5C66]/[0.06] transition-colors active:scale-95 inline-flex items-center gap-1.5">
+                                                <i class="fa-solid fa-wallet text-[11px]"></i> Adjust
+                                            </button>
+                                        @endif
+                                        <form method="POST" action="{{ route('admin.users.toggle-ban', $user) }}"
+                                            onsubmit="return confirm('{{ $user->isBanned() ? 'Unban this user? They will be able to log in again.' : 'Ban this user? They will be logged out and blocked from logging in.' }}');">
+                                            @csrf
+                                            <button type="submit"
+                                                class="h-9 px-3.5 rounded-lg border text-[12.5px] font-bold transition-colors active:scale-95 inline-flex items-center gap-1.5 {{ $user->isBanned() ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-red-200 text-red-600 hover:bg-red-50' }}">
+                                                <i class="fa-solid {{ $user->isBanned() ? 'fa-unlock' : 'fa-ban' }} text-[11px]"></i> {{ $user->isBanned() ? 'Unban' : 'Ban' }}
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @empty

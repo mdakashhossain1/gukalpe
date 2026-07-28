@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin.auth' => \App\Http\Middleware\AdminAuthenticate::class,
         ]);
+
+        // Kick banned users out on their next request, app-wide.
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureUserNotBanned::class,
+        ]);
     })
     ->withSchedule(function (Schedule $schedule): void {
         // Drives Trust Builder / Growth Plan auto-maturity (Phase 1). No OS
