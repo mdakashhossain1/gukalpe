@@ -4,6 +4,14 @@
 
 @section('content')
 
+<style>
+    /* Self-contained switch so its colors never depend on the Tailwind build. */
+    .logs-switch { position: relative; width: 40px; height: 24px; border-radius: 9999px; background: #10B981; transition: background-color .15s; cursor: pointer; flex-shrink: 0; border: 0; padding: 0; }
+    .logs-switch.is-off { background: #CBD5E1; }
+    .logs-switch-knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 9999px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: transform .15s; transform: translateX(16px); }
+    .logs-switch.is-off .logs-switch-knob { transform: translateX(0); }
+</style>
+
 <div class="flex flex-col md:flex-row min-h-screen">
 
     <x-admin-sidebar active="logs" :pending-deposit-count="$pendingDepositCount" :pending-withdrawal-count="$pendingWithdrawalCount" />
@@ -20,11 +28,19 @@
             <p class="text-[12px] text-amber-800 font-medium leading-relaxed">Demo tooling - these entries are written by the Simulations page to this browser's local storage only, not a real event log.</p>
         </div>
 
-        <div class="flex items-center justify-between mb-1">
+        <div class="flex items-center justify-between gap-3 mb-1">
             <h1 class="font-poppins font-bold text-[20px] text-[#0F172A]">Activity logs</h1>
-            <button id="btn-clear-logs" type="button" class="text-[12.5px] font-semibold text-[#B91C1C] hover:underline">Clear</button>
+            <div class="flex items-center gap-4 shrink-0">
+                <div class="flex items-center gap-2 select-none">
+                    <span id="logs-toggle-label" class="text-[12.5px] font-semibold text-[#334155]">Logging on</span>
+                    <button type="button" id="logs-toggle" role="switch" aria-checked="true" aria-label="Toggle logging" class="logs-switch">
+                        <span class="logs-switch-knob"></span>
+                    </button>
+                </div>
+                <button id="btn-clear-logs" type="button" class="text-[12.5px] font-semibold text-[#B91C1C] hover:underline">Clear</button>
+            </div>
         </div>
-        <p class="text-[13.5px] text-[#64748B] mb-6">Local only — cleared logs can't be recovered.</p>
+        <p class="text-[13.5px] text-[#64748B] mb-6">Local only (never stored in the database) — cleared logs can't be recovered. Turn logging off to stop new entries being recorded.</p>
 
         <div class="bg-white rounded-2xl border border-[#E5E9EB] p-6">
             <div class="flex gap-1.5 mb-3 bg-[#F1F5F9] rounded-lg p-1" role="tablist">
@@ -39,11 +55,11 @@
             </div>
 
             <div id="log-panel-referral" data-log-panel="referral" role="tabpanel"
-                class="h-56 rounded-lg bg-[#0F172A] p-3 text-[11.5px] font-mono text-[#6EE7B7] overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                class="min-h-[72px] max-h-[420px] rounded-lg bg-[#0F172A] p-3 text-[11.5px] font-mono text-[#6EE7B7] overflow-y-auto whitespace-pre-wrap leading-relaxed">
                 No log entries yet.
             </div>
             <div id="log-panel-commission" data-log-panel="commission" role="tabpanel" hidden
-                class="h-56 rounded-lg bg-[#0F172A] p-3 text-[11.5px] font-mono text-[#6EE7B7] overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                class="min-h-[72px] max-h-[420px] rounded-lg bg-[#0F172A] p-3 text-[11.5px] font-mono text-[#6EE7B7] overflow-y-auto whitespace-pre-wrap leading-relaxed">
                 No log entries yet.
             </div>
         </div>
@@ -56,6 +72,9 @@
 (function () {
     const REFERRAL_LOGS_KEY = 'gullakpe_admin_referral_logs';
     const COMMISSION_LOGS_KEY = 'gullakpe_admin_commission_logs';
+    // Shared with the Simulations page's logEvent() - when '0', new events
+    // are not recorded. Default (missing key) = logging on.
+    const LOGS_ENABLED_KEY = 'gullakpe_admin_logs_enabled';
 
     function showToast(message, kind = 'success') {
         const toast = document.getElementById('admin-toast');
@@ -112,6 +131,31 @@
             });
         });
     });
+
+    // Logging on/off toggle - persisted in localStorage, honored by the
+    // Simulations page before it writes any new entry.
+    const logsToggle = document.getElementById('logs-toggle');
+    const logsToggleLabel = document.getElementById('logs-toggle-label');
+
+    function logsEnabled() {
+        return localStorage.getItem(LOGS_ENABLED_KEY) !== '0';
+    }
+
+    function reflectToggle() {
+        const on = logsEnabled();
+        logsToggle.classList.toggle('is-off', !on);
+        logsToggle.setAttribute('aria-checked', String(on));
+        logsToggleLabel.textContent = on ? 'Logging on' : 'Logging off';
+    }
+
+    if (logsToggle) {
+        reflectToggle();
+        logsToggle.addEventListener('click', () => {
+            localStorage.setItem(LOGS_ENABLED_KEY, logsEnabled() ? '0' : '1');
+            reflectToggle();
+            showToast(logsEnabled() ? 'Logging turned on.' : 'Logging turned off — new events won\'t be recorded.');
+        });
+    }
 
     const clearLogsBtn = document.getElementById('btn-clear-logs');
     if (clearLogsBtn) {

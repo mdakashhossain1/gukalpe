@@ -1,5 +1,11 @@
 # MEMORY.md — Project Log
 
+## 2026-07-28 — Admin: Activity logs — on/off toggle + tighter panel height (still localStorage-only)
+
+User wanted to be able to turn logging off and clear it, explicitly WITHOUT using the database (space concerns). Kept it 100% localStorage.
+- `logs.blade.php`: added a "Logging on/off" switch (self-contained `.logs-switch` CSS so colors don't depend on the Tailwind build) that persists `gullakpe_admin_logs_enabled` in localStorage (default = on when key absent). Clear button unchanged. Also fixed the earlier fixed-height panels (`h-56`) → `min-h-[72px] max-h-[420px]` so a short log doesn't leave a big empty black box.
+- `simulations.blade.php`: `logEvent()` now early-returns when `gullakpe_admin_logs_enabled === '0'`, so turning logging off stops new entries being recorded (the sim still runs / credits the demo wallet). Simulations is the only writer; logs.blade.php the only reader.
+
 ## 2026-07-28 — Admin: deposits & withdrawals converted to searchable tables
 
 Both were stacked-card lists; now they match the plans/users table pattern (simple-datatables search + pagination + sorting).

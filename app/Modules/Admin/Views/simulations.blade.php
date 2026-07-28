@@ -79,6 +79,10 @@
     }
 
     function logEvent(key, message) {
+        // Respect the Activity logs page's on/off switch (localStorage only,
+        // never the database). Default (missing key) = logging on.
+        if (localStorage.getItem('gullakpe_admin_logs_enabled') === '0') return;
+
         const logs = JSON.parse(localStorage.getItem(key) || '[]');
         const timestamp = new Date().toLocaleTimeString('en-IN', { hour12: false }) + ' ' + new Date().toLocaleDateString('en-IN');
         logs.unshift(`[${timestamp}] ${message}`);
