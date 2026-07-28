@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminNotification;
 use App\Models\PhoneOtp;
 use App\Models\User;
+use App\Rules\IndianMobile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,7 +41,7 @@ class PhoneAuthController extends Controller
     public function submitPhone(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'phone' => ['required', 'digits:10'],
+            'phone' => ['required', 'digits:10', new IndianMobile],
             'terms' => ['accepted'],
         ], [
             'terms.accepted' => 'You must accept the Terms of Use and Privacy Policy.',
@@ -256,7 +257,7 @@ class PhoneAuthController extends Controller
 
     public function submitForgotMpin(Request $request): RedirectResponse
     {
-        $validated = $request->validate(['phone' => ['required', 'digits:10']]);
+        $validated = $request->validate(['phone' => ['required', 'digits:10', new IndianMobile]]);
 
         $user = User::where('phone', $validated['phone'])->first();
         if (! $user) {

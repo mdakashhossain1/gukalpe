@@ -1,5 +1,13 @@
 # MEMORY.md — Project Log
 
+## 2026-07-28 — Registration: real Indian-mobile validation via Google libphonenumber
+
+Phone entry used to be just `digits:10` (accepted 0000000000, 1234567890, etc.). Now validates a genuinely valid Indian mobile.
+- Added dependency **`propaganistas/laravel-phone` ^6.0** (wraps `giggsey/libphonenumber-for-php`, the PHP port of Google's libphonenumber).
+- New reusable rule `App\Rules\IndianMobile` (implements `ValidationRule`): builds `new PhoneNumber($value, 'IN')` and requires `isValid()` + `isOfCountry('IN')` + `isOfType('mobile')`, else fails with "Enter a valid Indian mobile number." Does NOT reformat — the app still stores bare 10-digit national numbers (used as a key across users/wallets), so `digits:10` stays as the first rule (length + clean message) with `IndianMobile` after it.
+- Applied to `PhoneAuthController::submitPhone()` (registration/login entry) + `submitForgotMpin()`, and `GoogleAuthController::linkPhone()`. Verified: 6/7/8/9-series accepted; 0/1/5-prefix rejected; wrong length caught by digits:10. Rule unit-tested + registration endpoint driven end-to-end; full suite green (25 passed).
+- NOTE: `composer` flagged 4 advisories on `guzzlehttp/guzzle (<7.15.1)` — pre-existing (Socialite/HTTP client dep), unrelated to this change; bump separately with `composer update guzzlehttp/guzzle`.
+
 ## 2026-07-28 — Admin: user ban/unban (real, enforced at every login + mid-session)
 
 Admins can ban/unban any user from the Users table; a ban actually locks them out.

@@ -5,6 +5,7 @@ namespace App\Modules\Auth\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\AdminNotification;
 use App\Models\User;
+use App\Rules\IndianMobile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -98,7 +99,7 @@ class GoogleAuthController extends Controller
         }
 
         $validated = $request->validate([
-            'phone' => 'required|digits:10',
+            'phone' => ['required', 'digits:10', new IndianMobile],
         ]);
 
         $user = Auth::user();
