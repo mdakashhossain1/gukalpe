@@ -1,9 +1,13 @@
 # MEMORY.md — Project Log
 
+## 2026-07-28 — Admin: fixed the Increase/Decrease selector in the wallet modal
+
+The modal's direction picker used `sr-only` radios + Tailwind `peer-checked:` utilities, which aren't in the built admin CSS, so the selected state had no visible feedback and read as "can't select". Replaced with two `type="button"` buttons (`.wallet-dir-btn`, `data-dir`) + a hidden `#wallet-direction` input; a small JS `setDirection()` toggles an `.is-active` class and the hidden value. Active-state styling is plain CSS in the page `<style>` block (green for increase, red for decrease), so it never depends on the Tailwind build. Verified render + both increase and decrease POSTs.
+
 ## 2026-07-28 — Admin: wallet adjustment moved inline into the Users table (standalone page removed)
 
 Per user request, wallet adjustment is no longer its own section — it's a per-row action in the Users list.
-- `Admin/Views/users.blade.php`: added a "Wallet action" column with a per-row **Adjust** button carrying `data-phone`/`data-name`/`data-balance`. One shared `#wallet-modal` (Increase/Decrease toggle + amount) is filled by a delegated click handler (delegation because simple-datatables re-renders rows on search/paging) and POSTs to the unchanged `admin.wallet-tools.adjust` endpoint. Actions column is `sortable:false` (column index 7); table min-width bumped 860→980.
+- `Admin/Views/users.blade.php`: added a "Wallet action" column with a per-row **Adjust** button carrying `data-phone`/`data-name`/`data-balance`. One shared `#wallet-modal` (Increase/Decrease selector + amount) is filled by a delegated click handler (delegation because simple-datatables re-renders rows on search/paging) and POSTs to the unchanged `admin.wallet-tools.adjust` endpoint. Actions column is `sortable:false` (column index 7); table min-width bumped 860→980.
 - Removed the standalone page: sidebar "Wallet adjustment" nav item, `GET /wallet-tools` route, `AdminController::walletTools()`, and `wallet-tools.blade.php` deleted. The POST `wallet-tools/adjust` route + `adjustWallet()` are kept (now driven only by the modal). Verified: users page renders the button+modal, POST increase 500→575.25 works, old GET `/wallet-tools` now 404s.
 
 ## 2026-07-28 — Admin: added a Users list page

@@ -23,6 +23,18 @@
     #users-table-card .datatable-pagination a { border-radius: 8px; padding: 6px 11px; font-size: 12.5px; font-weight: 600; color: #334155; }
     #users-table-card .datatable-pagination a:hover { background: #F1F5F9; }
     #users-table-card .datatable-pagination .datatable-active a { background: #0A5C66; color: #fff; }
+
+    /* Increase/Decrease selector - explicit CSS so the active state is always
+       visible regardless of the Tailwind build. */
+    .wallet-dir-btn {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        height: 46px; border: 1.5px solid #E5E9EB; border-radius: 10px;
+        font-size: 14px; font-weight: 700; color: #64748B; background: #fff;
+        cursor: pointer; transition: border-color .15s, background-color .15s, color .15s;
+    }
+    .wallet-dir-btn:hover { background: #F8FAFC; }
+    .wallet-dir-btn.is-active[data-dir="increase"] { border-color: #10B981; background: #ECFDF5; color: #047857; }
+    .wallet-dir-btn.is-active[data-dir="decrease"] { border-color: #EF4444; background: #FEF2F2; color: #B91C1C; }
 </style>
 
 <div class="flex flex-col md:flex-row min-h-screen">
@@ -148,20 +160,15 @@
             <input type="hidden" name="phone" id="wallet-modal-phone-input" value="">
 
             <div>
-                <span class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Direction</span>
-                <div class="inline-flex rounded-lg border border-[#CBD5E1] p-1 bg-[#F8FAFC] gap-1">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="direction" value="increase" class="peer sr-only" checked>
-                        <span class="flex items-center gap-1.5 h-9 px-5 rounded-md text-[13px] font-semibold text-[#64748B] peer-checked:bg-white peer-checked:text-emerald-700 peer-checked:shadow-sm transition-colors">
-                            <i class="fa-solid fa-plus text-[11px]"></i> Increase
-                        </span>
-                    </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="direction" value="decrease" class="peer sr-only">
-                        <span class="flex items-center gap-1.5 h-9 px-5 rounded-md text-[13px] font-semibold text-[#64748B] peer-checked:bg-white peer-checked:text-red-700 peer-checked:shadow-sm transition-colors">
-                            <i class="fa-solid fa-minus text-[11px]"></i> Decrease
-                        </span>
-                    </label>
+                <span class="block text-[12.5px] font-semibold text-[#334155] mb-2">Operation</span>
+                <input type="hidden" name="direction" id="wallet-direction" value="increase">
+                <div class="grid grid-cols-2 gap-2.5">
+                    <button type="button" data-dir="increase" class="wallet-dir-btn is-active">
+                        <i class="fa-solid fa-plus"></i> Increase
+                    </button>
+                    <button type="button" data-dir="decrease" class="wallet-dir-btn">
+                        <i class="fa-solid fa-minus"></i> Decrease
+                    </button>
                 </div>
             </div>
 
@@ -213,6 +220,18 @@
         var balanceEl = document.getElementById('wallet-modal-balance');
         var phoneInput = document.getElementById('wallet-modal-phone-input');
         var amountInput = document.getElementById('wallet-modal-amount');
+        var dirInput = document.getElementById('wallet-direction');
+        var dirBtns = modal.querySelectorAll('.wallet-dir-btn');
+
+        function setDirection(dir) {
+            dirInput.value = dir;
+            dirBtns.forEach(function (b) {
+                b.classList.toggle('is-active', b.getAttribute('data-dir') === dir);
+            });
+        }
+        dirBtns.forEach(function (b) {
+            b.addEventListener('click', function () { setDirection(b.getAttribute('data-dir')); });
+        });
 
         function openModal(btn) {
             phoneInput.value = btn.getAttribute('data-phone') || '';
@@ -220,8 +239,7 @@
             phoneEl.textContent = btn.getAttribute('data-phone') || '—';
             balanceEl.textContent = '₹' + (btn.getAttribute('data-balance') || '0.00');
             amountInput.value = '';
-            var inc = modal.querySelector('input[name="direction"][value="increase"]');
-            if (inc) inc.checked = true;
+            setDirection('increase');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.classList.add('overflow-hidden');
