@@ -23,53 +23,90 @@
             </a>
         </div>
 
-        <div class="flex flex-col gap-3 w-full">
-            @forelse ($plans as $plan)
-                <div class="bg-white rounded-xl border border-[#E5E9EB] p-4 flex items-center gap-4 flex-wrap {{ $plan->is_active ? '' : 'opacity-60' }}">
-                    <img src="{{ $plan->imageUrl() }}" alt="{{ $plan->title }}" class="w-11 h-11 rounded-lg object-cover shrink-0 border border-[#E5E9EB]">
-                    <div class="w-9 h-9 rounded-full bg-[#0A5C66]/10 flex items-center justify-center shrink-0 overflow-hidden">
-                        @if ($plan->iconImageUrl())
-                            <img src="{{ $plan->iconImageUrl() }}" alt="{{ $plan->title }} icon" class="w-full h-full object-contain">
-                        @else
-                            <i class="bi {{ $plan->icon ?: 'bi-piggy-bank' }} text-[14px] text-[#0A5C66]"></i>
-                        @endif
-                    </div>
-                    <div class="flex flex-col gap-0.5 min-w-[200px] flex-1">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[14px] font-bold text-[#0F172A]">{{ $plan->title }}</span>
-                            <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border {{ $plan->is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
-                                {{ $plan->is_active ? 'Active' : 'Disabled' }}
-                            </span>
-                            <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200">{{ $plan->badge }}</span>
-                            @if ($plan->plan_type)
-                                <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">{{ $plan->plan_type === 'trust_builder' ? 'Trust Builder' : 'Growth' }}</span>
-                            @endif
-                            @if ($plan->unlock_enabled)
-                                <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-sky-50 text-sky-700 border-sky-200">
-                                    <i class="bi bi-lock-fill"></i> Requires {{ optional($plan->requiresPlan)->title ?? '—' }}
-                                </span>
-                            @endif
-                            @if ($plan->durations->isNotEmpty())
-                                <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-teal-50 text-teal-700 border-teal-200">{{ $plan->durations->count() }} durations</span>
-                            @endif
-                        </div>
-                        <span class="text-[12px] text-[#64748B]">{{ $plan->subtitle }}</span>
-                        <span class="text-[11.5px] font-mono text-[#334155]">₹{{ number_format($plan->investment_amount, 2) }} · {{ $plan->growth_rate }}%/yr · {{ $plan->lock_duration }} · +₹{{ number_format($plan->daily_profit, 2) }}/day</span>
-                    </div>
-
-                    <div class="flex gap-2 shrink-0">
-                        <a href="{{ route('admin.plans.edit', $plan) }}" class="h-9 px-3.5 rounded-lg border border-slate-200 text-slate-600 text-[12.5px] font-bold hover:bg-slate-50 transition-colors active:scale-95 flex items-center">Edit</a>
-                        <form method="POST" action="{{ route('admin.plans.toggle-active', $plan) }}">
-                            @csrf
-                            <button type="submit" class="h-9 px-3.5 rounded-lg border text-[12.5px] font-bold transition-colors active:scale-95 {{ $plan->is_active ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' }}">
-                                {{ $plan->is_active ? 'Disable' : 'Enable' }}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            @empty
-                <p class="text-[13.5px] text-[#94A3B8] italic">No plans yet.</p>
-            @endforelse
+        <div class="bg-white rounded-xl border border-[#E5E9EB] overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[900px]">
+                    <thead>
+                        <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Plan</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Financials</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Type &amp; access</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Durations</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Status</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($plans as $plan)
+                            <tr class="border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FAFC] transition-colors {{ $plan->is_active ? '' : 'opacity-60' }}">
+                                <td class="px-4 py-3 align-top">
+                                    <div class="flex items-center gap-3">
+                                        <img src="{{ $plan->imageUrl() }}" alt="{{ $plan->title }}" class="w-11 h-11 rounded-lg object-cover shrink-0 border border-[#E5E9EB]">
+                                        <div class="w-9 h-9 rounded-full bg-[#0A5C66]/10 flex items-center justify-center shrink-0 overflow-hidden">
+                                            @if ($plan->iconImageUrl())
+                                                <img src="{{ $plan->iconImageUrl() }}" alt="{{ $plan->title }} icon" class="w-full h-full object-contain">
+                                            @else
+                                                <i class="bi {{ $plan->icon ?: 'bi-piggy-bank' }} text-[14px] text-[#0A5C66]"></i>
+                                            @endif
+                                        </div>
+                                        <div class="flex flex-col gap-0.5 min-w-[160px]">
+                                            <span class="text-[13.5px] font-bold text-[#0F172A]">{{ $plan->title }}</span>
+                                            <span class="text-[12px] text-[#64748B]">{{ $plan->subtitle }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 align-top">
+                                    <div class="flex flex-col gap-0.5 text-[12px] font-mono text-[#334155] whitespace-nowrap">
+                                        <span>₹{{ number_format($plan->investment_amount, 2) }}</span>
+                                        <span class="text-[#64748B]">{{ $plan->growth_rate }}%/yr · {{ $plan->lock_duration }}</span>
+                                        <span class="text-emerald-600">+₹{{ number_format($plan->daily_profit, 2) }}/day</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 align-top">
+                                    <div class="flex flex-wrap items-center gap-1.5 max-w-[240px]">
+                                        <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200">{{ $plan->badge }}</span>
+                                        @if ($plan->plan_type)
+                                            <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">{{ $plan->plan_type === 'trust_builder' ? 'Trust Builder' : 'Growth' }}</span>
+                                        @endif
+                                        @if ($plan->unlock_enabled)
+                                            <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-sky-50 text-sky-700 border-sky-200">
+                                                <i class="bi bi-lock-fill"></i> Requires {{ optional($plan->requiresPlan)->title ?? '—' }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 align-top">
+                                    @if ($plan->durations->isNotEmpty())
+                                        <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-teal-50 text-teal-700 border-teal-200 whitespace-nowrap">{{ $plan->durations->count() }} durations</span>
+                                    @else
+                                        <span class="text-[12px] text-[#94A3B8]">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 align-top">
+                                    <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border whitespace-nowrap {{ $plan->is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
+                                        {{ $plan->is_active ? 'Active' : 'Disabled' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 align-top">
+                                    <div class="flex gap-2 justify-end shrink-0">
+                                        <a href="{{ route('admin.plans.edit', $plan) }}" class="h-9 px-3.5 rounded-lg border border-slate-200 text-slate-600 text-[12.5px] font-bold hover:bg-slate-50 transition-colors active:scale-95 flex items-center">Edit</a>
+                                        <form method="POST" action="{{ route('admin.plans.toggle-active', $plan) }}">
+                                            @csrf
+                                            <button type="submit" class="h-9 px-3.5 rounded-lg border text-[12.5px] font-bold transition-colors active:scale-95 {{ $plan->is_active ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' }}">
+                                                {{ $plan->is_active ? 'Disable' : 'Enable' }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-8 text-center text-[13.5px] text-[#94A3B8] italic">No plans yet.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         </div>
