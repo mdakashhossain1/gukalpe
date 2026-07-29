@@ -74,6 +74,33 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="pt-4 mt-2 border-t border-[#E5E9EB]">
+                    <h3 class="text-[13.5px] font-bold text-[#0F172A] mb-1">System Settings (Kill-switches)</h3>
+                    <p class="text-[11.5px] text-[#94A3B8] mb-3">Turn core flows on/off instantly. Maintenance mode blocks the whole app (this admin panel stays open).</p>
+                    <div class="flex flex-col gap-2.5">
+                        @php
+                            $switches = [
+                                ['maintenance_mode', 'Maintenance mode', 'Show a maintenance page to all users', true],
+                                ['allow_registration', 'Allow new registrations', 'New phone numbers can sign up', false],
+                                ['allow_investment', 'Allow new investments', 'Users can purchase plans', false],
+                                ['allow_withdrawals', 'Allow withdrawals', 'Users can request withdrawals', false],
+                            ];
+                        @endphp
+                        @foreach ($switches as [$key, $label, $hint, $danger])
+                            <label for="setting-{{ $key }}" class="flex items-center justify-between gap-3 py-2 px-3 rounded-lg border {{ $danger ? 'border-[#FECACA] bg-[#FEF2F2]' : 'border-[#E5E9EB] bg-white' }} cursor-pointer">
+                                <span>
+                                    <span class="block text-[13px] font-semibold text-[#0F172A]">{{ $label }}</span>
+                                    <span class="block text-[11px] text-[#94A3B8]">{{ $hint }}</span>
+                                </span>
+                                <input type="checkbox" name="{{ $key }}" id="setting-{{ $key }}" value="1"
+                                    {{ ($settings[$key] ?? 'false') === 'true' ? 'checked' : '' }}
+                                    class="w-5 h-5 rounded {{ $danger ? 'accent-red-600' : 'accent-brand' }} shrink-0">
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
                 <button type="submit" class="h-10 rounded-lg bg-[#0F172A] text-white font-semibold text-[13.5px] hover:bg-[#1E293B] transition-colors active:scale-[0.99] mt-1 sm:w-fit sm:px-6">
                     Save settings
                 </button>

@@ -825,11 +825,18 @@
                 </div>
 
                 @auth
+                    @if ($plan->isOutOfStock())
+                        {{-- Section 10: catalogue-wide purchase limit reached — buying is blocked. --}}
+                        <button type="button" disabled aria-disabled="true" class="bg-slate-200 text-slate-400 font-extrabold text-[12px] sm:text-[15px] px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl cursor-not-allowed font-poppins shrink-0 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+                            Out of Stock <i class="bi bi-x-octagon text-[12px] sm:text-[15px]"></i>
+                        </button>
+                    @else
                     <button type="submit" form="plan-purchase-form" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[12px] sm:text-[15px] px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                         <span class="relative z-10 flex items-center gap-1.5 sm:gap-2">
                             Invest <span id="sticky-btn-amount">₹{{ number_format($flexMin, 0) }}</span> <span class="hidden sm:inline">Monthly</span> <i class="bi bi-arrow-right text-[12px] sm:text-[15px]"></i>
                         </span>
                     </button>
+                    @endif
                 @else
                     <a href="{{ route('login') }}" class="btn-shimmer bg-[#061826] hover:bg-[#030D14] text-white font-extrabold text-[12px] sm:text-[15px] px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl active:scale-95 transition-all shadow-md font-poppins shrink-0 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
                         <span class="relative z-10 flex items-center gap-1.5 sm:gap-2">

@@ -38,7 +38,20 @@ class AppSetting extends Model
         'withdrawal_min_amount' => '300',
         'withdrawal_daily_limit' => '5000',
         'withdrawal_max_per_day' => '3',
+        // System kill-switches (plan.md Section 41). 'true'/'false' strings.
+        // maintenance_mode gates the whole public app (admin panel stays open);
+        // the allow_* switches gate their specific flow at submission time.
+        'maintenance_mode' => 'false',
+        'allow_registration' => 'true',
+        'allow_investment' => 'true',
+        'allow_withdrawals' => 'true',
     ];
+
+    // Convenience: read a 'true'/'false' setting as a real bool.
+    public static function enabled(string $key): bool
+    {
+        return self::get($key, self::DEFAULTS[$key] ?? 'false') === 'true';
+    }
 
     protected $fillable = ['key', 'value'];
 

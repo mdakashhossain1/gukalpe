@@ -1,5 +1,30 @@
 # MEMORY.md — Project Log
 
+## 2026-07-30 — Phase 3 (plan.md Part 3 admin) started: Section 41 System Settings kill-switches
+
+First Phase-3 slice — plan.md **Section 41 System Settings**: admin toggles that gate core flows instantly.
+- `AppSetting::DEFAULTS` gained `maintenance_mode`, `allow_registration`, `allow_investment`, `allow_withdrawals` (all `'true'/'false'` strings) + a `AppSetting::enabled($key)` bool helper. Persisted from the Admin → Settings form (`AdminController::updateSettings`, checkbox → `$request->boolean()`), UI is a new "System Settings (Kill-switches)" block in `settings.blade.php`.
+- Enforcement at submission time: `allow_investment` in `PlanPurchaseController::purchase()` (right after the auth check), `allow_withdrawals` at the top of `WithdrawRequestController::store()`, `allow_registration` in `PhoneAuthController::submitPhone()` (only blocks a **brand-new** phone; existing accounts still log in).
+- `maintenance_mode`: new middleware `EnsureNotInMaintenance` (appended to the web group in `bootstrap/app.php`) returns a 503 `resources/views/maintenance.blade.php` for all public paths but always lets the admin slug through, so the panel can switch it back off.
+- Tests: `SystemSettingsTest` (4). Full suite 38 passed. Real-browser verified: toggling maintenance on → public `/` 503s, admin panel still 200, toggle off → restored.
+- **Remaining Part 3 (not built):** 27 Plan Analytics, 30 Transaction Management, 34 Banner Management, 37 Reports, 39 Roles, 40 Backup; partial: 29 Wallet mgmt, 31 Referral dashboard, 32 Cashback rules, 33 Notification templates, 35 general App Settings.
+
+## 2026-07-30 — Phase 2 (plan.md Part 2 engines): Daily Profit Engine in-app notification
+
+plan.md Part 2 (Sections 14–25) was already real except **Section 15 Daily Profit Engine + Section 24 nightly automation + Section 25 "Today's profit updated" notification** — a daily *email* digest existed (`plans:send-daily-returns-email`) but no in-app notification, and the email skips phone-only users (the majority). Built the missing engine:
+- New command `plans:notify-daily-profit` (`app/Console/Commands/NotifyDailyProfit.php`): per-user in-app digest via `UserNotification::notify(..., 'daily_profit', ...)`, reusing the same capped-accrual increment math as the email command. **No money moves** — profit still accrues on read in `UserPlan::currentHolding()`; this only informs + marks each holding processed.
+- Migration `2026_07_29_000000_add_daily_profit_notified_at_to_user_plans_table.php`: adds `last_daily_profit_notified_at` (date) for per-day idempotency, tracked separately from the email column so the two never suppress each other. `UserPlan`: added to fillable/casts + `scopeDueForDailyProfitNotification` (mirrors `scopeDueForDailyReturnEmail`).
+- Scheduled nightly at `18:35` UTC (`00:05` IST) — just after `mature-holdings` (18:30), so holdings that matured tonight are already withdrawn and get the maturity notification instead of a "grew today" one.
+- Tests: `NotifyDailyProfitTest` (sends + idempotent for a phone-only user; skips when nothing accrued but still marks processed). Full suite 34 passed. Live real-browser check: notification renders on `/notifications`.
+
+## 2026-07-29 — Section 10 out-of-stock UI + real-browser verification of plan.md v1.0
+
+Closed the gap that a full real-browser test pass (Playwright/Chromium) surfaced: out-of-stock (`Plan::isOutOfStock()`, from the 2026-07-28 work) was enforced **server-side only** — the user-facing plan cards still showed an enabled "Buy Now"/"Invest" button and no badge, contradicting plan.md Section 10 ("Plan Visible → Buy Button Disabled → Out Of Stock Badge").
+- `Explore/Views/explore.blade.php`: card now computes `$oos = $plan->isOutOfStock()`; shows a red "Out of Stock" badge in the top badge row and swaps both (desktop + mobile) "Buy Now" links for a disabled, non-linking label.
+- `PlanDetails/Views/plan-details.blade.php`: sticky bottom bar swaps the "Invest" submit button for a disabled "Out of Stock" button when sold out (server check in `PlanPurchaseController` was and remains the real guard).
+- i18n: added `"Out of Stock"` to `public/lang/hi.json` (स्टॉक ख़त्म) and `en.json`; the i18next engine translates by English source text, verified rendering in Hindi live.
+- **Verification:** drove the whole v1.0 scope through a real browser (login via seeded MPIN user, admin plan builder JS, purchase/unlock/wallet-check/portfolio, profit-only maturity, withdrawal limits, flexible slider, admin settings) — 22/23 checks passed before the fix; the one failure was this Section 10 UI gap, now green (5/5 on re-test). All money movements corroborated in DB. Temporary `TEST *` plans/users removed afterward.
+
 ## 2026-07-28 — Implemented plan.md business logic & v1.0 Admin Plan system
 
 Per `plan.md` Developer Documentation (Sections 1–42):

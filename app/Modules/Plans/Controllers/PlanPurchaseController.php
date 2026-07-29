@@ -42,6 +42,11 @@ class PlanPurchaseController extends Controller
             return redirect()->route('login')->withErrors(['plan' => 'Please log in to invest in a plan.']);
         }
 
+        // System kill-switch (plan.md Section 41): admin can pause new investments.
+        if (! \App\Models\AppSetting::enabled('allow_investment')) {
+            return back()->withErrors(['plan' => 'New investments are temporarily disabled. Please try again later.']);
+        }
+
         if (! $plan->is_active || ! $plan->isWithinSchedule()) {
             return back()->withErrors(['plan' => 'This plan is no longer available.']);
         }

@@ -435,6 +435,11 @@ class AdminController extends Controller
             AppSetting::set('withdrawal_max_per_day', (string) $validated['withdrawal_max_per_day']);
         }
 
+        // System kill-switches (plan.md Section 41). Checkboxes: absent = off.
+        foreach (['maintenance_mode', 'allow_registration', 'allow_investment', 'allow_withdrawals'] as $switch) {
+            AppSetting::set($switch, $request->boolean($switch) ? 'true' : 'false');
+        }
+
         Log::channel('admin_security')->info('Program settings updated', [
             'ip' => $request->ip(),
             'settings' => $validated,

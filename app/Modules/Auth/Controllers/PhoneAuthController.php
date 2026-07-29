@@ -57,6 +57,12 @@ class PhoneAuthController extends Controller
             return redirect()->route('login.mpin');
         }
 
+        // System kill-switch (plan.md Section 41): admin can close new signups.
+        // Only blocks a brand-new phone; existing accounts can still log in.
+        if (! $user && ! \App\Models\AppSetting::enabled('allow_registration')) {
+            return back()->withErrors(['phone' => 'New registrations are currently closed. Please try again later.']);
+        }
+
         // New phone, or an existing (e.g. Google-linked) account that never
         // set an MPIN yet - either way, verify the phone via OTP first.
         $code = PhoneOtp::generateFor($phone);

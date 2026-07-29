@@ -18,7 +18,7 @@ class UserPlan extends Model
     protected $fillable = [
         'user_id', 'plan_id', 'plan_duration_id', 'invested_amount', 'daily_profit_val',
         'total_return', 'duration_label', 'status', 'purchased_at', 'matures_at', 'withdrawn_at',
-        'last_daily_return_email_sent_at',
+        'last_daily_return_email_sent_at', 'last_daily_profit_notified_at',
     ];
 
     protected $casts = [
@@ -29,6 +29,7 @@ class UserPlan extends Model
         'matures_at' => 'datetime',
         'withdrawn_at' => 'datetime',
         'last_daily_return_email_sent_at' => 'date',
+        'last_daily_profit_notified_at' => 'date',
     ];
 
     public function user(): BelongsTo
@@ -106,6 +107,20 @@ class UserPlan extends Model
             ->where(function (Builder $q) {
                 $q->whereNull('last_daily_return_email_sent_at')
                     ->orWhere('last_daily_return_email_sent_at', '<', now()->toDateString());
+            });
+    }
+
+    // Daily Profit Engine (plan.md Section 15/24/25): active holdings that
+    // haven't yet had their in-app "profit updated" notification for today.
+    // Same day-boundary guard as the email scope, but tracked independently
+    // so the email and the in-app notification never suppress each other.
+    public function scopeDueForDailyProfitNotification(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_ACTIVE)
+            ->where('purchased_at', '<=', now()->subDay())
+            ->where(function (Builder $q) {
+                $q->whereNull('last_daily_profit_notified_at')
+                    ->orWhere('last_daily_profit_notified_at', '<', now()->toDateString());
             });
     }
 

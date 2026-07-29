@@ -131,12 +131,20 @@
                     } else {
                         $tBadgeClass = 'bg-[#E8F8EE] text-[#22C55E]';
                     }
+
+                    // Section 10: catalogue-wide purchase limit reached -> block buying.
+                    $oos = $plan->isOutOfStock();
                 @endphp
                 <div class="relative bg-white rounded-[20px] sm:rounded-[26px] border border-slate-100/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.07)] transition-all duration-300 p-4 sm:p-6 py-5 sm:py-7">
 
                     <!-- TOP BADGES ROW -->
                     <div class="flex items-center justify-between gap-2 mb-3.5 sm:mb-4">
-                        @if ($plan->marketing_badge)
+                        @if ($oos)
+                            <span class="inline-flex items-center gap-1 sm:gap-1.5 bg-[#FEE2E2] text-[#DC2626] text-[8.5px] sm:text-[11px] font-extrabold uppercase tracking-wide px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full shadow-2xs">
+                                <i class="bi bi-x-octagon-fill text-[8.5px] sm:text-[11px]"></i>
+                                <span>Out of Stock</span>
+                            </span>
+                        @elseif ($plan->marketing_badge)
                             <span class="inline-flex items-center gap-1 sm:gap-1.5 {{ $mBadgeClass }} text-[8.5px] sm:text-[11px] font-extrabold uppercase tracking-wide px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full shadow-2xs">
                                 <i class="bi {{ $mBadgeIcon }} text-[8.5px] sm:text-[11px]"></i>
                                 <span>{{ $plan->marketing_badge }}</span>
@@ -229,9 +237,15 @@
                                 <p class="text-[28px] sm:text-[34px] font-black text-[#0D1F3C] font-poppins leading-none tracking-tight">{!! $priceLabel !!}</p>
                                 <p class="text-[11.5px] text-slate-400 font-semibold mt-1 tracking-tight">{{ $priceCaption }}</p>
                             </div>
-                            <a href="{{ route('plan-details', $plan) }}" class="btn-shimmer inline-flex items-center gap-2.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[14px] sm:text-[15px] px-7 py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-[#0A5C66]/15 font-poppins btn-ripple shrink-0">
-                                <span class="relative z-10 flex items-center gap-2.5">Buy Now <i class="bi bi-arrow-right text-[15px]"></i></span>
-                            </a>
+                            @if ($oos)
+                                <span class="inline-flex items-center gap-2.5 bg-slate-200 text-slate-400 font-extrabold text-[14px] sm:text-[15px] px-7 py-3 rounded-2xl cursor-not-allowed font-poppins shrink-0">
+                                    Out of Stock <i class="bi bi-x-octagon text-[15px]"></i>
+                                </span>
+                            @else
+                                <a href="{{ route('plan-details', $plan) }}" class="btn-shimmer inline-flex items-center gap-2.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[14px] sm:text-[15px] px-7 py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-[#0A5C66]/15 font-poppins btn-ripple shrink-0">
+                                    <span class="relative z-10 flex items-center gap-2.5">Buy Now <i class="bi bi-arrow-right text-[15px]"></i></span>
+                                </a>
+                            @endif
                         </div>
                     </div>
 
@@ -241,9 +255,15 @@
                             <p class="text-[21px] font-black text-[#0D1F3C] font-poppins leading-none tracking-tight">{!! $priceLabel !!}</p>
                             <p class="text-[10px] text-slate-400 font-semibold mt-0.5 tracking-tight">{{ $priceCaption }}</p>
                         </div>
-                        <a href="{{ route('plan-details', $plan) }}" class="btn-shimmer inline-flex items-center gap-1.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[13px] px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-sm font-poppins btn-ripple shrink-0">
-                            <span class="relative z-10 flex items-center gap-1.5">Buy Now <i class="bi bi-arrow-right text-[13px]"></i></span>
-                        </a>
+                        @if ($oos)
+                            <span class="inline-flex items-center gap-1.5 bg-slate-200 text-slate-400 font-extrabold text-[13px] px-5 py-2.5 rounded-xl cursor-not-allowed font-poppins shrink-0">
+                                Out of Stock <i class="bi bi-x-octagon text-[13px]"></i>
+                            </span>
+                        @else
+                            <a href="{{ route('plan-details', $plan) }}" class="btn-shimmer inline-flex items-center gap-1.5 bg-[#0A5C66] hover:bg-[#07464d] text-white font-extrabold text-[13px] px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-sm font-poppins btn-ripple shrink-0">
+                                <span class="relative z-10 flex items-center gap-1.5">Buy Now <i class="bi bi-arrow-right text-[13px]"></i></span>
+                            </a>
+                        @endif
                     </div>
                 </div>
             @empty

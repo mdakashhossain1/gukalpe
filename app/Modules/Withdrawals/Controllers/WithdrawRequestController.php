@@ -23,6 +23,13 @@ class WithdrawRequestController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        // System kill-switch (plan.md Section 41): admin can pause all withdrawals.
+        if (! \App\Models\AppSetting::enabled('allow_withdrawals')) {
+            return back()->withInput()->withErrors([
+                'amount' => 'Withdrawals are temporarily disabled. Please try again later.',
+            ]);
+        }
+
         $validated = $request->validate([
             'phone' => ['required', 'digits:10'],
             'amount' => ['required', 'numeric', 'min:1'],
