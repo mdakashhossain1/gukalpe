@@ -1,483 +1,406 @@
-GullakPe Admin Panel Create Plan System
-(Developer Documentation
-STEP 1 - Select Plan Type
-Admin sabse pehle sirf Plan Type select karega.
-Choose Plan Type o Fixed Investment Plan o Flexible Investment Plan
-Iske baad hi remaining form dynamically open hoga.
-OPTION 1 - FIXED INVESTMENT PLAN
-SECTION 1 - Basic
-Information
-Plan Name * Short Title Subtitle Category
-Plan Icon (Manual Upload)
-* Plan Thumbnail (Manual Upload)
-Rules
- 	Plan Icon -+ Plan Card + Plan Details me show hoga.
- 	Plan Thumbnail Plan Details image ke Iiye.
-SECTION 2 - Fixed Investment
-Investment Amount 99
-Rules
- 	Sirf ek Fixed Amount.
- 	Minimum/Maximum field nahi.
- 	Slider nahi.
- 	User sirf isi amount ko purchase kar sakta hai.
-SECTION 3 - Interest Rate
-Interest Rate 1% 2% 3% 5% 8% 10% 12%
-1 5% 20% Custom %
-Custom select hone par
-Interest %	 
-SECTION 4 - Investment
-Duration (COMMON)
-Ye section Fixed aur Flexible dono me same rahega.
-Duration Type
-o Trust Builder (1 Day Only) o Multiple Duration Options
-If Trust Builder Selected
-Automatically Apply
-Duration 1 Day Auto Wallet Credit ON Withdrawal Enabled after 1 Day No other duration options.
-If Multiple Duration Selected
-Admin multiple duration options create kar sakta hai.
-Example
-Available Durations 1 Month @ 3
-Months 6 Months 1 	2 Years  
-Custom
-If Custom
-Duration Value __ Unit Days Months
-Years
-User Flow
-Website par user ko pehle duration select karna hoga.
-Choose Duration 1 1 Month 3 Months 6 Months 1 Year
-Uske baad investment section open hoga.
-SECTION 5 - Profit Calculation
-Admin kuch manually enter nahi karega.
-System automatically calculate karega. Investment 1 Interest % 1 Duration 1 Daily Profit 1 Total Profit 1 Total Return Sab Auto.
-SECTION 6 - Withdrawal
-Rules (COMMON)
-Ye section Fixed aur Flexible dono me same rahega.
-Withdrawal Type
-o Trust Builder Plan o Normal Investment plan
-Trust Builder Logic
-User Purchase 1 Plan Runs 1 Day 1 Plan
-Complete 1 ONLY Profit Amount Auto Credit to Wallet 1 User Can Withdraw Profit Important
-Investment Amount Never Returned Only
-Profit Amount Credited to Wallet
-Example
-Investment ?200 Profit ?400 Wallet Credit
-?400 Investment ?200 Not Returned
-Normal Investment Plan Logic
-Example
-User Chooses 3 Months 1 Plan Starts 1
-Daily Profit Updates 1 Portfolio Shows
-Running Profit 1 Withdrawal Locked 1 Plan
-Ends 1 ONLY Total Profit Auto Credit to
-Wallet 1 User Can Withdraw Profit
-Important
-Investment Amount Never Returned Only
-Profit Credited to Wallet
-Portfolio Behaviour
-Running
-Dream Bike Plan Running Day 42 / 90
-Today's Profit 2 Accumulated Profit  Withdrawal LOCKED
-Completed
-Completed Profit Credited ?850
-Withdrawal Enabled
-SECTION 7 - Withdrawal
-Limits
-(Global Settings)
-Daily Withdrawal Limit 	Maximum
-Requests Per Day 3 Minimum Withdrawal
-?300 Processing Type Instant Manual
-Approval
-SECTION 8 - Unlock System
-Enable Unlock Rule YES NO
-If YES
-Required Plan Dropdown Unlock Message
-Example
-Complete Premium Plan ?399 First Then this plan will unlock.
-Business Logic
-User Clicks Buy 1 Required Plan
-Purchased? NO 1 Show Popup J Purchase
-Required Plan First 1 YES 1 Current Plan
-Unlock 1 Buy Button Enabled
+# GullakPe — Admin Panel & Business Logic Blueprint
+
+> Developer documentation. Language is Hinglish (as originally written) — meaning preserved, structure cleaned up.
+> Reference any **Section number** below when telling me how a feature should behave.
+
+**Table of contents**
+- [Part 1 — Create Plan System (Sections 1–13)](#part-1--create-plan-system)
+- [Part 2 — Portfolio + Profit + Wallet Engines (Sections 14–25)](#part-2--portfolio--profit--wallet-engines)
+- [Part 3 — Admin Dashboard, Referral, Analytics, Users, Security (Sections 26–42)](#part-3--admin-dashboard-referral-analytics-users--security)
+- [Final Business Rules (VERY IMPORTANT)](#final-business-rules-very-important)
+- [GullakPe Master Flow](#gullakpe-master-flow)
+
+---
+
+# Part 1 — Create Plan System
+
+### Step 1 — Select Plan Type (first thing the admin does)
+
+Admin sabse pehle **sirf Plan Type** select karega. Baaki form uske baad hi dynamically khulega.
+
+- ⬜ **Fixed Investment Plan**
+- ⬜ **Flexible Investment Plan**
+
+---
+
+## OPTION 1 — Fixed Investment Plan
+
+### Section 1 — Basic Information
+
+| Field | Notes |
+|---|---|
+| Plan Name * | required |
+| Short Title | |
+| Subtitle | |
+| Category | |
+| Plan Icon (manual upload) * | Shows on **Plan Card + Plan Details** |
+| Plan Thumbnail (manual upload) * | Used as the **Plan Details** image |
+
+### Section 2 — Fixed Investment
+
+- Investment Amount: a single **fixed amount** (e.g. ₹99).
+
+**Rules**
+- Sirf ek fixed amount.
+- No Minimum / Maximum field.
+- No slider.
+- User sirf isi amount ko purchase kar sakta hai.
+
+### Section 3 — Interest Rate
+
+- Quick presets: `1% · 2% · 3% · 5% · 8% · 10% · 12% · 15% · 20%`
+- Or **Custom %** → admin types the interest % manually.
+
+### Section 4 — Investment Duration *(COMMON — same for Fixed & Flexible)*
+
+**Duration Type**
+- ⬜ **Trust Builder (1 Day Only)**
+- ⬜ **Multiple Duration Options**
+
+**If Trust Builder selected → automatically apply:**
+- Duration = **1 Day**
+- Auto Wallet Credit = **ON**
+- Withdrawal enabled after 1 Day
+- No other duration options.
+
+**If Multiple Duration selected:**
+- Admin can create multiple duration options, e.g. `1 Month · 3 Months · 6 Months · 1 Year · 2 Years · Custom`.
+- **If Custom:** Duration Value `__` + Unit (`Days / Months / Years`).
+
+**User flow (website):**
+1. User pehle **Duration select** karega (e.g. 1 Month / 3 Months / 6 Months / 1 Year).
+2. Uske baad investment section open hoga.
+
+### Section 5 — Profit Calculation *(fully automatic)*
+
+Admin kuch manually enter nahi karega. System auto-calculates:
+
+- Investment → Interest % → Duration → **Daily Profit → Total Profit → Total Return** (all auto).
+
+### Section 6 — Withdrawal Rules *(COMMON — same for Fixed & Flexible)*
+
+**Withdrawal Type**
+- ⬜ **Trust Builder Plan**
+- ⬜ **Normal Investment Plan**
+
+**Trust Builder logic:**
+> User purchases → plan runs 1 day → plan completes → **ONLY profit amount** auto-credited to wallet → user can withdraw profit.
+> **Investment amount is never returned.**
+> Example: Investment ₹200, Profit ₹400 → Wallet credit ₹400 (₹200 not returned).
+
+**Normal Investment Plan logic:**
+> User chooses e.g. 3 Months → plan starts → daily profit updates → portfolio shows running profit → **withdrawal locked** → plan ends → **ONLY total profit** auto-credited to wallet → user can withdraw profit.
+> **Investment amount is never returned.**
+
+**Portfolio behaviour**
+- **Running:** `Dream Bike Plan · Running · Day 42 / 90 · Today's Profit · Accumulated Profit · Withdrawal LOCKED`
+- **Completed:** `Completed · Profit Credited ₹850 · Withdrawal Enabled`
+
+### Section 7 — Withdrawal Limits *(Global Settings)*
+
+- Daily Withdrawal Limit
+- Maximum Requests Per Day: **3**
+- Minimum Withdrawal: **₹300**
+- Processing Type: **Instant** / **Manual Approval**
+
+### Section 8 — Unlock System
+
+- Enable Unlock Rule: **YES / NO**
+- If **YES**: choose **Required Plan** (dropdown) + an **Unlock Message**.
+  - Example message: *"Complete Premium Plan ₹399 first. Then this plan will unlock."*
+
+**Business logic:**
+> User clicks Buy → Required plan purchased? → **NO:** show popup "Purchase required plan first" → **YES:** current plan unlocks, Buy button enabled.
+
 Ye rule Fixed aur Flexible dono me same rahega.
-SECTION 9 - Wallet Balance
-Check
-Before Purchase
-Wallet Balance 1 Enough Balance? YES 1 Continue NO 1 Add Money Popup popup
-Insufficient Wallet Balance Please add money first. Add Money
-SECTION 10 - Plan Availability
-Draft Active Hidden Expired Out Of Stock
-Purchase Limit finish hone par
-Automatically
-Out Of Stock
-Website Behaviour
-Plan Visible 1 Buy Button Disabled 1 Out Of
-Stock Badge
-SECTION 1 1 - Purchase Limit
-Unlimited OR Limited Purchases Example
-Maximum Purchases 100
-After
-100 99 1 98 1 0
-Automatically
-Out Of Stock
-SECTION 12 - Marketing
-Most Popular Trending Hot Recommended
-Limited Time
-SECTION 13 - Live Preview
-Real-time Preview.
-Same Card.
-Same UI.
-Same Calculator.
-OPTION 2 - FLEXIBLE
-INVESTMENT PLAN
-Sab sections Fixed jaise hi rahenge.
-Sirf Investment Section alag hoga.
-Investment Range
-Minimum Investment 00 Maximum
-Investment 000 Slider Step ? 1 00
-User Flow
-Choose Duration 1 Choose Investment Amount 1 Auto Profit Calculator 1 Buy Plan Example
-Duration 3 Months 1 Slider 00 — 000 1
-Selected ?500 1 Daily Profit ?6.50 1 Total
-Profit ?585 1 Total Return ?1085
-Everything Auto.
-COMMON RULES (Apply to BOTH)
-s/ Manual Plan Icon Upload s/ Manual Thumbnail Upload s/ Manual Explore Icon
-Upload s/ Wallet Balance Check s/ Unlock
-System s/ Multiple Duration Options s/
-Auto Profit Calculation s/ Daily Portfolio
-Updates s/ Withdrawal Locked Until
-Maturity s/ Profit Auto Credit 8/
-Investment Never Returned s/ Purchase Limit Out Of Stock Logic 8/ Live Preview s/ Marketing Badge
-FINAL BUSINESS FLOW
-Create Plan 1 Select Plan Type 1 Fixed /
-Flexible Form 1 Basic Information 1
-Investment Setup 1 Duration Setup 1
-Interest Setup 1 Auto Profit Calculation 1
-Withdrawal Rules 1 Unlock Rules 1 Purchase Limits 1 Marketing 1 Live
-Preview 1 Publish 1 User Purchases 1
-Portfolio Updates Daily 1 Plan Matures 1
-ONLY Profit Credited to Wallet 1 User
-Withdraws Profit
-GullakPe Admin Panel Create Plan System
-(Developer Documentation
-Portfolio Engine + Profit Engine + Wallet Engine
-SECTION 14 - Portfolio Engine
-Plan purchase hote hi automatically Portfolio create hona chahiye.
-User Purchases Plan 1 Payment Success 1
-Portfolio Created 1 Status Running
-Portfolio me ye details store hongi.
-Plan Name Plan ID Investment Amount
-Selected Duration Interest Rate Start Date
-Maturity Date Today's Profit Total Profit Status
-Portfolio Status
-Portfolio Status
-Running Completed Matured Cancelled Expired
-Portfolio Progress
-Running Plan
-Automatically show
-Progress Day 25 / 90 Progress 27% Automatically update every day.
-Today's Profit
-Automatically update every day.
-Example
-Investment ?500 Interest 12% Duration 3
-Months Today's Profit ?6.50 Tomorrow
-?13.00 Next Day ?19.50
-User manually change nahi kar sakta.
-Total Profit
-Automatically update.
-Day 1 	Day 	Day 30  1 Day
-90 
-Portfolio History
-Every Portfolio should store
-Purchase Date Investment Duration Daily
-Profit History Maturity Date Profit Credit
-Date Withdrawal Status
-SECTION 15 - Daily Profit Engine
-Daily Profit automatically generate hona chahiye. Schedule
-Every Day 1 2:00 AM
-System
-Running Plans 1 Calculate Today's Profit 1
-Update Portfolio 1 Update Total Profit
-Daily Profit Formula
-Investment x Interest % x Duration 1 Daily profit
-Automatically calculate.
-Admin manually enter nahi karega.
-Daily Profit Conditions
-Trust Builder
-1 Day 1 Only one calculation
-Normal Plans
-Every Day Until Maturity
-SECTION 16 - Auto Maturity
-Engine
-System should check daily.
-Current Date 1 Maturity Date 1 Completed?
-If YES
-Automatically
-Plan Completed 1 Wallet Credit 1 Portfolio
-Status Completed
-SECTION 17 - Wallet Credit
-Logic
-VERY IMPORTANT
-Wallet me ONLY Profit jayega.
-Never Investment.
-Business Logic
-Investment ?500 1 Total Profit ?820 1 Wallet Credit ?820 Investment ?500 Never
-Returned
-Apply on
-Fixed Flexible Trust Builder All Plans
-Wallet Transaction Entry
-Automatically create
-Credit Profit Credit ?820 Date Reference ID SECTION 18 - Wallet Engine
-Wallet should support
-Add Money Profit Credit Referral Bonus Cashback Manual Credit Withdrawal Debit
-Wallet Balance Formula
-Opening Balance + Profit Credit + Referral
-+ Cashback - Withdrawal = Available
-Balance
-SECTION 19 - Withdrawal
-Engine
-User can withdraw ONLY Wallet Balance.
-Never Running Profit.
-Example
-Portfolio Running Today's Profit 20
-Wallet Withdrawal NOT Allowed
-After Maturity
-Wallet ?820 Withdrawal Allowed
-Withdrawal Validation
-Check
-Wallet Balance 1 Minimum Withdrawal 1
-Daily Limit 1 Request Limit If all valid
-Create Withdrawal Request.
-Withdrawal Status
-Pending Approved Rejected Processing
-Completed
-SECTION 20 - Trust Builder
-Logic
-Trust Builder Special Plan.
-Rules
-Duration 1 Day 1 Auto Mature 1 Profit
-Credit 1 Wallet 1 Withdrawal Enabled
-Investment
-Never Returned.
-Unlock Rule
-If Locked Buy Required Plan 1 Unlock 1 Trust Builder Available
-Automatically.
-SECTION 21 - Purchase
-Validation
-Before Purchase
-System checks
-Wallet Balance 1 Plan Status 1 Purchase
-Limit 1 Unlock Rule 1 Duration Selected 1
-Investment Valid
-If all valid
-Purchase.
-Otherwise
-Show Error.
-SECTION 22 - Purchase
-Flow
-Open Plan 1 Choose Duration 1 Choose
-Amount 1 Profit Calculator 1 Buy 1 Wallet Check 1 Purchase Success 1 Portfolio
-Created 1 Running
-SECTION 23 - Portfolio
-Screen Behaviour
-Portfolio Card
-Dream Bike Running Day 24 / 90 Today's
-Profit Total Profit ?320 Withdrawal
-LOCKED
-After Maturity
-Completed Profit Credited ?820 Wallet
-Updated Withdrawal Enabled
-SECTION 24 - System
-Automation
-Every Night
-Automatically run
-Profit Engine 1 Portfolio Update 1 Progress
-Update 1 Maturity Check 1 Wallet Credit 1
-Notification
-No manual work.
-SECTION 25 - Notifications
-Automatically send
-Plan Purchased 1 Today's Profit Updated 1
-Plan Matured 1 Profit Credited 1
-Withdrawal Successful
-FINAL ENGINE FLOW
-Plan Purchase 1 Portfolio Created 1 Daily
-Profit Engine 1 Portfolio Updates Daily 1
-Maturity Check 1 ONLY Profit 1 Wallet
-Credit 1 Withdrawal Enabled 1 Transaction
-Created 1 Notification Sent
-Perfect. Yeh Final Part-3 hai. Iske baad
-GullakPe ka Create Plan + Admin Panel + Business Logic ka complete blueprint ready ho jayega.
-GullakPe Admin Panel -
-Developer Documentation Admin Dashboard + Referral
-+ Analytics + User
-Management + Security
-SECTION 26 - Admin
-Dashboard
-Dashboard open hote hi Admin ko complete overview dikhe.
-Total Users Active Users Today's New Users Total Plans Running Plans
-Completed Plans Expired Plans Total
-Investments Today's Investments Total
-Profit Paid Today's Withdrawals Pending Withdrawals Wallet Balance Referral
-Bonus Paid Cashback Paid
-Dashboard Charts
-Show
-Daily Investment Chart Monthly
-Investment Chart User Growth Chart Profit
-Distribution Chart Withdrawal Chart
-SECTION 27 - Plan
-Analytics
-Each Plan should have analytics.
-Plan Name Total Views Total Clicks Total
-Purchases Conversion Rate Total
-Investment Running Users Completed
-Users Revenue Generated
-Plan Performance
-Example
-Dream Bike Views 5,000 Purchases 320
-Conversion 6.4% Revenue 
-SECTION 28 - User
-Management
-Admin should manage users.
-User List
-User ID Name Mobile Wallet Balance Active Plans Completed Plans Referral
-Code Status
-User Actions
-View Profile Edit User Block User Unblock
-User Reset MPIN View Portfolio View
-Transactions Wallet History
-User Search
-Search by
-Name Mobile Number User ID
-Filters
-Active Blocked New Users VIP Referral
-Users
-SECTION 29 - Wallet
-Management
-Admin Wallet Controls
-Credit Wallet Debit Wallet Adjust Balance
-Wallet History Transaction Search Every manual change should require a reason. Example
-Manual Credit ?500 Reason Promotion
-Bonus
-SECTION 30 - Transaction
-Management
-Transaction List
-Transaction ID User Amount Type Status
-Date
-Transaction Types
-Add Money Plan Purchase Profit Credit
-Referral Bonus Cashback Withdrawal
-Manual Credit Manual Debit Transaction Status
-Pending Success Failed Cancelled
-SECTION 31 - Referral
-Engine
-Global Settings
-Referral Enabled YES / NO
-Reward Settings
-Referrer Bonus 00 Friend Bonus 
-Rules
-Minimum Purchase Required Eligible Plans
-Maximum Referral Reward
-Referral Dashboard
-Show
-Total Referrals Successful Referrals
-Pending Rewards Paid Rewards SECTION 32 - Cashback Engine
-Admin can create Cashback Rules.
-Cashback Enabled YES / NO
-Cashback Type
-Fixed Cashback Percentage Cashback
-Example
-Purchase ?500 Cashback 
-Cashback Conditions
-Eligible Plans Minimum Purchase
-Maximum Cashback Validity
-SECTION 33 - Notification Engine
-Admin can send
-Push Notification In-App Notification
-Banner Notification
-Templates
-Plan Purchased Profit Credited Withdrawal
-Approved Referral Reward Offer
-Maintenance
-SECTION 34 - Banner
-Management
-Admin can upload
-Home Banner Offer Banner Explore Banner
-Popup Banner
-Each banner
-Image Redirect Link Status Priority Start
-Date End Date
-SECTION 35 - APP Settings
-General Settings
-App Name Logo Primary Color Support
-Email Support Mobile Website URL Privacy
-Policy Terms & Conditions
-SECTION 36 - Withdrawal
-Management
-Withdrawal Requests
-User Amount Bank UPI Status Date
-Actions
-Approve Reject View Details
-SECTION 37 - Reports
-Generate Reports
-Daily Report Weekly Report Monthly
-Report Yearly Report
-Export
-PDF Excel CSV
-SECTION 38 - Security
-Admin Security
-Two Factor Authentication IP Restriction Login History Device History Failed Login
-Attempts
-Audit Logs
-Every Admin Action
-Create Plan Edit Plan Delete Plan Wallet
-Credit Withdrawal Approval Settings
-Change
-Should store
-Admin Name Time IP Address Action
-SECTION 39 - Role
-Management
-Admin Roles
-Super Admin Manager Support Finance
-Marketing
-Permissions
-Example
-Create Plan YES Delete Plan NO Approve
-Withdrawal YES Wallet Credit NO
-SECTION 40 - Backup System
-Admin should have
-Database Backup Download Backup
-Restore Backup
-Schedule
-Daily Weekly Monthly
-SECTION 41 - System
-Settings
-Maintenance
-Maintenance Mode YES / NO
-Registration
-Allow New Registration YES / NO
-Investment
-Allow New Investment YES / NO
-Withdrawal
-Allow Withdrawals YES / NO
-SECTION 42 - Admin
-Workflow
-Complete Flow
-Create Plan 1 Preview 1 Save Draft 1
-Publish 1 Users Purchase 1 Portfolio
-Created 1 Daily Profit Updates 1 Maturity
-Check 1 ONLY Profit Credited 1 Wallet Updated 1 Withdrawal Enabled 1 Plan
-Analytics Updated 1 Reports Generated
-FINAL BUSINESS RULES (VERY IMPORTANT)
-s/ Investment Amount is NEVER returned. s/ ONLY Profit Amount is credited to Wallet after maturity. s/ Trust Builder Plan is always 1 Day. s/ Trust Builder can be locked using Unlock Rule. s/ All other plans support multiple duration options. s/ Duration options are selectable by user before purchase. s/ Profit calculation is always automatic. s/ Daily Profit updates automatically. s/ Portfolio updates automatically. s/ Wallet updates automatically. s/ Withdrawal is only allowed after Profit Credit. s/ Fixed and Flexible plans share the same business rules except investment method. 8/ Manual Plan Icon Upload. s/ Manual
-Thumbnail Upload. s/ Manual Explore Icon
-Upload. s/ Wallet Balance Check before
-Purchase. s/ Purchase Limit Support. s/ Out of Stock Support. 8/ Live Preview before Publish.
-GullakPe Master Flow
-Admin Login 1 Create Plan 1 Select Plan
-Type 1 Configure Plan 1 Publish 1 User Opens Plan 1 Select Duration 1 Select
-Investment 1 Profit Calculator 1 Wallet
-Check 1 Purchase 1 Portfolio Created 1
-Daily Profit Engine 1 Portfolio Updates 1 Maturity Engine 1 ONLY Profit Credited to
-Wallet 1 Withdrawal Request 1 Admin
-Approval (if required) 1 Money Sent 1
-Reports & Analytics Updated
+
+### Section 9 — Wallet Balance Check (before purchase)
+
+> Wallet balance enough? → **YES:** continue. **NO:** show "Add Money" popup: *"Insufficient wallet balance. Please add money first."* → Add Money.
+
+### Section 10 — Plan Availability
+
+Statuses: **Draft · Active · Hidden · Expired · Out Of Stock**
+
+- Purchase limit finish hone par → automatically **Out Of Stock**.
+- **Website behaviour:** plan visible, Buy button disabled, "Out Of Stock" badge shown.
+
+### Section 11 — Purchase Limit
+
+- **Unlimited** OR **Limited** purchases.
+- Example: Maximum Purchases = 100 → after `100 → 99 → 98 → … → 0` → automatically **Out Of Stock**.
+
+### Section 12 — Marketing Badge
+
+- Options: `Most Popular · Trending · Hot · Recommended · Limited Time`
+
+### Section 13 — Live Preview
+
+- Real-time preview: same card, same UI, same calculator as the live site.
+
+---
+
+## OPTION 2 — Flexible Investment Plan
+
+Saare sections Fixed jaise hi rahenge. **Sirf the Investment Section is different.**
+
+### Investment Range (replaces Section 2)
+
+- Minimum Investment (e.g. ₹100)
+- Maximum Investment (e.g. ₹1,000)
+- Slider Step (e.g. ₹100)
+
+**User flow:**
+> Choose Duration → Choose Investment Amount (slider) → Auto Profit Calculator → Buy Plan.
+> Example: Duration 3 Months, Slider ₹100–₹1,000, Selected ₹500 → Daily Profit ₹6.50 → Total Profit ₹585 → Total Return ₹1,085. Everything auto.
+
+---
+
+## Common Rules (apply to BOTH Fixed & Flexible)
+
+- ✅ Manual Plan Icon upload
+- ✅ Manual Thumbnail upload
+- ✅ Manual Explore Icon upload
+- ✅ Wallet Balance check
+- ✅ Unlock System
+- ✅ Multiple Duration Options
+- ✅ Auto Profit Calculation
+- ✅ Daily Portfolio Updates
+- ✅ Withdrawal Locked Until Maturity
+- ✅ Profit Auto-Credit
+- ✅ **Investment Never Returned**
+- ✅ Purchase Limit / Out Of Stock logic
+- ✅ Live Preview
+- ✅ Marketing Badge
+
+**Final "Create Plan" flow:**
+> Create Plan → Select Plan Type → Fixed/Flexible Form → Basic Info → Investment Setup → Duration Setup → Interest Setup → Auto Profit Calc → Withdrawal Rules → Unlock Rules → Purchase Limits → Marketing → Live Preview → Publish → User Purchases → Portfolio Updates Daily → Plan Matures → **ONLY Profit Credited to Wallet** → User Withdraws Profit.
+
+---
+
+# Part 2 — Portfolio + Profit + Wallet Engines
+
+### Section 14 — Portfolio Engine
+
+Plan purchase hote hi automatically **Portfolio create** hona chahiye.
+
+> User purchases plan → payment success → Portfolio created → Status = **Running**.
+
+**Portfolio stores:** Plan Name · Plan ID · Investment Amount · Selected Duration · Interest Rate · Start Date · Maturity Date · Today's Profit · Total Profit · Status.
+
+**Portfolio Status:** `Running · Completed · Matured · Cancelled · Expired`
+
+**Portfolio Progress (running plans):**
+- Auto-show progress: `Day 25 / 90 · Progress 27%` — updates every day.
+
+**Today's Profit** — auto-updates every day. Example: Investment ₹500, Interest 12%, 3 Months → Today ₹6.50, Tomorrow ₹13.00, Next day ₹19.50. User manually change nahi kar sakta.
+
+**Total Profit** — auto-updates (Day 1 → Day 30 → Day 90…).
+
+**Portfolio History (per portfolio):** Purchase Date · Investment · Duration · Daily Profit History · Maturity Date · Profit Credit Date · Withdrawal Status.
+
+### Section 15 — Daily Profit Engine
+
+**Schedule:** every day at **2:00 AM**.
+
+> Running plans → calculate today's profit → update portfolio → update total profit.
+
+**Daily Profit Formula:** `Investment × Interest % × Duration → Daily Profit` (auto; admin never enters manually).
+
+**Conditions:**
+- **Trust Builder:** 1 Day → only one calculation.
+- **Normal Plans:** every day until maturity.
+
+### Section 16 — Auto Maturity Engine
+
+System checks daily: `Current Date ≥ Maturity Date → Completed?`
+
+- **If YES:** Plan Completed → Wallet Credit → Portfolio Status = **Completed**.
+
+### Section 17 — Wallet Credit Logic ⚠️ VERY IMPORTANT
+
+- Wallet me **ONLY Profit** jayega. **Never Investment.**
+- Example: Investment ₹500, Total Profit ₹820 → **Wallet Credit ₹820**, Investment ₹500 never returned.
+- Applies to: **Fixed · Flexible · Trust Builder — all plans.**
+- Auto-create a **Wallet Transaction Entry:** `Credit · Profit Credit ₹820 · Date · Reference ID`.
+
+### Section 18 — Wallet Engine
+
+**Supports:** Add Money · Profit Credit · Referral Bonus · Cashback · Manual Credit · Withdrawal Debit.
+
+**Balance Formula:**
+`Opening Balance + Profit Credit + Referral + Cashback − Withdrawal = Available Balance`
+
+### Section 19 — Withdrawal Engine
+
+User can withdraw **ONLY Wallet Balance** — never running profit.
+
+- Example: Portfolio running, today's profit ₹20 → Wallet withdrawal **NOT allowed**.
+- After maturity: Wallet ₹820 → withdrawal **allowed**.
+
+**Withdrawal validation:** Wallet Balance → Minimum Withdrawal → Daily Limit → Request Limit → if all valid, create withdrawal request.
+
+**Withdrawal Status:** `Pending · Approved · Rejected · Processing · Completed`
+
+### Section 20 — Trust Builder Logic
+
+Trust Builder is a special plan.
+
+- Rules: Duration 1 Day → Auto Mature → Profit Credit → Wallet → Withdrawal Enabled. **Investment never returned.**
+- Unlock rule: if locked → buy required plan → Trust Builder becomes available automatically.
+
+### Section 21 — Purchase Validation
+
+Before purchase, system checks: Wallet Balance · Plan Status · Purchase Limit · Unlock Rule · Duration Selected · Investment Valid.
+- If all valid → purchase. Otherwise → show error.
+
+### Section 22 — Purchase Flow
+
+> Open Plan → Choose Duration → Choose Amount → Profit Calculator → Buy → Wallet Check → Purchase Success → Portfolio Created → Running.
+
+### Section 23 — Portfolio Screen Behaviour
+
+- **Portfolio Card (running):** `Dream Bike · Running · Day 24 / 90 · Today's Profit · Total Profit ₹320 · Withdrawal LOCKED`
+- **After maturity:** `Completed · Profit Credited ₹820 · Wallet Updated · Withdrawal Enabled`
+
+### Section 24 — System Automation (every night)
+
+Automatically run: Profit Engine → Portfolio Update → Progress Update → Maturity Check → Wallet Credit → Notification. **No manual work.**
+
+### Section 25 — Notifications
+
+Auto-send: Plan Purchased · Today's Profit Updated · Plan Matured · Profit Credited · Withdrawal Successful.
+
+**Final Engine Flow:**
+> Plan Purchase → Portfolio Created → Daily Profit Engine → Portfolio Updates Daily → Maturity Check → **ONLY Profit** → Wallet Credit → Withdrawal Enabled → Transaction Created → Notification Sent.
+
+---
+
+# Part 3 — Admin Dashboard, Referral, Analytics, Users & Security
+
+### Section 26 — Admin Dashboard
+
+Dashboard open hote hi complete overview dikhe:
+
+- Total Users · Active Users · Today's New Users
+- Total Plans · Running Plans · Completed Plans · Expired Plans
+- Total Investments · Today's Investments
+- Total Profit Paid · Today's Withdrawals · Pending Withdrawals
+- Wallet Balance · Referral Bonus Paid · Cashback Paid
+
+**Dashboard Charts:** Daily Investment · Monthly Investment · User Growth · Profit Distribution · Withdrawal.
+
+### Section 27 — Plan Analytics
+
+Each plan has analytics: Plan Name · Total Views · Total Clicks · Total Purchases · Conversion Rate · Total Investment · Running Users · Completed Users · Revenue Generated.
+- Example: `Dream Bike · Views 5,000 · Purchases 320 · Conversion 6.4% · Revenue …`
+
+### Section 28 — User Management
+
+**User List:** User ID · Name · Mobile · Wallet Balance · Active Plans · Completed Plans · Referral Code · Status.
+
+**User Actions:** View Profile · Edit User · Block/Unblock User · Reset MPIN · View Portfolio · View Transactions · Wallet History.
+
+**Search:** by Name / Mobile / User ID. **Filters:** Active · Blocked · New Users · VIP · Referral Users.
+
+### Section 29 — Wallet Management
+
+**Controls:** Credit Wallet · Debit Wallet · Adjust Balance · Wallet History · Transaction Search.
+- Every manual change **requires a reason**. Example: `Manual Credit ₹500 · Reason: Promotion Bonus`.
+
+### Section 30 — Transaction Management
+
+**Transaction List:** Transaction ID · User · Amount · Type · Status · Date.
+
+**Types:** Add Money · Plan Purchase · Profit Credit · Referral Bonus · Cashback · Withdrawal · Manual Credit · Manual Debit.
+**Status:** Pending · Success · Failed · Cancelled.
+
+### Section 31 — Referral Engine
+
+- **Global:** Referral Enabled YES / NO.
+- **Rewards:** Referrer Bonus · Friend Bonus.
+- **Rules:** Minimum Purchase Required · Eligible Plans · Maximum Referral Reward.
+- **Dashboard:** Total Referrals · Successful Referrals · Pending Rewards · Paid Rewards.
+
+### Section 32 — Cashback Engine
+
+- Cashback Enabled YES / NO.
+- **Type:** Fixed Cashback · Percentage Cashback.
+- **Conditions:** Eligible Plans · Minimum Purchase · Maximum Cashback · Validity.
+
+### Section 33 — Notification Engine
+
+- Admin can send: Push · In-App · Banner notifications.
+- **Templates:** Plan Purchased · Profit Credited · Withdrawal Approved · Referral Reward · Offer · Maintenance.
+
+### Section 34 — Banner Management
+
+- Admin uploads: Home Banner · Offer Banner · Explore Banner · Popup Banner.
+- Each banner: Image · Redirect Link · Status · Priority · Start Date · End Date.
+
+### Section 35 — App Settings (General)
+
+App Name · Logo · Primary Color · Support Email · Support Mobile · Website URL · Privacy Policy · Terms & Conditions.
+
+### Section 36 — Withdrawal Management
+
+- **Requests:** User · Amount · Bank/UPI · Status · Date.
+- **Actions:** Approve · Reject · View Details.
+
+### Section 37 — Reports
+
+- Generate: Daily · Weekly · Monthly · Yearly reports.
+- Export: PDF · Excel · CSV.
+
+### Section 38 — Security
+
+- **Admin Security:** Two-Factor Authentication · IP Restriction · Login History · Device History · Failed Login Attempts.
+- **Audit Logs** — every admin action (Create/Edit/Delete Plan · Wallet Credit · Withdrawal Approval · Settings Change) stores: Admin Name · Time · IP Address · Action.
+
+### Section 39 — Role Management
+
+- **Roles:** Super Admin · Manager · Support · Finance · Marketing.
+- **Permissions example:** Create Plan YES · Delete Plan NO · Approve Withdrawal YES · Wallet Credit NO.
+
+### Section 40 — Backup System
+
+- Database Backup · Download Backup · Restore Backup.
+- Schedule: Daily · Weekly · Monthly.
+
+### Section 41 — System Settings
+
+- Maintenance Mode: YES / NO
+- Allow New Registration: YES / NO
+- Allow New Investment: YES / NO
+- Allow Withdrawals: YES / NO
+
+### Section 42 — Admin Workflow
+
+> Create Plan → Preview → Save Draft → Publish → Users Purchase → Portfolio Created → Daily Profit Updates → Maturity Check → **ONLY Profit Credited** → Wallet Updated → Withdrawal Enabled → Plan Analytics Updated → Reports Generated.
+
+---
+
+## Final Business Rules (VERY IMPORTANT)
+
+1. ✅ Investment Amount is **NEVER** returned.
+2. ✅ **ONLY Profit** is credited to Wallet after maturity.
+3. ✅ Trust Builder Plan is always **1 Day**.
+4. ✅ Trust Builder can be locked using the Unlock Rule.
+5. ✅ All other plans support **multiple duration options**.
+6. ✅ Duration options are **user-selectable before purchase**.
+7. ✅ Profit calculation is always **automatic**.
+8. ✅ Daily Profit updates automatically.
+9. ✅ Portfolio updates automatically.
+10. ✅ Wallet updates automatically.
+11. ✅ Withdrawal is only allowed **after** Profit Credit.
+12. ✅ Fixed and Flexible plans share the same business rules **except the investment method**.
+13. ✅ Manual Plan Icon / Thumbnail / Explore Icon upload.
+14. ✅ Wallet Balance check before purchase.
+15. ✅ Purchase Limit + Out Of Stock support.
+16. ✅ Live Preview before Publish.
+
+---
+
+## GullakPe Master Flow
+
+> Admin Login → Create Plan → Select Plan Type → Configure Plan → Publish → User Opens Plan → Select Duration → Select Investment → Profit Calculator → Wallet Check → Purchase → Portfolio Created → Daily Profit Engine → Portfolio Updates → Maturity Engine → **ONLY Profit Credited to Wallet** → Withdrawal Request → Admin Approval (if required) → Money Sent → Reports & Analytics Updated.

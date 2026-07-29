@@ -806,6 +806,12 @@
         if (fixedEl) fixedEl.style.display = isFixed ? '' : 'none';
         if (flexEl)  flexEl.style.display  = isFixed ? 'none' : '';
 
+        // A hidden `required` field is barred from being focused, so an empty
+        // one silently blocks form submission with no visible error. Only keep
+        // investment_amount required while its section is actually visible.
+        var amountInput = document.getElementById('investment_amount');
+        if (amountInput) amountInput.required = isFixed;
+
         var activeClass   = 'px-5 py-2.5 text-[13.5px] font-bold transition-colors bg-[#0A5C66] text-white';
         var inactiveClass = 'px-5 py-2.5 text-[13.5px] font-bold transition-colors bg-white text-[#64748B]';
         if (btnFixed) btnFixed.className = isFixed ? activeClass : inactiveClass;
