@@ -1,10 +1,12 @@
 <?php
 
 use App\Modules\Admin\Controllers\AdminController;
+use App\Modules\Admin\Controllers\BackupController;
 use App\Modules\Admin\Controllers\BannerController;
 use App\Modules\Admin\Controllers\PaymentGatewayController;
 use App\Modules\Admin\Controllers\PlanManagementController;
 use App\Modules\Admin\Controllers\ReportController;
+use App\Modules\Admin\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
 // Slug comes from config/admin.php (ADMIN_PANEL_SLUG in .env) - change the
@@ -41,6 +43,17 @@ Route::prefix($slug)->group(function () {
         Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports');
         Route::get('/reports/print', [ReportController::class, 'printable'])->name('admin.reports.print');
         Route::get('/reports/export', [ReportController::class, 'export'])->name('admin.reports.export');
+
+        Route::get('/roles', [RoleController::class, 'index'])->name('admin.roles');
+        Route::post('/roles', [RoleController::class, 'store'])->name('admin.roles.store');
+        Route::post('/roles/{adminUser}/toggle-active', [RoleController::class, 'toggleActive'])->name('admin.roles.toggle-active');
+        Route::post('/roles/{adminUser}/delete', [RoleController::class, 'destroy'])->name('admin.roles.delete');
+
+        Route::get('/backups', [BackupController::class, 'index'])->name('admin.backups');
+        Route::post('/backups', [BackupController::class, 'create'])->name('admin.backups.create');
+        Route::get('/backups/{file}/download', [BackupController::class, 'download'])->name('admin.backups.download');
+        Route::post('/backups/{file}/restore', [BackupController::class, 'restore'])->name('admin.backups.restore');
+        Route::post('/backups/{file}/delete', [BackupController::class, 'destroy'])->name('admin.backups.delete');
         Route::get('/notifications/poll', [AdminController::class, 'pollNotifications'])->name('admin.notifications.poll');
         Route::post('/notifications/read', [AdminController::class, 'markNotificationsRead'])->name('admin.notifications.read');
         // Wallet adjustment has no standalone page anymore - it lives inline in

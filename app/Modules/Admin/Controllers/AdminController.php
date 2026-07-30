@@ -5,6 +5,7 @@ namespace App\Modules\Admin\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\AdminAuthenticate;
 use App\Models\AdminNotification;
+use App\Models\AdminUser;
 use App\Models\AppSetting;
 use App\Models\DepositRequest;
 use App\Models\Plan;
@@ -14,6 +15,7 @@ use App\Models\UserPlan;
 use App\Models\WalletBalance;
 use App\Models\WalletTransaction;
 use App\Models\WithdrawRequest;
+use App\Support\AdminRoles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,7 +58,7 @@ class AdminController extends Controller
 
     public function authenticate(Request $request): RedirectResponse
     {
-        $request->validate(['password' => 'required|string']);
+        $request->validate(['username' => 'nullable|string', 'password' => 'required|string']);
 
         $ip = $request->ip();
         $failureKey = "admin-login-failures:{$ip}";
@@ -75,8 +77,22 @@ class AdminController extends Controller
             ]);
         }
 
-        $configured = (string) config('admin.password');
-        $correct = $configured !== '' && hash_equals($configured, (string) $request->input('password'));
+        // Two ways in (plan.md Section 39): a named admin_user by username, or
+        // the shared master password (always super_admin). Master path is
+        // unchanged when no username is supplied.
+        $role = 'super_admin';
+        $username = trim((string) $request->input('username', ''));
+
+        if ($username !== '') {
+            $adminUser = AdminUser::where('username', $username)->where('is_active', true)->first();
+            $correct = $adminUser && \Illuminate\Support\Facades\Hash::check((string) $request->input('password'), $adminUser->password);
+            if ($correct) {
+                $role = $adminUser->role;
+            }
+        } else {
+            $configured = (string) config('admin.password');
+            $correct = $configured !== '' && hash_equals($configured, (string) $request->input('password'));
+        }
 
         if (! $correct) {
             $failures = (int) Cache::get($failureKey, 0) + 1;
@@ -114,6 +130,7 @@ class AdminController extends Controller
 
         $request->session()->regenerate();
         $request->session()->put('admin_authenticated', true);
+        $request->session()->put('admin_role', $role);
 
         // Keep the admin logged in for 30 days via a long-lived remember cookie
         // (see AdminAuthenticate). The session alone expires far sooner.
@@ -265,6 +282,8 @@ class AdminController extends Controller
      */
     public function adjustWallet(Request $request): RedirectResponse
     {
+        abort_unless(AdminRoles::currentCan('wallet_adjust'), 403);
+
         $validated = $request->validate([
             'phone' => ['required', 'regex:/^\d{10}$/'],
             'direction' => ['required', 'in:increase,decrease'],
@@ -467,6 +486,8 @@ class AdminController extends Controller
 
     public function approveDeposit(DepositRequest $deposit): RedirectResponse
     {
+        abort_unless(AdminRoles::currentCan('approve_deposits'), 403);
+
         if ($deposit->status !== DepositRequest::STATUS_PENDING) {
             return back()->with('error', 'This request has already been reviewed.');
         }
@@ -500,6 +521,8 @@ class AdminController extends Controller
 
     public function rejectDeposit(DepositRequest $deposit): RedirectResponse
     {
+        abort_unless(AdminRoles::currentCan('approve_deposits'), 403);
+
         if ($deposit->status !== DepositRequest::STATUS_PENDING) {
             return back()->with('error', 'This request has already been reviewed.');
         }
@@ -620,6 +643,8 @@ class AdminController extends Controller
 
     public function approveWithdrawal(WithdrawRequest $withdraw): RedirectResponse
     {
+        abort_unless(AdminRoles::currentCan('approve_withdrawals'), 403);
+
         if ($withdraw->status !== WithdrawRequest::STATUS_PENDING) {
             return back()->with('error', 'This request has already been reviewed.');
         }
@@ -661,6 +686,8 @@ class AdminController extends Controller
 
     public function rejectWithdrawal(WithdrawRequest $withdraw): RedirectResponse
     {
+        abort_unless(AdminRoles::currentCan('approve_withdrawals'), 403);
+
         if ($withdraw->status !== WithdrawRequest::STATUS_PENDING) {
             return back()->with('error', 'This request has already been reviewed.');
         }

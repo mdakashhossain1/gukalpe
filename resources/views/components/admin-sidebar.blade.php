@@ -23,7 +23,30 @@
         ['route' => 'admin.logs', 'key' => 'logs', 'icon' => 'fa-list', 'label' => 'Activity logs'],
         ['route' => 'admin.push-notification', 'key' => 'push-notification', 'icon' => 'fa-paper-plane', 'label' => 'Push notification'],
         ['route' => 'admin.plans', 'key' => 'plans', 'icon' => 'fa-layer-group', 'label' => 'Investment plans'],
+        ['route' => 'admin.roles', 'key' => 'roles', 'icon' => 'fa-user-shield', 'label' => 'Roles & admins'],
+        ['route' => 'admin.backups', 'key' => 'backups', 'icon' => 'fa-database', 'label' => 'Backups'],
     ];
+
+    // Role-based nav gating (plan.md Section 39). Keys not listed here are
+    // always visible; listed keys show only if the current role has the perm.
+    $navPerms = [
+        'deposits' => 'approve_deposits',
+        'withdrawals' => 'approve_withdrawals',
+        'transactions' => 'view_reports',
+        'banners' => 'manage_banners',
+        'plan-analytics' => 'view_reports',
+        'reports' => 'view_reports',
+        'payment-gateway' => 'manage_settings',
+        'settings' => 'manage_settings',
+        'push-notification' => 'manage_settings',
+        'plans' => 'manage_plans',
+        'roles' => 'manage_roles',
+        'backups' => 'manage_backups',
+    ];
+    $navItems = array_values(array_filter($navItems, function ($item) use ($navPerms) {
+        $perm = $navPerms[$item['key']] ?? null;
+        return $perm === null || \App\Support\AdminRoles::currentCan($perm);
+    }));
 @endphp
 
 {{-- Mobile top bar (md:hidden) - hamburger opens the SAME <aside> below as

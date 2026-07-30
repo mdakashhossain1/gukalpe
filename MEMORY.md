@@ -1,5 +1,24 @@
 # MEMORY.md — Project Log
 
+## 2026-07-30 — Phase 3 · Section 40 Backup — 6-item backlog COMPLETE
+
+Database backup management (SQLite-native).
+- `BackupController` (Admin): index (list backups + DB size), create (copy `DB::connection()->getConfig('database')` → `storage/app/backups/backup-{Ymd-His}.sqlite`), download (`response()->download`, filename validated against `^[a-zA-Z0-9\-]+\.sqlite$` to block traversal), destroy, restore. All gated by new `manage_backups` permission (super_admin only). **Restore** additionally re-checks `current()==='super_admin'`, snapshots the current DB to `pre-restore-*.sqlite` first, then `DB::disconnect()` + copies over the live file. Non-SQLite connections get a clear "use mysqldump" message instead of a broken copy.
+- Routes `admin.backups.*`, sidebar "Backups" nav (perm-gated `manage_backups`), `Admin/Views/backups.blade.php`. Added `manage_backups` to `AdminRoles::PERMISSIONS` + super_admin matrix row.
+- Tests: `BackupTest` (3 — page/create/restore permission gating; file ops can't be unit-tested since phpunit uses `:memory:` sqlite). Full suite **55 passed**. Real-browser verified (5/5): create → row + success, download (294 KB real DB copy), restore button present for super admin (not clicked — sensitive), delete removes it. (Headless note: `confirm()` dialogs need `page.on('dialog', d=>d.accept())`.)
+- **✅ Agreed 6-item Part-3 backlog is now COMPLETE: 30 Transactions, 34 Banners, 37 Reports, 27 Analytics, 39 Roles, 40 Backup — all done + verified.** Remaining plan.md items are all optional (see roadmap memory). Scheduled backups (daily/weekly/monthly) NOT wired — flagged in the UI as an opt-in follow-up.
+
+## 2026-07-30 — Phase 3 · Section 39 Role Management (additive RBAC)
+
+Real role-based access, additive so the shared master password still works.
+- `App\Support\AdminRoles`: 5 roles (super_admin/manager/finance/support/marketing) × 8 permissions (manage_plans, approve_deposits, approve_withdrawals, wallet_adjust, manage_banners, view_reports, manage_settings, manage_roles) as a `MATRIX`; `can($role,$perm)`, `current()` (reads `session('admin_role')`, defaults super_admin for back-compat), `currentCan($perm)`.
+- `admin_users` table + `AdminUser` model (name, username unique, hashed password, role, is_active). Migration `2026_07_30_030000`.
+- **Login is additive** (`AdminController::authenticate`): if a `username` is posted, authenticate against `admin_users` (Hash::check, must be active) → that role; if blank, the master `ADMIN_PANEL_PASSWORD` path is UNCHANGED → super_admin. Session now stores `admin_role`. Login form gained an optional username field.
+- Enforcement: `abort_unless(AdminRoles::currentCan(...), 403)` on approve/reject deposit + withdrawal + wallet-adjust; the whole Roles page/CRUD gated to `manage_roles`. **Sidebar nav filtered by permission** (`$navPerms` map → `AdminRoles::currentCan`).
+- `RoleController` (new) + `Admin/Views/roles.blade.php`: permission matrix table + admin-users list (create/enable-disable/remove). Routes `admin.roles.*`, nav "Roles & admins".
+- Tests: `RoleManagementTest` (6 — matrix, master→super_admin, named-admin login, inactive blocked, roles page 403 for support, marketing blocked from approving withdrawals). Full suite **52 passed**. Real-browser verified (6/6): super admin creates a manager, manager logs in, nav hides Roles, `/roles` 403, withdrawals nav still shown.
+- **Next: Section 40 Backup — the LAST item of the agreed 6-item backlog.**
+
 ## 2026-07-30 — Phase 3 · Section 27 Plan Analytics
 
 Per-plan performance page.

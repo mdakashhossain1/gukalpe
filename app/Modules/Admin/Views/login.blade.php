@@ -22,6 +22,18 @@
                 @csrf
 
                 <div>
+                    <label for="username" class="block text-[13px] font-semibold text-[#334155] mb-1.5">Username <span class="text-[#94A3B8] font-normal">(leave blank for master login)</span></label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        autocomplete="username"
+                        value="{{ old('username') }}"
+                        class="w-full h-11 rounded-lg border border-[#CBD5E1] px-3.5 text-[14.5px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15"
+                    >
+                </div>
+
+                <div>
                     <label for="password" class="block text-[13px] font-semibold text-[#334155] mb-1.5">Password</label>
                     <input
                         type="password"
