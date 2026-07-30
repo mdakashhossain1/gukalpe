@@ -1,8 +1,10 @@
 <?php
 
 use App\Modules\Admin\Controllers\AdminController;
+use App\Modules\Admin\Controllers\BannerController;
 use App\Modules\Admin\Controllers\PaymentGatewayController;
 use App\Modules\Admin\Controllers\PlanManagementController;
+use App\Modules\Admin\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 // Slug comes from config/admin.php (ADMIN_PANEL_SLUG in .env) - change the
@@ -24,6 +26,21 @@ Route::prefix($slug)->group(function () {
         Route::get('/withdrawals', [AdminController::class, 'withdrawals'])->name('admin.withdrawals');
         Route::post('/withdrawals/{withdraw}/approve', [AdminController::class, 'approveWithdrawal'])->name('admin.withdrawals.approve');
         Route::post('/withdrawals/{withdraw}/reject', [AdminController::class, 'rejectWithdrawal'])->name('admin.withdrawals.reject');
+        Route::get('/transactions', [AdminController::class, 'transactions'])->name('admin.transactions');
+
+        Route::get('/banners', [BannerController::class, 'index'])->name('admin.banners');
+        Route::get('/banners/create', [BannerController::class, 'create'])->name('admin.banners.create');
+        Route::post('/banners', [BannerController::class, 'store'])->name('admin.banners.store');
+        Route::get('/banners/{banner}/edit', [BannerController::class, 'edit'])->name('admin.banners.edit');
+        Route::post('/banners/{banner}', [BannerController::class, 'update'])->name('admin.banners.update');
+        Route::post('/banners/{banner}/toggle-active', [BannerController::class, 'toggleActive'])->name('admin.banners.toggle-active');
+        Route::post('/banners/{banner}/delete', [BannerController::class, 'destroy'])->name('admin.banners.delete');
+
+        Route::get('/plan-analytics', [AdminController::class, 'planAnalytics'])->name('admin.plan-analytics');
+
+        Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports');
+        Route::get('/reports/print', [ReportController::class, 'printable'])->name('admin.reports.print');
+        Route::get('/reports/export', [ReportController::class, 'export'])->name('admin.reports.export');
         Route::get('/notifications/poll', [AdminController::class, 'pollNotifications'])->name('admin.notifications.poll');
         Route::post('/notifications/read', [AdminController::class, 'markNotificationsRead'])->name('admin.notifications.read');
         // Wallet adjustment has no standalone page anymore - it lives inline in

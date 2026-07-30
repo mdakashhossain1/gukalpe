@@ -138,7 +138,7 @@ class PlanPurchaseController extends Controller
                 ]);
         }
 
-        $wallet = WalletBalance::debit($user->phone, $amount);
+        $wallet = WalletBalance::debit($user->phone, $amount, 'plan_purchase', ['plan' => $plan->title]);
 
         $userPlan = UserPlan::create([
             'user_id' => $user->id,
@@ -233,7 +233,7 @@ class PlanPurchaseController extends Controller
             ? $this->proportionalReturn($newTotal, $duration)
             : [$newTotal, 0.0];
 
-        $wallet = WalletBalance::debit($user->phone, $amount);
+        $wallet = WalletBalance::debit($user->phone, $amount, 'plan_purchase', ['plan' => $pot->plan->title, 'topup' => true]);
 
         $pot->update([
             'invested_amount' => $newTotal,
@@ -358,7 +358,7 @@ class PlanPurchaseController extends Controller
             'commission_percent' => $percent,
         ]);
 
-        WalletBalance::credit($referrer->phone, $amount);
+        WalletBalance::credit($referrer->phone, $amount, 'referral_bonus', ['commission_percent' => $percent]);
 
         AdminNotification::notify(
             'referral_commission',

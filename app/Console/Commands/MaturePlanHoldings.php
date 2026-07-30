@@ -40,7 +40,10 @@ class MaturePlanHoldings extends Command
             // The spec rule: "Investment Amount is NEVER returned. ONLY Profit credited."
             $profitAmount = $holdingData['accruedProfit'];
 
-            WalletBalance::credit($holding->user->phone, $profitAmount);
+            WalletBalance::credit($holding->user->phone, $profitAmount, 'profit_credit', [
+                'plan' => $holding->plan->title,
+                'user_plan_id' => $holding->id,
+            ]);
 
             $holding->update([
                 'status' => UserPlan::STATUS_WITHDRAWN,

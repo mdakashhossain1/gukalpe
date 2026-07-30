@@ -20,7 +20,7 @@ class Plan extends Model
         'marketing_badge_color', 'risk_level',
         'start_date', 'end_date', 'auto_mature',
         'terms', 'faqs', 'highlights',
-        'max_purchases', 'total_purchases_count',
+        'max_purchases', 'total_purchases_count', 'views',
     ];
 
     // Curated colour schemes for the marketing badge ribbon (Explore/Plan
@@ -52,6 +52,7 @@ class Plan extends Model
         'highlights' => 'array',
         'max_purchases' => 'integer',
         'total_purchases_count' => 'integer',
+        'views' => 'integer',
     ];
 
     protected static function booted(): void

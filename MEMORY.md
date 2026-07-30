@@ -1,5 +1,42 @@
 # MEMORY.md — Project Log
 
+## 2026-07-30 — Phase 3 · Section 27 Plan Analytics
+
+Per-plan performance page.
+- Added `plans.views` (unsigned int, migration `2026_07_30_020000`); `PlanDetailsController::index` does `$plan->increment('views')` per detail-page open (top of funnel). Purchases already tracked in `plans.total_purchases_count`.
+- `AdminController::planAnalytics()`: one grouped `user_plans` query (count / sum invested / running=active / completed=withdrawn via CASE) keyed by plan_id, combined with each plan's views + purchases → conversion = purchases/views. Route `admin.plan-analytics`, sidebar nav, `Admin/Views/plan-analytics.blade.php` (3 summary tiles + per-plan table: Views · Purchases · Conversion · Running · Completed · Total invested).
+- Tests: `PlanAnalyticsTest` (2 — view counter increments on detail open; analytics page renders correct aggregates, authenticated via `withSession(['admin_authenticated'=>true])` — reusable trick for admin-route tests). Full suite **46 passed**. Real-browser verified.
+- Note: view tracking starts from this release (no historical views). Admin routes are gated only by `session('admin_authenticated')`.
+- **Next Part-3 target: Section 39 Role Management.** Then 40 Backup — that completes the agreed 6-item backlog.
+
+## 2026-07-30 — Phase 3 · Section 37 Reports (CSV / Excel / PDF)
+
+Admin reports with period selection + export, zero new composer deps.
+- `App\Support\ReportService`: `PERIODS` (daily/weekly/monthly/yearly), `range($period)` → CarbonImmutable [from,to] (startOfDay/Week/Month/Year → now, defaults monthly), `metrics($from,$to)` → New users, Deposits (approved), Investments (plan purchases), Profit credited, Referral bonus paid, Withdrawals (approved). Complete-history sources (users/deposit_requests/withdraw_requests/user_plans) for most; profit/referral from `wallet_transactions` ledger (from-ledger-creation onward).
+- `ReportController` (Admin): `index` (page), `export` (csv | excel), `printable` (PDF). **CSV** = native `streamDownload` + `fputcsv`. **Excel** = HTML `<table>` served as `application/vnd.ms-excel` `.xls` (no PhpSpreadsheet). **PDF** = print-optimised standalone `report-print.blade.php` that auto-calls `window.print()` (browser "Save as PDF" — deliberately no dompdf dependency added to this prod app; can swap in `barryvdh/laravel-dompdf` later for a true server-side PDF).
+- Routes `admin.reports` / `.print` / `.export`, sidebar nav, `Admin/Views/reports.blade.php` (period tabs + metrics table + CSV/Excel/PDF buttons).
+- Tests: `ReportServiceTest` (2 — in-range aggregation correctness + period defaulting). Full suite **44 passed**. Real-browser verified (6/6): page + tabs, CSV (`text/csv`) & Excel (`ms-excel`) downloads with correct content, PDF print view, period switch.
+- **Next Part-3 target: Section 27 Plan Analytics.** Then 39 Roles, 40 Backup.
+
+## 2026-07-30 — Phase 3 · Section 34 Banner Management
+
+Admin-managed marketing banners.
+- `banners` table + `Banner` model (`placement` home/offer/explore/popup, `title`, `image`, `redirect_link`, `is_active`, `priority`, `start_date`/`end_date`). `Banner::activeFor($placement)` returns active + in-schedule banners, highest priority first; `scopeWithinSchedule` mirrors `Plan::isWithinSchedule`. Migration `2026_07_30_010000_create_banners_table.php`.
+- `BannerController` (new, in Admin module) full CRUD: index/create/store/edit/update/toggle-active/delete. Image upload reuses the plan convention — files go to `public/assets/banners/` (no storage symlink; app is served out of `public/`). Routes `admin.banners.*`, sidebar nav item, views `Admin/Views/banners/{index,form}.blade.php`.
+- Front display: `HomeController` passes `homeBanners = Banner::activeFor('home')`; `home.blade.php` renders them at the existing banner slot with `@forelse … @empty` fallback to the old static `assets/home_banner.png`. (Offer/explore/popup placements are stored + manageable now; wiring them into those specific screens is a later follow-up.)
+- Tests: `BannerTest` (2 — activeFor filtering/ordering, home renders active banner). Full suite **42 passed**. Real-browser verified: admin uploads an image → banner shows Active in list + on home; hiding it falls back to the static banner. (Verification also caught a test-only selector bug — `button[type=submit]` matched the layout's Sign-out button; fixed by scoping to `form:has(#placement)`.)
+- **Next Part-3 target: Section 37 Reports (+CSV/Excel/PDF export).** Then 27 Analytics, 39 Roles, 40 Backup.
+
+## 2026-07-30 — Phase 3 · Section 30 Transaction Management (unified wallet ledger)
+
+Built the first real **wallet ledger**. Before this, money movements only mutated the `wallet_balances` running balance with no history.
+- New `wallet_transactions` table + `WalletTransaction` model (`type`, `direction`, `amount`, `status`, `balance_after`, `meta` json). Migration `2026_07_30_000000_create_wallet_transactions_table.php`.
+- **Centralised ledger writing inside `WalletBalance::credit()/debit()`** — both now take `(…, string $type, array $meta = [])` and write exactly one ledger row via a private `recordLedger()`, so no call site can move money without a logged entry. Wired all 8 call sites with types: `plan_purchase` (2×, incl. topup), `profit_credit` (maturity), `add_money` (deposit approve), `withdrawal` (withdraw approve), `manual_credit`/`manual_debit` (admin adjust), `referral_bonus`.
+- Admin **Transactions** page: new route `admin.transactions`, `AdminController::transactions()`, `Admin/Views/transactions.blade.php` (summary tiles credited/debited/net, type-filter chips, simple-datatables search/paginate table: Txn ID · User · Type · Amount · Balance after · Status · Date), sidebar nav item.
+- Ledger records COMPLETED movements only; pending/failed deposit & withdrawal REQUESTS stay on their own pages. No historical backfill — entries accrue from now on.
+- Tests: `WalletLedgerTest` (2). Full suite **40 passed**. Real-browser verified: purchase writes a `plan_purchase` row that renders on the admin page; type filter works.
+- **Next Part-3 target: Section 34 Banner Management.** Then 37 Reports, 27 Analytics, 39 Roles, 40 Backup.
+
 ## 2026-07-30 — Phase 3 (plan.md Part 3 admin) started: Section 41 System Settings kill-switches
 
 First Phase-3 slice — plan.md **Section 41 System Settings**: admin toggles that gate core flows instantly.

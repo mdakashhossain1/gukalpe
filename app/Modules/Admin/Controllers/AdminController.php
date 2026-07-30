@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\UserPlan;
 use App\Models\WalletBalance;
+use App\Models\WalletTransaction;
 use App\Models\WithdrawRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -290,8 +291,8 @@ class AdminController extends Controller
         }
 
         $wallet = $increase
-            ? WalletBalance::credit($phone, $amount)
-            : WalletBalance::debit($phone, $amount);
+            ? WalletBalance::credit($phone, $amount, 'manual_credit', ['source' => 'admin_adjustment'])
+            : WalletBalance::debit($phone, $amount, 'manual_debit', ['source' => 'admin_adjustment']);
 
         $newBalance = (float) $wallet->balance;
 
@@ -475,7 +476,7 @@ class AdminController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        $wallet = WalletBalance::credit($deposit->phone, (float) $deposit->amount);
+        $wallet = WalletBalance::credit($deposit->phone, (float) $deposit->amount, 'add_money', ['deposit_id' => $deposit->id]);
 
         if ($user = User::where('phone', $deposit->phone)->first()) {
             UserNotification::notify(
@@ -542,6 +543,81 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Unified wallet ledger (plan.md Section 30 — Transaction Management).
+     * Reads the wallet_transactions table written by WalletBalance::credit/debit.
+     */
+    public function transactions(Request $request): View
+    {
+        $type = $request->query('type', 'all');
+
+        $query = WalletTransaction::query()->latest('id');
+        if ($type !== 'all' && array_key_exists($type, WalletTransaction::TYPE_LABELS)) {
+            $query->where('type', $type);
+        } else {
+            $type = 'all';
+        }
+
+        // Cap the rendered set; the client-side datatable paginates/searches it.
+        $transactions = $query->limit(1000)->get();
+        $names = User::whereIn('phone', $transactions->pluck('phone')->unique())->pluck('name', 'phone');
+
+        return view('Admin::transactions', [
+            'type' => $type,
+            'transactions' => $transactions,
+            'names' => $names,
+            'typeLabels' => WalletTransaction::TYPE_LABELS,
+            'totalCredit' => WalletTransaction::where('direction', 'credit')->sum('amount'),
+            'totalDebit' => WalletTransaction::where('direction', 'debit')->sum('amount'),
+            'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
+            'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
+        ]);
+    }
+
+    /**
+     * Per-plan analytics (plan.md Section 27): views + purchases + conversion,
+     * plus investment/running/completed derived from user_plans in one grouped
+     * query (no N+1).
+     */
+    public function planAnalytics(): View
+    {
+        $agg = UserPlan::selectRaw(
+            'plan_id,
+             count(*) as holdings,
+             coalesce(sum(invested_amount), 0) as invested,
+             sum(case when status = ? then 1 else 0 end) as running,
+             sum(case when status = ? then 1 else 0 end) as completed',
+            [UserPlan::STATUS_ACTIVE, UserPlan::STATUS_WITHDRAWN]
+        )->groupBy('plan_id')->get()->keyBy('plan_id');
+
+        $rows = Plan::orderByDesc('total_purchases_count')->orderBy('sort_order')->get()->map(function (Plan $p) use ($agg) {
+            $a = $agg->get($p->id);
+            $purchases = (int) ($a->holdings ?? 0);
+            $views = (int) $p->views;
+
+            return [
+                'title' => $p->title,
+                'views' => $views,
+                'purchases' => $purchases,
+                'conversion' => $views > 0 ? round($purchases / $views * 100, 1) : 0.0,
+                'invested' => (float) ($a->invested ?? 0),
+                'running' => (int) ($a->running ?? 0),
+                'completed' => (int) ($a->completed ?? 0),
+            ];
+        });
+
+        return view('Admin::plan-analytics', [
+            'rows' => $rows,
+            'totals' => [
+                'views' => $rows->sum('views'),
+                'purchases' => $rows->sum('purchases'),
+                'invested' => $rows->sum('invested'),
+            ],
+            'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
+            'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
+        ]);
+    }
+
     public function approveWithdrawal(WithdrawRequest $withdraw): RedirectResponse
     {
         if ($withdraw->status !== WithdrawRequest::STATUS_PENDING) {
@@ -561,7 +637,7 @@ class AdminController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        $wallet = WalletBalance::debit($withdraw->phone, (float) $withdraw->amount);
+        $wallet = WalletBalance::debit($withdraw->phone, (float) $withdraw->amount, 'withdrawal', ['withdraw_id' => $withdraw->id]);
 
         if ($user = User::where('phone', $withdraw->phone)->first()) {
             UserNotification::notify(

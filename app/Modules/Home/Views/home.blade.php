@@ -292,12 +292,20 @@
             @endif
         </div>
 
-        <!-- Secure Your Future Banner -->
-        <div class="px-5 mt-7 md:flex md:justify-start">
-            <a href="{{ route('explore') }}" class="block rounded-[20px] overflow-hidden shadow-[0_4px_16px_rgba(15,23,42,0.08)] transition-all active:scale-[0.98] hover:shadow-[0_8px_24px_rgba(15,23,42,0.14)] md:max-w-[380px]">
-                <img src="{{ asset('assets/home_banner.png') }}" alt="Secure Your Future - Invest in trusted assets and grow your wealth securely" class="w-full h-auto block">
-            </a>
-        </div>
+        <!-- Home Banner(s) — admin-managed (plan.md Section 34), falls back to the static banner -->
+        @forelse ($homeBanners as $banner)
+            <div class="px-5 mt-7 md:flex md:justify-start">
+                <a href="{{ $banner->redirect_link ?: route('explore') }}" class="block rounded-[20px] overflow-hidden shadow-[0_4px_16px_rgba(15,23,42,0.08)] transition-all active:scale-[0.98] hover:shadow-[0_8px_24px_rgba(15,23,42,0.14)] md:max-w-[380px]">
+                    <img src="{{ $banner->imageUrl() }}" alt="{{ $banner->title ?: 'Offer banner' }}" class="w-full h-auto block">
+                </a>
+            </div>
+        @empty
+            <div class="px-5 mt-7 md:flex md:justify-start">
+                <a href="{{ route('explore') }}" class="block rounded-[20px] overflow-hidden shadow-[0_4px_16px_rgba(15,23,42,0.08)] transition-all active:scale-[0.98] hover:shadow-[0_8px_24px_rgba(15,23,42,0.14)] md:max-w-[380px]">
+                    <img src="{{ asset('assets/home_banner.png') }}" alt="Secure Your Future - Invest in trusted assets and grow your wealth securely" class="w-full h-auto block">
+                </a>
+            </div>
+        @endforelse
 
         <!-- Trust Strip -->
         <div class="px-5 mt-4 mb-2">

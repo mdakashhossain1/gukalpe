@@ -18,6 +18,10 @@ class PlanDetailsController extends Controller
         $user = Auth::user();
         $phone = $user?->phone;
 
+        // Plan Analytics view counter (plan.md Section 27) — one impression per
+        // detail-page open. increment() writes directly, no model event needed.
+        $plan->increment('views');
+
         // Real, server-computed unlock state - never guessed in the view -
         // used both for the 🔒/✅ badge and to decide whether the Progress
         // Timeline shows a live step or just a preview.
