@@ -50,6 +50,8 @@ class HomeController extends Controller
             'chartPoints' => UserPlan::chartPointsFor($holdings, self::SPARKLINE_DAYS),
             'featuredPlans' => Plan::active()->ordered()->take(4)->get(),
             'homeBanners' => Banner::activeFor('home'),
+            'offerBanners' => Banner::activeFor('offer'),
+            'popupBanners' => Banner::activeFor('popup'),
             'totalInvestors' => UserPlan::query()->distinct('user_id')->count('user_id'),
             'unreadNotificationCount' => $user
                 ? UserNotification::where('user_id', $user->id)->unread()->count()

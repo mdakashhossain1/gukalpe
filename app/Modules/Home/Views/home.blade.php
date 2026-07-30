@@ -259,6 +259,15 @@
             </div>
         </div>
 
+        <!-- Offer Banner(s) — admin-managed (plan.md Section 34) -->
+        @foreach ($offerBanners as $banner)
+            <div class="px-5 mt-6">
+                <a href="{{ $banner->redirect_link ?: route('explore') }}" class="block rounded-[18px] overflow-hidden shadow-[0_4px_16px_rgba(15,23,42,0.08)] active:scale-[0.98] transition-all">
+                    <img src="{{ $banner->imageUrl() }}" alt="{{ $banner->title ?: 'Special offer' }}" class="w-full h-auto block">
+                </a>
+            </div>
+        @endforeach
+
         <!-- Featured Investment Plans -->
         <div class="mt-7">
             <div class="flex items-center justify-between mb-2.5 px-5">
@@ -330,4 +339,26 @@
         </div>
 
     </div>
+
+    {{-- Popup Banner — admin-managed (plan.md Section 34). Shown once per browser
+         session so it isn't nagging on every home visit. --}}
+    @if ($popupBanners->isNotEmpty())
+        @php $popup = $popupBanners->first(); @endphp
+        <div id="home-offer-popup" class="hidden fixed inset-0 z-[300] bg-slate-900/60 backdrop-blur-md items-center justify-center p-4">
+            <div class="relative w-full max-w-[360px] bg-white rounded-[24px] shadow-2xl overflow-hidden">
+                <button type="button" aria-label="Close" onclick="var p=document.getElementById('home-offer-popup');p.classList.add('hidden');p.classList.remove('flex');try{sessionStorage.setItem('offerPopupSeen','1')}catch(e){}" class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/45 text-white text-[18px] leading-none flex items-center justify-center active:scale-90 transition">&times;</button>
+                <a href="{{ $popup->redirect_link ?: route('explore') }}">
+                    <img src="{{ $popup->imageUrl() }}" alt="{{ $popup->title ?: 'Offer' }}" class="w-full h-auto block">
+                </a>
+            </div>
+        </div>
+        <script>
+            (function () {
+                try { if (sessionStorage.getItem('offerPopupSeen')) return; } catch (e) {}
+                var el = document.getElementById('home-offer-popup');
+                if (!el) return;
+                setTimeout(function () { el.classList.remove('hidden'); el.classList.add('flex'); }, 800);
+            })();
+        </script>
+    @endif
 @endsection

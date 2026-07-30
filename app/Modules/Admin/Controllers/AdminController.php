@@ -431,18 +431,14 @@ class AdminController extends Controller
     public function updateSettings(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'cashback_amount' => ['required', 'numeric', 'min:0'],
             'commission_percent' => ['required', 'numeric', 'min:0', 'max:100'],
-            'settlement_time' => ['required', 'string', 'max:50'],
             'max_deposit_limit' => ['required', 'numeric', 'min:0'],
             'withdrawal_min_amount' => ['nullable', 'numeric', 'min:0'],
             'withdrawal_daily_limit' => ['nullable', 'numeric', 'min:0'],
             'withdrawal_max_per_day' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        AppSetting::set('cashback_amount', (string) $validated['cashback_amount']);
         AppSetting::set('commission_percent', (string) $validated['commission_percent']);
-        AppSetting::set('settlement_time', $validated['settlement_time']);
         AppSetting::set('max_deposit_limit', (string) $validated['max_deposit_limit']);
 
         if (isset($validated['withdrawal_min_amount'])) {

@@ -32,4 +32,24 @@ class BannerTest extends TestCase
             ->assertOk()
             ->assertSee('assets/banners/live-banner.png');
     }
+
+    public function test_home_page_renders_offer_and_popup_banners(): void
+    {
+        Banner::create(['placement' => 'offer', 'image' => 'assets/banners/offer-x.png', 'is_active' => true]);
+        Banner::create(['placement' => 'popup', 'image' => 'assets/banners/popup-x.png', 'is_active' => true]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('assets/banners/offer-x.png')
+            ->assertSee('assets/banners/popup-x.png');
+    }
+
+    public function test_explore_page_renders_active_explore_banner(): void
+    {
+        Banner::create(['placement' => 'explore', 'image' => 'assets/banners/explore-x.png', 'is_active' => true]);
+
+        $this->get(route('explore'))
+            ->assertOk()
+            ->assertSee('assets/banners/explore-x.png');
+    }
 }

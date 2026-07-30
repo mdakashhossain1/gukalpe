@@ -3,6 +3,7 @@
 namespace App\Modules\Explore\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Banner;
 use App\Models\Plan;
 use App\Models\PlanCategory;
 use App\Models\UserPlan;
@@ -135,6 +136,7 @@ class ExploreController extends Controller
             'amountCeil' => $amountCeil,
             'hasActiveFilters' => $selectedDuration !== null || $selectedMinGrowth !== null || $selectedRiskLevel !== null || $minAmount !== null || $maxAmount !== null,
             'plans' => $plans,
+            'exploreBanners' => Banner::activeFor('explore'),
             'featuredPlans' => $allPlans->take(4),
             'badgeIcons' => $categoryIcons,
             'defaultBadgeIcon' => PlanCategory::DEFAULT_ICON,

@@ -68,6 +68,12 @@ class DepositRequestController extends Controller
         }
         $amountValue = (float) $amount;
 
+        // Global per-transaction deposit cap (admin Settings → Max deposit limit).
+        $maxDeposit = (float) AppSetting::get('max_deposit_limit', AppSetting::DEFAULTS['max_deposit_limit']);
+        if ($maxDeposit > 0 && $amountValue > $maxDeposit) {
+            return redirect()->route('home')->with('error', 'Maximum deposit is ₹'.number_format($maxDeposit, 0).' per transaction.');
+        }
+
         // Method-level amount routing: the admin sets ONE amount range for UPI
         // and ONE for Bank (app_settings). The deposit amount decides which
         // METHOD is eligible; the specific account is then a random pick among
@@ -172,6 +178,13 @@ class DepositRequestController extends Controller
             'utr.digits' => 'Enter the 12-digit UTR/reference number exactly as shown in your UPI app.',
             'utr.min' => 'Enter the transaction reference number exactly as shown in your bank statement.',
         ]);
+
+        // Enforce the global deposit cap again at submission — the amount here
+        // comes from a posted field, so it must be re-checked, not trusted.
+        $maxDeposit = (float) AppSetting::get('max_deposit_limit', AppSetting::DEFAULTS['max_deposit_limit']);
+        if ($maxDeposit > 0 && (float) $validated['amount'] > $maxDeposit) {
+            return back()->withErrors(['amount' => 'Maximum deposit is ₹'.number_format($maxDeposit, 0).' per transaction.']);
+        }
 
         $methodLabel = $validated['method'] === 'upi' ? 'UPI' : 'Bank Transfer';
         if (! empty($validated['pay_to_label'])) {

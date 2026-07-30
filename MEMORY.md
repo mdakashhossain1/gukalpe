@@ -1,5 +1,23 @@
 # MEMORY.md — Project Log
 
+## 2026-07-30 — Orphaned-option audit: enforced max deposit limit, removed dead cashback field, rebuilt CSS
+
+Audited whether admin-configurable settings are actually consumed by the real app (prompted by the banner-placement gap). Findings + fixes:
+- **CSS was STALE** — `public/build/` was from Jul 28, before this whole session. Tailwind compiles by scanning blades at build time, so every new class this session (banner popup, out-of-stock badges, all new admin pages) was missing from prod CSS. Ran `npm run build` → fresh `app-*.css`. **Remember to `npm run build` after blade/CSS changes** (or run `composer run dev` which runs vite).
+- **`max_deposit_limit` was NOT enforced** (dead field). Now enforced in `DepositRequestController::create()` (early UX redirect) AND `store()` (security re-check — amount comes from a posted field). Test `DepositLimitTest`.
+- **Cashback was a dead option** — `cashback_amount` is set in admin + shared to views by AppServiceProvider, but NEVER credited to a real user (only the localStorage admin **Simulations** demo uses it). Removed the Cashback field from `Admin/Views/settings.blade.php` + its validation/`set()` in `AdminController::updateSettings` (grid 4→3 cols). Left `AppSetting::DEFAULTS['cashback_amount']` + AppServiceProvider share + `WalletTransaction` 'Cashback' label intact so Simulations still works and a future Section 32 cashback engine can reuse the type. Verified settings still save (removing it from validation was required — a missing required field would've broken the save).
+- **`settlement_time` was also unused** → removed its field from `settings.blade.php` + validation/`set()` too (grid now 2 cols: Commission %, Max deposit). DEFAULTS/AppServiceProvider share left intact.
+- **Confirmed NOT orphans** (verified consumed): banners (all 4 placements), kill-switches, withdrawal limits, referral toggle + commission %, risk_level, plan highlights/terms/FAQs (all render on plan-details), UPI/bank deposit routing.
+- Full suite **58 passed**. Real-browser verified: settings page has no Cashback or Settlement-time field and still saves cleanly.
+
+## 2026-07-30 — Section 34 follow-up: wired ALL banner placements (plan.md specifies 4)
+
+plan.md Section 34 (line 338) explicitly lists **Home · Offer · Explore · Popup** banners — the earlier build only rendered `home`. Wired the other three:
+- **Explore banner** → top of `/explore` plan list (`ExploreController` passes `Banner::activeFor('explore')`; rendered inside `#step-plans-list`).
+- **Offer banner** → Home page, its own strip just above "Featured Investment Plans" (`HomeController` `offerBanners`).
+- **Popup banner** → dismissible modal on Home load, shown once per browser session via `sessionStorage('offerPopupSeen')`, 800ms delay (`popupBanners` → `#home-offer-popup` block at end of `home.blade.php`).
+- Tests: extended `BannerTest` (+2 — offer/popup on home, explore banner on explore). Full suite **57 passed**. Real-browser verified all 4 placements render on their pages. All placements share the `Banner::activeFor()` helper (active + within-schedule + priority order).
+
 ## 2026-07-30 — Phase 3 · Section 40 Backup — 6-item backlog COMPLETE
 
 Database backup management (SQLite-native).

@@ -97,6 +97,13 @@
             <!-- PLANS LIST -->
             <div id="step-plans-list" class="flex-1 flex-col pb-safe overflow-y-auto overflow-x-hidden px-4 pt-2 space-y-5">
 
+            {{-- Explore banner(s) — admin-managed (plan.md Section 34) --}}
+            @foreach ($exploreBanners as $banner)
+                <a href="{{ $banner->redirect_link ?: route('explore') }}" class="block rounded-[18px] overflow-hidden shadow-[0_4px_16px_rgba(15,23,42,0.08)] active:scale-[0.99] transition-all">
+                    <img src="{{ $banner->imageUrl() }}" alt="{{ $banner->title ?: 'Offer' }}" class="w-full h-auto block">
+                </a>
+            @endforeach
+
             @forelse ($plans as $plan)
                 @php
                     $cp = $plan->toLegacyArray();

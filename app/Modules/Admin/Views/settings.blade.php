@@ -31,12 +31,7 @@
 
             <form method="POST" action="{{ route('admin.settings.update') }}" class="flex flex-col gap-3.5 pt-1 border-t border-[#E5E9EB]">
                 @csrf
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                    <div>
-                        <label for="setting-cashback-amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Cashback (₹)</label>
-                        <input type="number" name="cashback_amount" id="setting-cashback-amount" min="0" step="1" value="{{ old('cashback_amount', $settings['cashback_amount']) }}"
-                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                    </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                     <div>
                         <label for="setting-commission-percent" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Commission (%)</label>
                         <input type="number" name="commission_percent" id="setting-commission-percent" min="0" max="100" step="0.1" value="{{ old('commission_percent', $settings['commission_percent']) }}"
@@ -45,11 +40,6 @@
                     <div>
                         <label for="setting-max-deposit-limit" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max deposit (₹)</label>
                         <input type="number" name="max_deposit_limit" id="setting-max-deposit-limit" min="0" step="1" value="{{ old('max_deposit_limit', $settings['max_deposit_limit']) }}"
-                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                    </div>
-                    <div>
-                        <label for="setting-settlement-time" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Settlement time</label>
-                        <input type="text" name="settlement_time" id="setting-settlement-time" placeholder="e.g. 00:00" value="{{ old('settlement_time', $settings['settlement_time']) }}"
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     </div>
                 </div>
