@@ -20,7 +20,7 @@
         <h2 class="text-[12px] font-bold text-[#94A3B8] uppercase tracking-wide mb-3">Money</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-6">
             <x-admin-stat-tile label="Total wallet balance" :value="'₹'.number_format($totalWalletBalance, 2)" icon="fa-sack-dollar" accent="#0A5C66" />
-            <x-admin-stat-tile label="Total deposited" :value="'₹'.number_format($totalDeposited, 2)" icon="fa-arrow-down-to-bracket" accent="#059669" />
+            <x-admin-stat-tile label="Total deposited" :value="'₹'.number_format($totalDeposited, 2)" icon="fa-download" accent="#059669" />
             <x-admin-stat-tile label="Total withdrawn" :value="'₹'.number_format($totalWithdrawn, 2)" icon="fa-arrow-up-from-bracket" accent="#DC2626" />
             <x-admin-stat-tile label="Net inflow" :value="'₹'.number_format($netInflow, 2)" icon="fa-scale-balanced" :accent="$netInflow >= 0 ? '#059669' : '#DC2626'" />
             <x-admin-stat-tile label="Active investments" :value="'₹'.number_format($totalInvested, 2)" icon="fa-chart-line" accent="#0A5C66" />
