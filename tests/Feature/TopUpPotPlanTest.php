@@ -91,6 +91,24 @@ class TopUpPotPlanTest extends TestCase
         $this->assertSame(2, PlanTopup::where('user_plan_id', $first->id)->count());
     }
 
+    public function test_topup_sends_a_distinct_plan_topped_up_notification(): void
+    {
+        $user = $this->userWithWallet(100000);
+        $plan = $this->topupPlan();
+        $duration = $plan->durations->first();
+
+        $this->actingAs($user)->post(route('plans.purchase', $plan, absolute: false), [
+            'duration_id' => $duration->id,
+            'amount' => 2000,
+        ]);
+        $this->assertDatabaseHas('user_notifications', ['user_id' => $user->id, 'type' => 'plan_purchased']);
+
+        $this->actingAs($user)->post(route('plans.purchase', $plan, absolute: false), [
+            'amount' => 2000,
+        ]);
+        $this->assertDatabaseHas('user_notifications', ['user_id' => $user->id, 'type' => 'plan_topped_up']);
+    }
+
     public function test_maturity_date_does_not_change_when_topping_up(): void
     {
         $user = $this->userWithWallet(100000);

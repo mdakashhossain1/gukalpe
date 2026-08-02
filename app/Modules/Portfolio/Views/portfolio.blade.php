@@ -68,7 +68,13 @@
                     @foreach ($holdings as $holding)
                         <div class="bg-white rounded-[22px] border border-slate-100 shadow-sm p-4 flex items-center gap-3.5">
                             <div class="w-14 h-14 rounded-2xl bg-[#0A5C66]/5 flex items-center justify-center shrink-0 overflow-hidden">
-                                <img src="{{ $holding['image'] }}" class="w-full h-full object-cover" alt="{{ $holding['title'] }}">
+                                {{-- Plan Icon everywhere on cards (Explore, Portfolio) - the big
+                                     Thumbnail image is reserved for the Plan Details hero only. --}}
+                                @if (!empty($holding['iconImage']))
+                                    <img src="{{ $holding['iconImage'] }}" class="w-full h-full object-contain" alt="{{ $holding['title'] }}">
+                                @else
+                                    <i class="bi {{ $holding['icon'] ?? 'bi-piggy-bank' }} text-[26px] text-[#0A5C66]"></i>
+                                @endif
                             </div>
                             <div class="flex-1 min-w-0">
                                 <h4 class="text-[14px] font-black text-[#1a153a] font-poppins truncate">{{ $holding['title'] }}</h4>

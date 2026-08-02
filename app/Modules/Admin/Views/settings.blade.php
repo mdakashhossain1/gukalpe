@@ -62,6 +62,36 @@
                             <input type="number" name="withdrawal_max_per_day" id="setting-withdrawal-max-per-day" min="1" step="1" value="{{ old('withdrawal_max_per_day', $settings['withdrawal_max_per_day'] ?? '3') }}"
                                 class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                         </div>
+                        <div>
+                            <label for="setting-withdrawal-max-per-transaction" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max per transaction (₹)</label>
+                            <input type="number" name="withdrawal_max_per_transaction" id="setting-withdrawal-max-per-transaction" min="0" step="1" value="{{ old('withdrawal_max_per_transaction', $settings['withdrawal_max_per_transaction'] ?? '5000') }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 mt-2 border-t border-[#E5E9EB]">
+                    <h3 class="text-[13.5px] font-bold text-[#0F172A] mb-1">Withdrawal Methods</h3>
+                    <p class="text-[11.5px] text-[#94A3B8] mb-3">Enable/disable each payout method independently - e.g. turn Bank off temporarily during maintenance without any code change. <strong>Processing is always manual</strong>: this app has no live payment gateway, so approving a withdrawal only debits the wallet - the admin still pays out the destination shown by hand, for every method.</p>
+                    <div class="flex flex-col gap-2.5">
+                        @php
+                            $methodSwitches = [
+                                ['withdrawal_method_bank_enabled', 'Bank Account', 'Account number + IFSC'],
+                                ['withdrawal_method_upi_enabled', 'UPI', 'UPI ID, e.g. name@bank'],
+                                ['withdrawal_method_usdt_enabled', 'USDT (TRC20)', 'Tron network wallet address'],
+                            ];
+                        @endphp
+                        @foreach ($methodSwitches as [$key, $label, $hint])
+                            <label for="setting-{{ $key }}" class="flex items-center justify-between gap-3 py-2 px-3 rounded-lg border border-[#E5E9EB] bg-white cursor-pointer">
+                                <span>
+                                    <span class="block text-[13px] font-semibold text-[#0F172A]">{{ $label }}</span>
+                                    <span class="block text-[11px] text-[#94A3B8]">{{ $hint }}</span>
+                                </span>
+                                <input type="checkbox" name="{{ $key }}" id="setting-{{ $key }}" value="1"
+                                    {{ ($settings[$key] ?? 'false') === 'true' ? 'checked' : '' }}
+                                    class="w-5 h-5 rounded accent-brand shrink-0">
+                            </label>
+                        @endforeach
                     </div>
                 </div>
 

@@ -15,6 +15,11 @@ class PlanDetailsController extends Controller
 {
     public function index(Plan $plan): View
     {
+        // Draft plans aren't published yet - no page (not even Active/Hidden's
+        // "still works via a direct link" leniency) until the admin
+        // publishes it. Hidden/Expired/Active all still render here.
+        abort_if($plan->status === Plan::STATUS_DRAFT, 404);
+
         $user = Auth::user();
         $phone = $user?->phone;
 

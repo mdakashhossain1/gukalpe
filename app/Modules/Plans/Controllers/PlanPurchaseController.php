@@ -10,6 +10,7 @@ use App\Models\PlanDuration;
 use App\Models\PlanTopup;
 use App\Models\ReferralCommission;
 use App\Models\User;
+use App\Models\UserNotification;
 use App\Models\UserPlan;
 use App\Models\WalletBalance;
 use Illuminate\Http\Request;
@@ -173,6 +174,13 @@ class PlanPurchaseController extends Controller
             'new_balance' => (float) $wallet->balance,
         ]);
 
+        UserNotification::notify(
+            $user,
+            'plan_purchased',
+            "You invested in {$plan->title}",
+            '₹'.number_format($amount, 2)." invested in {$plan->title} ({$durationLabel}). Track it in your Portfolio."
+        );
+
         $this->creditReferralCommissionIfEligible($user, $userPlan, $amount);
 
         return redirect()->route('portfolio')
@@ -252,6 +260,13 @@ class PlanPurchaseController extends Controller
             'new_balance' => (float) $wallet->balance,
         ]);
 
+        UserNotification::notify(
+            $user,
+            'plan_topped_up',
+            "Top-up added to {$plan->title}",
+            '₹'.number_format($amount, 2)." added to your {$plan->title} investment. Total invested: ₹".number_format($newTotal, 2).'.'
+        );
+
         return redirect()->route('portfolio')
             ->with('success', "You've added ₹".number_format($amount, 2)." to your {$plan->title} investment. Total invested: ₹".number_format($newTotal, 2).'.')
             ->with('purchase_success', [
@@ -298,6 +313,17 @@ class PlanPurchaseController extends Controller
 
         if ($amount < $min || $amount > $max) {
             return null;
+        }
+
+        // Only plans with an explicit admin-set step snap - every plan that
+        // predates this field (slider_step null) keeps its old free-drag
+        // behavior exactly as before. Snapping (not rejecting) an off-step
+        // amount matters because a direct POST can bypass the HTML slider's
+        // own step attribute entirely.
+        if ($plan->slider_step !== null && (float) $plan->slider_step > 0) {
+            $step = (float) $plan->slider_step;
+            $amount = $min + round(($amount - $min) / $step) * $step;
+            $amount = max($min, min($max, $amount));
         }
 
         return $amount;

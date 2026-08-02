@@ -38,6 +38,17 @@ class AppSetting extends Model
         'withdrawal_min_amount' => '300',
         'withdrawal_daily_limit' => '5000',
         'withdrawal_max_per_day' => '3',
+        'withdrawal_max_per_transaction' => '5000',
+        // Per-method enable/disable (plan2.md's new withdrawal-methods
+        // section) — UPI stays the only one on by default, matching the
+        // pre-existing UPI-only behavior for every deployment upgrading in place.
+        'withdrawal_method_bank_enabled' => 'false',
+        'withdrawal_method_upi_enabled' => 'true',
+        'withdrawal_method_usdt_enabled' => 'false',
+        // 'manual' is the only real mode - there is no payment gateway/auto-payout
+        // integration in this app. Stored as a label for future use; never
+        // let this imply real automation in any UI copy.
+        'withdrawal_processing_mode' => 'manual',
         // System kill-switches (plan.md Section 41). 'true'/'false' strings.
         // maintenance_mode gates the whole public app (admin panel stays open);
         // the allow_* switches gate their specific flow at submission time.

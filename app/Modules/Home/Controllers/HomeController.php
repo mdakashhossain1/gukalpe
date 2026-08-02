@@ -48,7 +48,7 @@ class HomeController extends Controller
             'todayProfit' => $todayProfit,
             'todayProfitPct' => $todayProfitPct,
             'chartPoints' => UserPlan::chartPointsFor($holdings, self::SPARKLINE_DAYS),
-            'featuredPlans' => Plan::active()->ordered()->take(4)->get(),
+            'featuredPlans' => Plan::listable()->ordered()->take(4)->get(),
             'homeBanners' => Banner::activeFor('home'),
             'offerBanners' => Banner::activeFor('offer'),
             'popupBanners' => Banner::activeFor('popup'),

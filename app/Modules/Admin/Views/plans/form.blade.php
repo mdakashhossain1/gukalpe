@@ -20,7 +20,8 @@
         <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-1">{{ $plan->exists ? 'Edit '.$plan->title : 'Add plan' }}</h1>
         <p class="text-[13.5px] text-[#64748B] mb-6">{{ $plan->exists ? 'Existing holders keep the amount/rate they already bought at - only new purchases use these numbers.' : 'Appears on Explore/Home immediately once saved as active.' }}</p>
 
-        <form method="POST" action="{{ $plan->exists ? route('admin.plans.update', $plan) : route('admin.plans.store') }}" enctype="multipart/form-data" class="flex flex-col gap-3.5 bg-white rounded-2xl border border-[#E5E9EB] p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+        <form method="POST" action="{{ $plan->exists ? route('admin.plans.update', $plan) : route('admin.plans.store') }}" enctype="multipart/form-data" class="flex flex-col gap-3.5 bg-white rounded-2xl border border-[#E5E9EB] p-6 min-w-0">
             @csrf
 
             {{-- ===== Step 1: Select Plan Type Switcher ===== --}}
@@ -120,7 +121,7 @@
                     @error('image')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="icon_image" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Explore icon {{ $plan->exists && $plan->icon_image ? '(leave empty to keep current)' : '(shown on Explore)' }}</label>
+                    <label for="icon_image" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Plan Icon {{ $plan->exists && $plan->icon_image ? '(leave empty to keep current)' : '(shown on Explore, Plan Details & Portfolio)' }}</label>
                     @if ($plan->exists && $plan->iconImageUrl())
                         <div class="mb-2 flex items-center gap-2.5">
                             <div class="w-14 h-14 rounded-lg bg-[#0A5C66]/5 border border-[#E5E9EB] flex items-center justify-center overflow-hidden shrink-0">
@@ -131,7 +132,7 @@
                     @endif
                     <input type="file" name="icon_image" id="icon_image" accept="image/png,image/jpeg,image/webp"
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[13px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15 file:mr-3 file:h-full file:border-0 file:bg-[#0A5C66]/10 file:text-[#0A5C66] file:font-semibold file:px-3 file:rounded-l-lg file:cursor-pointer">
-                    <p class="text-[11px] text-[#94A3B8] mt-1">The single icon shown in the <strong>Explore</strong> card's circle. PNG, JPG, or WebP · up to 4MB · saved to public/assets/plan-icons.</p>
+                    <p class="text-[11px] text-[#94A3B8] mt-1">Shown in the <strong>Explore</strong> and <strong>Portfolio</strong> card circles. PNG, JPG, or WebP · up to 4MB · saved to public/assets/plan-icons.</p>
                     @error('icon_image')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
             </div>
@@ -173,27 +174,26 @@
                         {{-- Not saved on the plan (there is no plan-level days column - only
                              durations have one); purely the multiplier that turns the yearly
                              rate above into the headline Daily/Total figures below. --}}
-                        <input type="number" id="term_days_calc" min="1" placeholder="e.g. 365"
+                        <input type="number" name="term_days" id="term_days_calc" min="1" placeholder="e.g. 365" value="{{ old('term_days', $plan->term_days) }}"
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                        <p class="text-[11px] text-[#94A3B8] mt-1">Length used to compute the numbers below. Not stored.</p>
+                        <p class="text-[11px] text-[#94A3B8] mt-1">Length used to compute the numbers below. Required when there are no duration options.</p>
+                        @error('term_days')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3.5">
                     <div>
-                        <label for="daily_profit" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Daily profit (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, editable</span></label>
-                        <input type="number" name="daily_profit" id="daily_profit" min="0" step="0.01" value="{{ old('daily_profit', $plan->daily_profit) }}" required
-                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                        @error('daily_profit')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                        <label for="daily_profit" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Daily profit (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, system-computed</span></label>
+                        <input type="number" id="daily_profit" min="0" step="0.01" value="{{ old('daily_profit', $plan->daily_profit) }}" disabled
+                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#94A3B8] bg-[#F8FAFC] outline-none">
                     </div>
                     <div>
-                        <label for="total_return" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Total return (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, editable</span></label>
-                        <input type="number" name="total_return" id="total_return" min="0" step="0.01" value="{{ old('total_return', $plan->total_return) }}" required
-                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                        @error('total_return')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                        <label for="total_return" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Total return (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, system-computed</span></label>
+                        <input type="number" id="total_return" min="0" step="0.01" value="{{ old('total_return', $plan->total_return) }}" disabled
+                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#94A3B8] bg-[#F8FAFC] outline-none">
                     </div>
                 </div>
-                <p class="text-[11px] text-[#94A3B8] mt-2">Formula: <span class="font-semibold text-[#64748B]">Total = Investment × (1 + Rate%⁄yr × Days⁄365)</span>, and <span class="font-semibold text-[#64748B]">Daily = (Total − Investment) ⁄ Days</span>. Type in either field to override the auto value.</p>
+                <p class="text-[11px] text-[#94A3B8] mt-2">Formula: <span class="font-semibold text-[#64748B]">Total = Investment × (1 + Rate%⁄yr × Days⁄365)</span>, and <span class="font-semibold text-[#64748B]">Daily = (Total − Investment) ⁄ Days</span>. Computed by the system on save - not editable.</p>
             </div>
 
             <div id="flexible-investment-section" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -209,6 +209,12 @@
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('max_investment_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
+                <div class="sm:col-span-2">
+                    <label for="slider_step" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Slider step (₹, optional)</label>
+                    <input type="number" name="slider_step" id="slider_step" min="0.01" step="0.01" placeholder="e.g. 100 - leave blank to auto-space ~50 steps" value="{{ old('slider_step', $plan->slider_step) }}"
+                        class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                    @error('slider_step')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                </div>
 
                 <div id="range-preview" class="sm:col-span-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3.5 py-3" hidden>
                     <p class="text-[10.5px] font-bold text-[#94A3B8] uppercase tracking-wide mb-2.5">Customer will see a slider like this on Plan Details</p>
@@ -221,6 +227,7 @@
                         </div>
                         <span id="range-preview-max" class="text-[12.5px] font-black text-[#0F172A] whitespace-nowrap">₹0</span>
                     </div>
+                    <p id="range-preview-step" class="text-[10.5px] text-[#94A3B8] mt-2"></p>
                 </div>
 
                 <p class="text-[11px] text-[#94A3B8] sm:col-span-2 -mt-1.5">Set both (max &gt; min) to show a real drag-slider on Plan Details letting the user invest any amount in this range - the return is then computed live from each duration's growth rate above rather than the fixed Investment amount. Requires at least one duration option below.</p>
@@ -247,10 +254,17 @@
                 </div>
             </div>
 
-            <label class="flex items-center gap-2.5 h-11 px-3.5 rounded-lg border border-[#CBD5E1] has-[:checked]:border-brand has-[:checked]:bg-brand/5 cursor-pointer transition-colors w-fit mt-1">
-                <input type="checkbox" name="is_active" value="1" class="accent-brand" {{ old('is_active', $plan->is_active) ? 'checked' : '' }}>
-                <span class="text-[13.5px] font-semibold text-[#0F172A]">Active (visible to users)</span>
-            </label>
+            <div class="max-w-xs">
+                <label for="status" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Availability</label>
+                @php $currentStatus = old('status', $plan->status ?? 'active'); @endphp
+                <select name="status" id="status" class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                    <option value="draft" {{ $currentStatus === 'draft' ? 'selected' : '' }}>Draft (admin-only, not purchasable)</option>
+                    <option value="active" {{ $currentStatus === 'active' ? 'selected' : '' }}>Active (listed &amp; purchasable)</option>
+                    <option value="hidden" {{ $currentStatus === 'hidden' ? 'selected' : '' }}>Hidden (purchasable via direct link only)</option>
+                    <option value="expired" {{ $currentStatus === 'expired' ? 'selected' : '' }}>Expired (not listed, not purchasable)</option>
+                </select>
+                @error('status')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+            </div>
 
             {{-- ================= Trust Builder / Growth Plan unlock system ================= --}}
             <div class="pt-4 mt-1 border-t border-[#E5E9EB]">
@@ -413,7 +427,14 @@
             {{-- ================= Multiple durations (max 4) ================= --}}
             <div class="pt-4 mt-1 border-t border-[#E5E9EB]">
                 <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-1">Duration options (max 4)</h2>
-                <p class="text-[12px] text-[#64748B] mb-3">Leave a row's label blank to skip it. When set, users pick one of these on Plan Details instead of the single duration/return above. Mark one row as the default. <span class="text-[#0A5C66] font-semibold">Enter Days + Rate % and each row's Daily ₹ / Total ₹ fill in automatically</span> (from the Investment above; edit to override).</p>
+
+                <div id="trust-builder-duration-notice" style="display: none;" class="mb-3 flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-[#0A5C66]/8 border border-[#0A5C66]/20">
+                    <i class="bi bi-lock-fill text-[#0A5C66] text-[13px]"></i>
+                    <span class="text-[12.5px] font-semibold text-[#0A5C66]">Locked: 1 Day, auto-mature. Trust Builder plans always run for exactly 1 day and credit profit automatically - the options below don't apply.</span>
+                </div>
+
+                <div id="duration-rows-section">
+                    <p class="text-[12px] text-[#64748B] mb-3">Leave a row's label blank to skip it. When set, users pick one of these on Plan Details instead of the single duration/return above. Mark one row as the default. <span class="text-[#0A5C66] font-semibold">Enter Days + Rate % and each row's Daily ₹ / Total ₹ fill in automatically</span> from the Investment above.</p>
 
                 @php
                     $existingDurations = old('durations') ? collect() : ($plan->durations ?? collect())->values();
@@ -448,17 +469,18 @@
                                     class="w-full h-9 rounded-lg border border-[#CBD5E1] px-2.5 text-[13px] text-[#0F172A] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
                             </div>
                             <div>
-                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Daily ₹</label>
-                                <input type="number" name="durations[{{ $i }}][daily_profit]" min="0" step="0.01" value="{{ old("durations.$i.daily_profit", $d?->daily_profit) }}"
-                                    class="w-full h-9 rounded-lg border border-[#CBD5E1] px-2.5 text-[13px] text-[#0F172A] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
+                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Daily ₹ <span class="font-normal text-[#94A3B8]">· auto</span></label>
+                                <input type="number" id="duration-daily-{{ $i }}" min="0" step="0.01" value="{{ old("durations.$i.daily_profit", $d?->daily_profit) }}" disabled
+                                    class="w-full h-9 rounded-lg border border-[#CBD5E1] px-2.5 text-[13px] text-[#94A3B8] bg-[#F8FAFC] outline-none">
                             </div>
                             <div>
-                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Total ₹</label>
-                                <input type="number" name="durations[{{ $i }}][total_return]" min="0" step="0.01" value="{{ old("durations.$i.total_return", $d?->total_return) }}"
-                                    class="w-full h-9 rounded-lg border border-[#CBD5E1] px-2.5 text-[13px] text-[#0F172A] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
+                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Total ₹ <span class="font-normal text-[#94A3B8]">· auto</span></label>
+                                <input type="number" id="duration-total-{{ $i }}" min="0" step="0.01" value="{{ old("durations.$i.total_return", $d?->total_return) }}" disabled
+                                    class="w-full h-9 rounded-lg border border-[#CBD5E1] px-2.5 text-[13px] text-[#94A3B8] bg-[#F8FAFC] outline-none">
                             </div>
                         </div>
                     @endfor
+                </div>
                 </div>
             </div>
 
@@ -500,6 +522,49 @@
                 {{ $plan->exists ? 'Save changes' : 'Create plan' }}
             </button>
         </form>
+
+        {{-- ================= Live Preview (plan.md Section 13) ================= --}}
+        <aside class="lg:sticky lg:top-6 flex flex-col gap-2">
+            <p class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wide flex items-center gap-1.5">
+                <i class="bi bi-eye"></i> Live preview
+            </p>
+            <div class="bg-white rounded-2xl border border-[#E5E9EB] shadow-sm p-4">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <span id="lp-marketing-badge" class="hidden items-center gap-1 text-[9.5px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-full">
+                        <i id="lp-marketing-badge-icon" class="bi"></i>
+                        <span id="lp-marketing-badge-text"></span>
+                    </span>
+                    <span id="lp-category" class="text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">—</span>
+                </div>
+                <div class="flex items-center gap-3 mb-3.5">
+                    <div class="w-14 h-14 rounded-full bg-[#F2F7F8] border border-[#E4EFEF] flex items-center justify-center overflow-hidden shrink-0">
+                        <img id="lp-icon-img" class="hidden w-full h-full object-contain" alt="">
+                        <i id="lp-icon-fallback" class="bi bi-piggy-bank text-[24px] text-[#0A5C66]"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h4 id="lp-title" class="text-[14.5px] font-extrabold text-[#0D1F3C] font-poppins truncate">Plan title</h4>
+                        <p id="lp-subtitle" class="text-[11px] text-slate-500 truncate">Subtitle appears here</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5 text-center mb-3 py-2.5 border-y border-slate-100">
+                    <div>
+                        <p class="text-[8.5px] text-slate-400 uppercase font-bold tracking-wide">Rate</p>
+                        <p id="lp-rate" class="text-[12.5px] font-black text-[#0A5C66]">0%</p>
+                    </div>
+                    <div>
+                        <p class="text-[8.5px] text-slate-400 uppercase font-bold tracking-wide">Daily</p>
+                        <p id="lp-daily" class="text-[12.5px] font-black text-emerald-600">₹0</p>
+                    </div>
+                    <div>
+                        <p class="text-[8.5px] text-slate-400 uppercase font-bold tracking-wide">Total</p>
+                        <p id="lp-total" class="text-[12.5px] font-black text-[#0F172A]">₹0</p>
+                    </div>
+                </div>
+                <p id="lp-amount" class="text-[13px] font-bold text-[#0F172A] text-center">Invest ₹0</p>
+            </div>
+            <p class="text-[10.5px] text-[#94A3B8]">Mirrors the Explore card + auto profit calculator - updates as you type. Not exactly pixel-identical to the live site's card, but reflects the same values.</p>
+        </aside>
+        </div>
 
         </div>
     </main>
@@ -556,9 +621,11 @@
 (function () {
     var minInput = document.getElementById('min_investment_amount');
     var maxInput = document.getElementById('max_investment_amount');
+    var stepInput = document.getElementById('slider_step');
     var preview = document.getElementById('range-preview');
     var previewMin = document.getElementById('range-preview-min');
     var previewMax = document.getElementById('range-preview-max');
+    var previewStep = document.getElementById('range-preview-step');
 
     function formatRupees(n) {
         return '₹' + Math.round(n).toLocaleString('en-IN');
@@ -570,6 +637,9 @@
         if (!isNaN(min) && !isNaN(max) && max > min) {
             previewMin.textContent = formatRupees(min);
             previewMax.textContent = formatRupees(max);
+            var step = parseFloat(stepInput.value);
+            if (!(step > 0)) step = Math.max(1, Math.round((max - min) / 50));
+            previewStep.textContent = 'Step: ₹' + step.toLocaleString('en-IN') + ' (~' + Math.round((max - min) / step) + ' stops)';
             preview.hidden = false;
         } else {
             preview.hidden = true;
@@ -578,6 +648,7 @@
 
     minInput.addEventListener('input', updatePreview);
     maxInput.addEventListener('input', updatePreview);
+    stepInput.addEventListener('input', updatePreview);
     updatePreview();
 })();
 
@@ -714,11 +785,10 @@
 })();
 
 // Returns auto-calculator - stops the admin from computing Daily/Total by hand
-// in a separate tool. Same formula the purchase engine uses for flexible
-// amounts (PlanPurchaseController::proportionalReturn):
+// in a separate tool. Same formula the purchase engine AND PlanManagementController
+// use server-side (the source of truth - these fields are disabled/display-only,
+// purely a live preview of what the server will actually save):
 //   total = amount * (1 + (rate/100) * days/365);  daily = (total - amount)/days
-// Auto-filled fields stay editable; a manual edit is respected until one of the
-// source inputs (amount/rate/days) changes again.
 (function () {
     function computeReturn(amount, ratePct, days) {
         if (!(amount > 0) || !(ratePct >= 0) || !(days > 0)) return null;
@@ -733,15 +803,8 @@
         return isNaN(v) ? NaN : v;
     }
 
-    // Fill an output field only if the admin hasn't manually typed over it. We
-    // track "manually edited" via a data flag cleared whenever a source input
-    // fires (so recomputation resumes) and set on direct user input.
     function fill(outEl, value) {
-        if (!outEl || outEl.dataset.manual === '1') return;
-        outEl.value = value;
-    }
-    function markManual(outEl) {
-        outEl.addEventListener('input', function () { outEl.dataset.manual = '1'; });
+        if (outEl) outEl.value = value;
     }
 
     var investmentEl = document.getElementById('investment_amount');
@@ -751,37 +814,33 @@
     var termEl = document.getElementById('term_days_calc');
     var dailyEl = document.getElementById('daily_profit');
     var totalEl = document.getElementById('total_return');
-    [dailyEl, totalEl].forEach(markManual);
 
-    function recalcPlanLevel(clearManual) {
-        if (clearManual) { dailyEl.dataset.manual = ''; totalEl.dataset.manual = ''; }
+    function recalcPlanLevel() {
         var r = computeReturn(num(investmentEl), num(rateEl), num(termEl));
         if (!r) return;
         fill(dailyEl, r.daily);
         fill(totalEl, r.total);
     }
     [investmentEl, rateEl, termEl].forEach(function (el) {
-        if (el) el.addEventListener('input', function () { recalcPlanLevel(true); });
+        if (el) el.addEventListener('input', recalcPlanLevel);
     });
 
     // --- Duration rows (Days + Rate %, against the plan's Investment) ---
     var rows = Array.prototype.slice.call(document.querySelectorAll('#duration-rows [data-duration-row]'));
-    var rowState = rows.map(function (row) {
+    var rowState = rows.map(function (row, i) {
         var daysEl = row.querySelector('input[name$="[duration_days]"]');
         var rRateEl = row.querySelector('input[name$="[growth_rate]"]');
-        var rDailyEl = row.querySelector('input[name$="[daily_profit]"]');
-        var rTotalEl = row.querySelector('input[name$="[total_return]"]');
-        [rDailyEl, rTotalEl].forEach(markManual);
+        var rDailyEl = document.getElementById('duration-daily-' + i);
+        var rTotalEl = document.getElementById('duration-total-' + i);
 
-        function recalcRow(clearManual) {
-            if (clearManual) { rDailyEl.dataset.manual = ''; rTotalEl.dataset.manual = ''; }
+        function recalcRow() {
             var r = computeReturn(num(investmentEl), num(rRateEl), num(daysEl));
             if (!r) return;
             fill(rDailyEl, r.daily);
             fill(rTotalEl, r.total);
         }
         [daysEl, rRateEl].forEach(function (el) {
-            if (el) el.addEventListener('input', function () { recalcRow(true); });
+            if (el) el.addEventListener('input', recalcRow);
         });
         return recalcRow;
     });
@@ -789,9 +848,137 @@
     // A change to the shared Investment cascades into every duration row too.
     if (investmentEl) {
         investmentEl.addEventListener('input', function () {
-            rowState.forEach(function (recalc) { recalc(true); });
+            rowState.forEach(function (recalc) { recalc(); });
         });
     }
+
+    // --- Duration Type (Trust Builder locks to 1 Day, hides the multi-duration builder) ---
+    var planTypeEl = document.getElementById('plan_type');
+    var durationRowsSection = document.getElementById('duration-rows-section');
+    var trustBuilderNotice = document.getElementById('trust-builder-duration-notice');
+    var autoMatureCheckbox = document.querySelector('input[name="auto_mature"]');
+
+    function applyDurationTypeUI() {
+        var isTrustBuilder = planTypeEl && planTypeEl.value === 'trust_builder';
+        if (durationRowsSection) durationRowsSection.style.display = isTrustBuilder ? 'none' : '';
+        if (trustBuilderNotice) trustBuilderNotice.style.display = isTrustBuilder ? '' : 'none';
+        if (autoMatureCheckbox) {
+            if (isTrustBuilder) {
+                autoMatureCheckbox.checked = true;
+                autoMatureCheckbox.disabled = true;
+            } else {
+                autoMatureCheckbox.disabled = false;
+            }
+        }
+    }
+    if (planTypeEl) {
+        planTypeEl.addEventListener('change', applyDurationTypeUI);
+        applyDurationTypeUI();
+    }
+
+    // --- Live Preview (plan.md Section 13) - mirrors the Explore card +
+    // profit calculator, reading straight off the same fields/computed
+    // values above rather than a second copy of the formula. ---
+    (function () {
+        var badgeColorMap = @json(\App\Models\Plan::MARKETING_BADGE_COLORS);
+        var existingIconUrl = @json($plan->iconImageUrl());
+
+        var titleEl = document.getElementById('title');
+        var subtitleEl = document.getElementById('subtitle');
+        var badgeSelectEl = document.getElementById('badge-select');
+        var badgeCustomEl = document.getElementById('badge-custom');
+        var mBadgeTextEl = document.getElementById('marketing_badge');
+        var mBadgeIconEl = document.getElementById('marketing-badge-icon-input');
+        var minInvestEl = document.getElementById('min_investment_amount');
+        var maxInvestEl = document.getElementById('max_investment_amount');
+        var iconFileEl = document.getElementById('icon_image');
+
+        var lpTitle = document.getElementById('lp-title');
+        var lpSubtitle = document.getElementById('lp-subtitle');
+        var lpCategory = document.getElementById('lp-category');
+        var lpMBadge = document.getElementById('lp-marketing-badge');
+        var lpMBadgeIcon = document.getElementById('lp-marketing-badge-icon');
+        var lpMBadgeText = document.getElementById('lp-marketing-badge-text');
+        var lpIconImg = document.getElementById('lp-icon-img');
+        var lpIconFallback = document.getElementById('lp-icon-fallback');
+        var lpRate = document.getElementById('lp-rate');
+        var lpDaily = document.getElementById('lp-daily');
+        var lpTotal = document.getElementById('lp-total');
+        var lpAmount = document.getElementById('lp-amount');
+
+        function currentBadgeColorRadio() {
+            var checked = document.querySelector('input[name="marketing_badge_color"]:checked');
+            return checked ? checked.value : 'amber';
+        }
+
+        function setIconPreview(src) {
+            if (src) {
+                lpIconImg.src = src;
+                lpIconImg.classList.remove('hidden');
+                lpIconFallback.classList.add('hidden');
+            } else {
+                lpIconImg.classList.add('hidden');
+                lpIconFallback.classList.remove('hidden');
+            }
+        }
+
+        function updateLivePreview() {
+            lpTitle.textContent = (titleEl.value || '').trim() || 'Plan title';
+            lpSubtitle.textContent = (subtitleEl.value || '').trim() || 'Subtitle appears here';
+
+            var category = badgeSelectEl.value === '__custom__' ? badgeCustomEl.value : badgeSelectEl.value;
+            lpCategory.textContent = (category || '').trim() || '—';
+
+            var mText = (mBadgeTextEl.value || '').trim();
+            if (mText) {
+                var colors = badgeColorMap[currentBadgeColorRadio()] || badgeColorMap.amber;
+                lpMBadge.className = 'inline-flex items-center gap-1 text-[9.5px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-full '
+                    + colors.bg + ' ' + colors.text + ' border ' + colors.border;
+                lpMBadgeIcon.className = 'bi ' + (mBadgeIconEl.value || 'bi-star-fill');
+                lpMBadgeText.textContent = mText;
+            } else {
+                lpMBadge.className = 'hidden';
+            }
+
+            lpRate.textContent = (num(rateEl) || 0) + '%';
+            lpDaily.textContent = '₹' + (dailyEl.value || '0');
+            lpTotal.textContent = '₹' + (totalEl.value || '0');
+
+            var isFlexible = num(minInvestEl) > 0 && num(maxInvestEl) > num(minInvestEl);
+            lpAmount.textContent = isFlexible
+                ? 'Invest ₹' + Math.round(num(minInvestEl)).toLocaleString('en-IN') + '–₹' + Math.round(num(maxInvestEl)).toLocaleString('en-IN')
+                : 'Invest ₹' + Math.round(num(investmentEl) || 0).toLocaleString('en-IN');
+        }
+
+        if (iconFileEl) {
+            iconFileEl.addEventListener('change', function () {
+                if (iconFileEl.files && iconFileEl.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) { setIconPreview(e.target.result); };
+                    reader.readAsDataURL(iconFileEl.files[0]);
+                } else {
+                    setIconPreview(existingIconUrl);
+                }
+            });
+        }
+        setIconPreview(existingIconUrl);
+
+        [titleEl, subtitleEl, badgeCustomEl, mBadgeTextEl, mBadgeIconEl, minInvestEl, maxInvestEl].forEach(function (el) {
+            if (el) el.addEventListener('input', updateLivePreview);
+        });
+        document.querySelectorAll('input[name="marketing_badge_color"]').forEach(function (el) {
+            el.addEventListener('change', updateLivePreview);
+        });
+        badgeSelectEl.addEventListener('change', updateLivePreview);
+        // investment_amount/growth_rate/term_days_calc drive the auto-calc
+        // (recalcPlanLevel sets daily/total programmatically, no native
+        // 'input' event of its own) - one shared listener covers both.
+        [investmentEl, rateEl, termEl].forEach(function (el) {
+            if (el) el.addEventListener('input', updateLivePreview);
+        });
+
+        updateLivePreview();
+    })();
 
     // --- Plan Type Switcher (Fixed vs Flexible) ---
     window.setPlanMode = function(mode) {

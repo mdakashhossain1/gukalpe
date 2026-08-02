@@ -106,17 +106,25 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 align-top">
-                                    <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border whitespace-nowrap {{ $plan->is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
-                                        {{ $plan->is_active ? 'Active' : 'Disabled' }}
+                                    @php
+                                        $statusClasses = match ($plan->status) {
+                                            'active' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                            'hidden' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                            'expired' => 'bg-red-50 text-red-600 border-red-200',
+                                            default => 'bg-slate-100 text-slate-500 border-slate-200', // draft
+                                        };
+                                    @endphp
+                                    <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border whitespace-nowrap {{ $statusClasses }}">
+                                        {{ ucfirst($plan->status ?? 'draft') }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 align-top">
                                     <div class="flex gap-2 justify-end shrink-0">
                                         <a href="{{ route('admin.plans.edit', $plan) }}" class="h-9 px-3.5 rounded-lg border border-slate-200 text-slate-600 text-[12.5px] font-bold hover:bg-slate-50 transition-colors active:scale-95 flex items-center">Edit</a>
-                                        <form method="POST" action="{{ route('admin.plans.toggle-active', $plan) }}">
+                                        <form method="POST" action="{{ route('admin.plans.toggle-active', $plan) }}" title="Quick toggle between Active and Hidden - use Edit for Draft/Expired">
                                             @csrf
-                                            <button type="submit" class="h-9 px-3.5 rounded-lg border text-[12.5px] font-bold transition-colors active:scale-95 {{ $plan->is_active ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' }}">
-                                                {{ $plan->is_active ? 'Disable' : 'Enable' }}
+                                            <button type="submit" class="h-9 px-3.5 rounded-lg border text-[12.5px] font-bold transition-colors active:scale-95 {{ $plan->status === 'active' ? 'border-amber-200 text-amber-700 hover:bg-amber-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' }}">
+                                                {{ $plan->status === 'active' ? 'Hide' : 'Activate' }}
                                             </button>
                                         </form>
                                     </div>

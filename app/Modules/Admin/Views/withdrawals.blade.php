@@ -32,7 +32,7 @@
         <div class="px-6 md:px-10 py-8 md:py-10">
 
         <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-1">Withdrawal requests</h1>
-        <p class="text-[13.5px] text-[#64748B] mb-6">Manual UPI cash-out requests. Approving debits the user's wallet immediately - pay out to their UPI ID yourself, outside this system.</p>
+        <p class="text-[13.5px] text-[#64748B] mb-6">Manual cash-out requests (Bank / UPI / USDT). Approving debits the user's wallet immediately - pay out to the destination shown yourself, outside this system.</p>
 
         <div class="flex gap-1.5 mb-4 bg-[#F1F5F9] rounded-lg p-1 w-fit">
             @foreach (['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'] as $key => $label)
@@ -50,7 +50,8 @@
                         <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Amount</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Phone</th>
-                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Payout UPI</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Method</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Destination</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Status</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Submitted</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Actions</th>
@@ -68,7 +69,17 @@
                             <tr class="border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FAFC] transition-colors">
                                 <td class="px-4 py-3 align-middle text-[13.5px] font-bold text-[#0F172A] whitespace-nowrap">₹{{ number_format($withdraw->amount, 2) }}</td>
                                 <td class="px-4 py-3 align-middle text-[13px] font-mono text-[#334155] whitespace-nowrap">{{ $withdraw->phone }}</td>
-                                <td class="px-4 py-3 align-middle text-[12.5px] font-mono text-[#334155]">{{ $withdraw->payout_upi_id }}</td>
+                                @php
+                                    $methodClasses = match ($withdraw->method) {
+                                        'bank' => 'bg-blue-50 text-blue-700 border-blue-200',
+                                        'usdt' => 'bg-violet-50 text-violet-700 border-violet-200',
+                                        default => 'bg-teal-50 text-teal-700 border-teal-200',
+                                    };
+                                @endphp
+                                <td class="px-4 py-3 align-middle whitespace-nowrap">
+                                    <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border {{ $methodClasses }}">{{ strtoupper($withdraw->method) }}</span>
+                                </td>
+                                <td class="px-4 py-3 align-middle text-[12.5px] font-mono text-[#334155] max-w-[220px] truncate" title="{{ $withdraw->destinationLabel() }}">{{ $withdraw->destinationLabel() }}</td>
                                 <td class="px-4 py-3 align-middle whitespace-nowrap">
                                     <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border {{ $pillClasses }}">{{ $withdraw->status }}</span>
                                 </td>
@@ -80,11 +91,15 @@
                                                 @csrf
                                                 <button type="submit" class="h-9 px-3.5 rounded-lg bg-emerald-600 text-white text-[12.5px] font-bold hover:bg-emerald-700 transition-colors active:scale-95">Approve</button>
                                             </form>
-                                            <form method="POST" action="{{ route('admin.withdrawals.reject', $withdraw) }}">
+                                            <form method="POST" action="{{ route('admin.withdrawals.reject', $withdraw) }}" class="inline-flex items-center gap-1.5">
                                                 @csrf
+                                                <input type="text" name="admin_note" maxlength="500" placeholder="Reason (optional)"
+                                                    class="h-9 w-40 rounded-lg border border-[#CBD5E1] px-2.5 text-[12px] text-[#0F172A] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
                                                 <button type="submit" class="h-9 px-3.5 rounded-lg border border-red-200 text-red-600 text-[12.5px] font-bold hover:bg-red-50 transition-colors active:scale-95">Reject</button>
                                             </form>
                                         </div>
+                                    @elseif ($withdraw->status === 'rejected' && $withdraw->admin_note)
+                                        <span class="text-[11.5px] text-[#64748B] italic">{{ $withdraw->admin_note }}</span>
                                     @else
                                         <span class="text-[12px] text-[#CBD5E1]">—</span>
                                     @endif
@@ -92,7 +107,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-8 text-center text-[13.5px] text-[#94A3B8] italic">No {{ $status }} withdrawal requests.</td>
+                                <td colspan="7" class="px-4 py-8 text-center text-[13.5px] text-[#94A3B8] italic">No {{ $status }} withdrawal requests.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -116,7 +131,7 @@
                 perPage: 15,
                 perPageSelect: [15, 25, 50, 100],
                 sortable: true,
-                columns: [{ select: 5, sortable: false }],
+                columns: [{ select: 6, sortable: false }],
                 labels: {
                     placeholder: 'Search withdrawals...',
                     perPage: '{select} per page',

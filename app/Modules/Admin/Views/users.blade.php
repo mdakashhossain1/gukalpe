@@ -194,6 +194,13 @@
                 <p class="text-[11.5px] text-[#94A3B8] mt-1.5">A decrease can't take the balance below ₹0.</p>
             </div>
 
+            <div>
+                <label for="wallet-modal-reason" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Reason (required)</label>
+                <input type="text" id="wallet-modal-reason" name="reason" maxlength="255" required placeholder="e.g. Promotion bonus, refund for failed deposit"
+                    class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                <p class="text-[11.5px] text-[#94A3B8] mt-1.5">Recorded in the wallet ledger and the admin security log.</p>
+            </div>
+
             <div class="flex items-center justify-end gap-2 pt-1">
                 <button type="button" data-wallet-close class="h-10 px-4 rounded-lg border border-slate-200 text-slate-600 font-semibold text-[13.5px] hover:bg-slate-50 transition-colors">Cancel</button>
                 <button type="submit" class="h-10 px-5 rounded-lg bg-brand text-white font-semibold text-[13.5px] hover:bg-brand-light transition-colors active:scale-[0.99]">Apply adjustment</button>
@@ -235,6 +242,7 @@
         var balanceEl = document.getElementById('wallet-modal-balance');
         var phoneInput = document.getElementById('wallet-modal-phone-input');
         var amountInput = document.getElementById('wallet-modal-amount');
+        var reasonInput = document.getElementById('wallet-modal-reason');
         var dirInput = document.getElementById('wallet-direction');
         var dirBtns = modal.querySelectorAll('.wallet-dir-btn');
 
@@ -254,6 +262,7 @@
             phoneEl.textContent = btn.getAttribute('data-phone') || '—';
             balanceEl.textContent = '₹' + (btn.getAttribute('data-balance') || '0.00');
             amountInput.value = '';
+            reasonInput.value = '';
             setDirection('increase');
             modal.classList.remove('hidden');
             modal.classList.add('flex');

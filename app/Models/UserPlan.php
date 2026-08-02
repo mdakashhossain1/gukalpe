@@ -170,6 +170,7 @@ class UserPlan extends Model
             'subtitle' => $plan->subtitle,
             'image' => $plan->imageUrl(),
             'icon' => $plan->icon ?: 'bi-piggy-bank',
+            'iconImage' => $plan->iconImageUrl(),
             'invested' => $invested,
             'dailyProfit' => $dailyProfit,
             'totalReturn' => $totalReturn,

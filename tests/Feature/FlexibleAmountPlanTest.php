@@ -139,6 +139,56 @@ class FlexibleAmountPlanTest extends TestCase
         $this->assertEquals(100000.0, WalletBalance::balanceFor($user->phone));
     }
 
+    public function test_amount_is_snapped_to_the_nearest_slider_step_when_one_is_configured(): void
+    {
+        $user = $this->userWithWallet(100000);
+        $plan = $this->flexiblePlan();
+        $plan->update(['slider_step' => 1000]);
+        $duration = $plan->durations->first();
+
+        // 10,400 is not a multiple of the 1,000 step (relative to min 500) -
+        // nearest multiple is 500 + 10*1000 = 10,500.
+        $this->actingAs($user)->post(route('plans.purchase', $plan, absolute: false), [
+            'duration_id' => $duration->id,
+            'amount' => 10400,
+        ])->assertRedirect(route('portfolio'));
+
+        $holding = UserPlan::where('user_id', $user->id)->where('plan_id', $plan->id)->firstOrFail();
+        $this->assertEquals(10500.0, (float) $holding->invested_amount);
+    }
+
+    public function test_amount_is_unaffected_by_step_snapping_when_no_slider_step_is_configured(): void
+    {
+        $user = $this->userWithWallet(100000);
+        $plan = $this->flexiblePlan();
+        $duration = $plan->durations->first();
+
+        $this->actingAs($user)->post(route('plans.purchase', $plan, absolute: false), [
+            'duration_id' => $duration->id,
+            'amount' => 10450,
+        ])->assertRedirect(route('portfolio'));
+
+        $holding = UserPlan::where('user_id', $user->id)->where('plan_id', $plan->id)->firstOrFail();
+        $this->assertEquals(10450.0, (float) $holding->invested_amount);
+    }
+
+    public function test_purchase_sends_a_plan_purchased_notification(): void
+    {
+        $user = $this->userWithWallet(100000);
+        $plan = $this->flexiblePlan();
+        $duration = $plan->durations->first();
+
+        $this->actingAs($user)->post(route('plans.purchase', $plan, absolute: false), [
+            'duration_id' => $duration->id,
+            'amount' => 10000,
+        ]);
+
+        $this->assertDatabaseHas('user_notifications', [
+            'user_id' => $user->id,
+            'type' => 'plan_purchased',
+        ]);
+    }
+
     public function test_maturity_credits_the_exact_proportional_return_that_was_promised(): void
     {
         $user = $this->userWithWallet(0);

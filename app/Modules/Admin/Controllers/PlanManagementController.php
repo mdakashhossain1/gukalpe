@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
@@ -44,7 +45,7 @@ class PlanManagementController extends Controller
     {
         return view('Admin::plans.form', [
             ...$this->sidebarCounts(),
-            'plan' => new Plan(['is_active' => true, 'auto_mature' => true]),
+            'plan' => new Plan(['is_active' => true, 'status' => Plan::STATUS_ACTIVE, 'auto_mature' => true]),
             'categories' => $this->categoryOptions(),
             'categoryIcons' => PlanCategory::iconMap(),
             'requirablePlans' => Plan::orderBy('title')->get(['id', 'title']),
@@ -117,18 +118,25 @@ class PlanManagementController extends Controller
         return redirect()->route('admin.plans')->with('success', 'Plan updated.');
     }
 
+    // Quick active <-> hidden flip for the common case (both are purchasable,
+    // so this never blocks anyone with an existing direct link) - Draft and
+    // Expired are set from the full edit form only, not this one-click toggle.
     public function toggleActive(Plan $plan): RedirectResponse
     {
-        $plan->update(['is_active' => ! $plan->is_active]);
+        $newStatus = $plan->status === Plan::STATUS_ACTIVE ? Plan::STATUS_HIDDEN : Plan::STATUS_ACTIVE;
+        $plan->update([
+            'status' => $newStatus,
+            'is_active' => in_array($newStatus, [Plan::STATUS_ACTIVE, Plan::STATUS_HIDDEN], true),
+        ]);
 
         Log::channel('admin_security')->info('Plan availability toggled', [
             'plan_id' => $plan->id,
             'title' => $plan->title,
-            'is_active' => $plan->is_active,
+            'status' => $plan->status,
         ]);
 
         return redirect()->route('admin.plans')
-            ->with('success', "{$plan->title} is now ".($plan->is_active ? 'active' : 'disabled').'.');
+            ->with('success', "{$plan->title} is now {$plan->status}.");
     }
 
     // The "Category" field is a <select> built from every known
@@ -182,8 +190,9 @@ class PlanManagementController extends Controller
             'investment_amount' => ['required', 'numeric', 'min:1'],
             'min_investment_amount' => ['nullable', 'numeric', 'min:1'],
             'max_investment_amount' => ['nullable', 'numeric', 'min:1', 'gt:min_investment_amount'],
-            'daily_profit' => ['required', 'numeric', 'min:0'],
-            'total_return' => ['required', 'numeric', 'min:0'],
+            'slider_step' => ['nullable', 'numeric', 'min:0.01'],
+            'term_days' => ['nullable', 'integer', 'min:1'],
+            'status' => ['required', 'in:'.implode(',', Plan::STATUSES)],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'plan_type' => ['nullable', 'in:trust_builder,growth'],
             'max_purchase_per_user' => ['nullable', 'integer', 'min:1'],
@@ -217,10 +226,22 @@ class PlanManagementController extends Controller
         // Checkboxes absent from the POST body simply mean false - not
         // something 'nullable'/'boolean' validation rules can express, so
         // they're read directly rather than through the rule set above.
-        $validated['is_active'] = $request->boolean('is_active');
+        // is_active is derived from status (not its own checkbox anymore) -
+        // Active and Hidden both keep purchase-eligibility on; only Draft
+        // and Expired turn it off. This is the ONLY place is_active is set,
+        // so every other call site's existing meaning stays intact.
+        $validated['is_active'] = in_array($validated['status'], [Plan::STATUS_ACTIVE, Plan::STATUS_HIDDEN], true);
         $validated['unlock_enabled'] = $request->boolean('unlock_enabled');
         $validated['auto_mature'] = $request->boolean('auto_mature');
         $validated['allow_topups'] = $request->boolean('allow_topups');
+
+        // Trust Builder is always "buy today, mature in 1 day, auto-credit" -
+        // never trust a submitted checkbox to turn that off for this type.
+        // Nullable rule means the key is absent from $validated entirely when
+        // the request omits it (e.g. a raw API call bypassing the <select>).
+        if (($validated['plan_type'] ?? null) === 'trust_builder') {
+            $validated['auto_mature'] = true;
+        }
 
         $validated['highlights'] = collect($validated['highlights'] ?? [])
             ->map(fn ($h) => trim((string) $h))->filter()->values()->all() ?: null;
@@ -230,7 +251,45 @@ class PlanManagementController extends Controller
             ->filter(fn ($f) => $f['q'] !== '' && $f['a'] !== '')
             ->values()->all() ?: null;
 
+        // Daily profit / total return are system-computed only (plan.md
+        // Section 5: "admin never enters this manually") - recomputed here
+        // unconditionally rather than trusting whatever the (now disabled,
+        // JS-filled) form fields would have submitted. A plan with no
+        // duration rows needs its own term_days to compute against; require
+        // it explicitly instead of silently guessing 365 and surprising the
+        // admin with numbers they didn't ask for.
+        $hasDurationRows = collect($request->input('durations', []))
+            ->contains(fn ($row) => trim((string) ($row['label'] ?? '')) !== '');
+
+        if (! $hasDurationRows && $validated['term_days'] === null && $plan?->term_days === null) {
+            throw ValidationException::withMessages([
+                'term_days' => 'Enter a term (days) for this plan, or add at least one duration option below.',
+            ]);
+        }
+
+        [$validated['daily_profit'], $validated['total_return']] = $this->computeReturns(
+            (float) $validated['investment_amount'],
+            (float) $validated['growth_rate'],
+            (int) ($validated['term_days'] ?? $plan?->term_days ?? 365)
+        );
+
         return $validated;
+    }
+
+    // Same formula the purchase engine uses for flexible amounts
+    // (PlanPurchaseController::proportionalReturn) and the admin form's own
+    // JS preview - kept in exactly one place server-side now that the
+    // client-submitted daily_profit/total_return are never trusted.
+    private function computeReturns(float $amount, float $ratePct, int $days): array
+    {
+        if ($amount <= 0 || $days <= 0) {
+            return [0.0, 0.0];
+        }
+
+        $total = $amount * (1 + ($ratePct / 100) * ($days / 365));
+        $daily = ($total - $amount) / $days;
+
+        return [round($daily, 2), round($total, 2)];
     }
 
     // Up to 4 durations per plan (plans.md's admin control). Each submitted
@@ -238,28 +297,52 @@ class PlanManagementController extends Controller
     // edited in place - keeps purchases' plan_duration_id snapshot valid)
     // or created fresh when absent; any existing row not resubmitted is
     // removed, so deleting a duration row in the form actually deletes it.
+    //
+    // Trust Builder plans (plan_type = trust_builder) ignore whatever rows
+    // were submitted and always collapse to exactly one system-defined 1-day
+    // row - this is enforced here (not just hidden in the UI) so a Trust
+    // Builder plan can never end up with a real multi-duration option, even
+    // via a direct/tampered request.
     private function syncDurations(Plan $plan, Request $request): void
     {
-        $rows = collect($request->input('durations', []))
-            ->filter(fn ($row) => trim((string) ($row['label'] ?? '')) !== '')
-            ->take(4)
-            ->values();
+        if ($plan->plan_type === 'trust_builder') {
+            // Reuse whichever existing row is around (rather than delete +
+            // recreate) so an already-purchased holding's plan_duration_id
+            // stays pointed at a live row instead of nulling out.
+            $existingId = $plan->durations()->value('id');
+
+            $rows = collect([[
+                'id' => $existingId,
+                'label' => '1 Day',
+                'duration_days' => 1,
+                'growth_rate' => (int) $plan->growth_rate,
+            ]]);
+        } else {
+            $rows = collect($request->input('durations', []))
+                ->filter(fn ($row) => trim((string) ($row['label'] ?? '')) !== '')
+                ->take(4)
+                ->values();
+        }
 
         // Radio value is the row's array index (always present, unlike `id`
         // which new rows don't have yet) - simplest stable key to compare
         // against regardless of whether the row is new or existing.
-        $defaultIndex = $request->input('duration_default');
+        $defaultIndex = $plan->plan_type === 'trust_builder' ? '0' : $request->input('duration_default');
 
         $keptIds = [];
 
         foreach ($rows as $index => $row) {
+            $durationDays = max(1, (int) ($row['duration_days'] ?? 1));
+            $growthRate = max(0, (int) ($row['growth_rate'] ?? 0));
+            [$rowDaily, $rowTotal] = $this->computeReturns((float) $plan->investment_amount, $growthRate, $durationDays);
+
             $attributes = [
                 'plan_id' => $plan->id,
                 'label' => trim((string) $row['label']),
-                'duration_days' => max(1, (int) ($row['duration_days'] ?? 1)),
-                'growth_rate' => max(0, (int) ($row['growth_rate'] ?? 0)),
-                'daily_profit' => max(0, (float) ($row['daily_profit'] ?? 0)),
-                'total_return' => max(0, (float) ($row['total_return'] ?? 0)),
+                'duration_days' => $durationDays,
+                'growth_rate' => $growthRate,
+                'daily_profit' => $rowDaily,
+                'total_return' => $rowTotal,
                 'is_default' => (string) $defaultIndex === (string) $index,
                 'sort_order' => $index,
             ];

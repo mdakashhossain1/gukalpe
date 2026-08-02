@@ -47,8 +47,12 @@
                         <!-- Top Badges -->
                         <div class="flex items-start justify-between gap-2">
                             <div class="flex items-center gap-2">
-                                <div class="w-11 h-11 rounded-2xl bg-white shadow-md flex items-center justify-center text-[#0A5C66] shrink-0">
-                                    <i class="bi {{ $p['icon'] ?? 'bi-building' }} text-[20px]"></i>
+                                <div class="w-11 h-11 rounded-2xl bg-white shadow-md flex items-center justify-center text-[#0A5C66] shrink-0 overflow-hidden">
+                                    @if (!empty($p['iconImage']))
+                                        <img src="{{ $p['iconImage'] }}" alt="{{ $p['title'] }}" class="w-full h-full object-contain">
+                                    @else
+                                        <i class="bi {{ $p['icon'] ?? 'bi-building' }} text-[20px]"></i>
+                                    @endif
                                 </div>
                                 <span class="{{ $badgeColors['bg'] }} {{ $badgeColors['text'] }} border {{ $badgeColors['border'] }} text-[9.5px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm inline-flex items-center gap-1">
                                     @if($plan->marketing_badge_icon)
@@ -74,6 +78,12 @@
                                 @if($plan->risk_level)
                                     <span class="text-slate-500 text-[11px] font-bold flex items-center gap-1">
                                         <i class="bi bi-speedometer2 text-[12px]"></i> {{ $plan->risk_level }} Risk
+                                    </span>
+                                @endif
+                                @php $remaining = $plan->purchasesRemaining(); @endphp
+                                @if (! $plan->isOutOfStock() && $remaining !== null)
+                                    <span class="text-amber-600 text-[11px] font-bold flex items-center gap-1">
+                                        <i class="bi bi-hourglass-split text-[12px]"></i> Only {{ number_format($remaining) }} left
                                     </span>
                                 @endif
                             </div>
@@ -230,7 +240,7 @@
                 @php
                     $flexMin = (float) $plan->min_investment_amount;
                     $flexMax = (float) $plan->max_investment_amount;
-                    $flexStep = max(1, (int) round(($flexMax - $flexMin) / 50));
+                    $flexStep = $plan->effectiveSliderStep();
                 @endphp
                 <div class="bg-white p-4 sm:p-5 rounded-[24px] border border-slate-100 shadow-2xs space-y-4" id="pd-flex-calc"
                     data-min="{{ $flexMin }}" data-max="{{ $flexMax }}" data-step="{{ $flexStep }}" data-balance="{{ (float) $balance }}">

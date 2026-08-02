@@ -288,9 +288,11 @@ class AdminController extends Controller
             'phone' => ['required', 'regex:/^\d{10}$/'],
             'direction' => ['required', 'in:increase,decrease'],
             'amount' => ['required', 'numeric', 'gt:0'],
+            'reason' => ['required', 'string', 'max:255'],
         ], [
             'phone.regex' => 'Enter a valid 10-digit phone number.',
             'amount.gt' => 'Enter an amount greater than zero.',
+            'reason.required' => 'Enter a reason for this wallet adjustment.',
         ]);
 
         $phone = $validated['phone'];
@@ -309,9 +311,11 @@ class AdminController extends Controller
             }
         }
 
+        $reason = trim($validated['reason']);
+
         $wallet = $increase
-            ? WalletBalance::credit($phone, $amount, 'manual_credit', ['source' => 'admin_adjustment'])
-            : WalletBalance::debit($phone, $amount, 'manual_debit', ['source' => 'admin_adjustment']);
+            ? WalletBalance::credit($phone, $amount, 'manual_credit', ['source' => 'admin_adjustment', 'reason' => $reason])
+            : WalletBalance::debit($phone, $amount, 'manual_debit', ['source' => 'admin_adjustment', 'reason' => $reason]);
 
         $newBalance = (float) $wallet->balance;
 
@@ -319,9 +323,10 @@ class AdminController extends Controller
             $user,
             'wallet_adjustment',
             $increase ? 'Wallet credited' : 'Wallet debited',
-            $increase
+            ($increase
                 ? '₹'.number_format($amount, 2).' has been added to your wallet by support. New balance: ₹'.number_format($newBalance, 2).'.'
-                : '₹'.number_format($amount, 2).' has been deducted from your wallet by support. New balance: ₹'.number_format($newBalance, 2).'.'
+                : '₹'.number_format($amount, 2).' has been deducted from your wallet by support. New balance: ₹'.number_format($newBalance, 2).'.')
+                .' Reason: '.$reason
         );
 
         Log::channel('admin_security')->info('Wallet manually adjusted', [
@@ -329,6 +334,7 @@ class AdminController extends Controller
             'direction' => $validated['direction'],
             'amount' => $amount,
             'new_balance' => $newBalance,
+            'reason' => $reason,
             'ip' => $request->ip(),
         ]);
 
@@ -348,6 +354,8 @@ class AdminController extends Controller
 
     public function settingsPage(): View
     {
+        abort_unless(AdminRoles::currentCan('manage_settings'), 403);
+
         return view('Admin::settings', [
             'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
             'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
@@ -430,29 +438,36 @@ class AdminController extends Controller
 
     public function updateSettings(Request $request): RedirectResponse
     {
+        abort_unless(AdminRoles::currentCan('manage_settings'), 403);
+
         $validated = $request->validate([
             'commission_percent' => ['required', 'numeric', 'min:0', 'max:100'],
             'max_deposit_limit' => ['required', 'numeric', 'min:0'],
             'withdrawal_min_amount' => ['nullable', 'numeric', 'min:0'],
             'withdrawal_daily_limit' => ['nullable', 'numeric', 'min:0'],
             'withdrawal_max_per_day' => ['nullable', 'integer', 'min:1'],
+            'withdrawal_max_per_transaction' => ['nullable', 'numeric', 'min:0'],
+            'withdrawal_processing_mode' => ['nullable', 'in:manual'],
         ]);
 
         AppSetting::set('commission_percent', (string) $validated['commission_percent']);
         AppSetting::set('max_deposit_limit', (string) $validated['max_deposit_limit']);
 
-        if (isset($validated['withdrawal_min_amount'])) {
-            AppSetting::set('withdrawal_min_amount', (string) $validated['withdrawal_min_amount']);
+        foreach (['withdrawal_min_amount', 'withdrawal_daily_limit', 'withdrawal_max_per_day', 'withdrawal_max_per_transaction'] as $key) {
+            if (isset($validated[$key])) {
+                AppSetting::set($key, (string) $validated[$key]);
+            }
         }
-        if (isset($validated['withdrawal_daily_limit'])) {
-            AppSetting::set('withdrawal_daily_limit', (string) $validated['withdrawal_daily_limit']);
-        }
-        if (isset($validated['withdrawal_max_per_day'])) {
-            AppSetting::set('withdrawal_max_per_day', (string) $validated['withdrawal_max_per_day']);
-        }
+        // Only 'manual' exists (no payment gateway in this app - see AppSetting::DEFAULTS
+        // comment); still write it explicitly so the setting round-trips through the form.
+        AppSetting::set('withdrawal_processing_mode', 'manual');
 
-        // System kill-switches (plan.md Section 41). Checkboxes: absent = off.
-        foreach (['maintenance_mode', 'allow_registration', 'allow_investment', 'allow_withdrawals'] as $switch) {
+        // System kill-switches (plan.md Section 41) + withdrawal-method
+        // toggles. Checkboxes: absent = off.
+        foreach ([
+            'maintenance_mode', 'allow_registration', 'allow_investment', 'allow_withdrawals',
+            'withdrawal_method_bank_enabled', 'withdrawal_method_upi_enabled', 'withdrawal_method_usdt_enabled',
+        ] as $switch) {
             AppSetting::set($switch, $request->boolean($switch) ? 'true' : 'false');
         }
 
@@ -665,7 +680,7 @@ class AdminController extends Controller
                 $user,
                 'withdrawal_approved',
                 'Withdrawal approved',
-                "₹{$withdraw->amount} is on its way to {$withdraw->payout_upi_id}."
+                "₹{$withdraw->amount} is on its way to {$withdraw->destinationLabel()}."
             );
         }
 
@@ -673,14 +688,15 @@ class AdminController extends Controller
             'withdraw_id' => $withdraw->id,
             'phone' => $withdraw->phone,
             'amount' => (float) $withdraw->amount,
-            'payout_upi_id' => $withdraw->payout_upi_id,
+            'method' => $withdraw->method,
+            'destination' => $withdraw->destinationLabel(),
             'new_balance' => (float) $wallet->balance,
         ]);
 
-        return back()->with('success', "Approved. ₹{$withdraw->amount} debited from {$withdraw->phone} - pay out to {$withdraw->payout_upi_id} manually.");
+        return back()->with('success', "Approved. ₹{$withdraw->amount} debited from {$withdraw->phone} - pay out to {$withdraw->destinationLabel()} manually.");
     }
 
-    public function rejectWithdrawal(WithdrawRequest $withdraw): RedirectResponse
+    public function rejectWithdrawal(Request $request, WithdrawRequest $withdraw): RedirectResponse
     {
         abort_unless(AdminRoles::currentCan('approve_withdrawals'), 403);
 
@@ -688,9 +704,15 @@ class AdminController extends Controller
             return back()->with('error', 'This request has already been reviewed.');
         }
 
+        $validated = $request->validate([
+            'admin_note' => ['nullable', 'string', 'max:500'],
+        ]);
+        $note = trim((string) ($validated['admin_note'] ?? ''));
+
         $withdraw->update([
             'status' => WithdrawRequest::STATUS_REJECTED,
             'reviewed_at' => now(),
+            'admin_note' => $note !== '' ? $note : null,
         ]);
 
         if ($user = User::where('phone', $withdraw->phone)->first()) {
@@ -699,6 +721,7 @@ class AdminController extends Controller
                 'withdrawal_rejected',
                 'Withdrawal request rejected',
                 "Your ₹{$withdraw->amount} withdrawal request was rejected. The amount was not deducted from your wallet."
+                    .($note !== '' ? " Reason: {$note}" : '')
             );
         }
 
@@ -706,7 +729,9 @@ class AdminController extends Controller
             'withdraw_id' => $withdraw->id,
             'phone' => $withdraw->phone,
             'amount' => (float) $withdraw->amount,
-            'payout_upi_id' => $withdraw->payout_upi_id,
+            'method' => $withdraw->method,
+            'destination' => $withdraw->destinationLabel(),
+            'admin_note' => $note,
         ]);
 
         return back()->with('success', "Rejected withdrawal request for {$withdraw->phone}.");

@@ -165,6 +165,13 @@
                         </span>
                     </div>
 
+                    @php $remaining = $plan->purchasesRemaining(); @endphp
+                    @if (! $oos && $remaining !== null)
+                        <p class="text-[10px] sm:text-[11.5px] font-bold text-amber-600 -mt-2 mb-2.5 flex items-center gap-1">
+                            <i class="bi bi-hourglass-split"></i> Only {{ number_format($remaining) }} left
+                        </p>
+                    @endif
+
                     <!-- TITLE & SUBTITLE HEADER (FULL WIDTH, NATURAL WRAPPING) -->
                     <div class="mb-3.5">
                         <h3 class="text-[15px] sm:text-[21px] font-extrabold text-[#0D1F3C] font-poppins leading-tight tracking-tight">{{ $cp['title'] }}</h3>

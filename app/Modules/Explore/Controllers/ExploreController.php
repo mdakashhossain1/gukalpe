@@ -42,7 +42,7 @@ class ExploreController extends Controller
         // new badge, or disabling the last plan of an existing one, never
         // changed what filters were on offer. Deriving the list from the
         // real Plan rows keeps it truthful automatically.
-        $allPlans = Plan::active()->ordered()->get()->filter(fn (Plan $p) => $p->isWithinSchedule())->values();
+        $allPlans = Plan::listable()->ordered()->get()->filter(fn (Plan $p) => $p->isWithinSchedule())->values();
         $badges = $allPlans->pluck('badge')->unique()->values();
         $durations = $allPlans->pluck('lock_duration')->unique()->values();
         $growthRates = $allPlans->pluck('growth_rate')->unique()->sort()->values();
@@ -187,7 +187,7 @@ class ExploreController extends Controller
             'minutesAgo' => max(0, (int) $up->purchased_at->diffInMinutes(now())),
         ])->values()->all();
 
-        $activePlans = Plan::active()->ordered()->get();
+        $activePlans = Plan::listable()->ordered()->get();
         $needed = max(0, self::TICKER_TARGET_COUNT - count($items));
 
         if ($activePlans->isNotEmpty() && $needed > 0) {

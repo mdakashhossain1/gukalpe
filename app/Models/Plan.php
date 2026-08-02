@@ -10,11 +10,27 @@ use Illuminate\Support\Str;
 
 class Plan extends Model
 {
+    // Catalog-visibility status (plan.md Section 10), layered on top of
+    // is_active rather than replacing it: is_active stays the untouched
+    // purchase-eligibility gate every existing call site already reads,
+    // while status controls discoverability. Out Of Stock is deliberately
+    // NOT a value here - it's a derived fact (isOutOfStock()), not something
+    // an admin sets.
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_HIDDEN = 'hidden';
+
+    public const STATUS_EXPIRED = 'expired';
+
+    public const STATUSES = [self::STATUS_DRAFT, self::STATUS_ACTIVE, self::STATUS_HIDDEN, self::STATUS_EXPIRED];
+
     protected $fillable = [
-        'title', 'subtitle', 'image', 'icon', 'icon_image', 'badge', 'growth_rate',
-        'lock_duration', 'investment_amount', 'min_investment_amount', 'max_investment_amount', 'allow_topups',
+        'title', 'subtitle', 'image', 'icon', 'icon_image', 'badge', 'growth_rate', 'term_days',
+        'lock_duration', 'investment_amount', 'min_investment_amount', 'max_investment_amount', 'slider_step', 'allow_topups',
         'daily_profit', 'total_return',
-        'is_active', 'sort_order',
+        'is_active', 'status', 'sort_order',
         'plan_type', 'max_purchase_per_user', 'cooldown_days', 'requires_plan_id',
         'unlock_enabled', 'unlock_message', 'marketing_badge', 'marketing_badge_icon',
         'marketing_badge_color', 'risk_level',
@@ -40,7 +56,9 @@ class Plan extends Model
         'investment_amount' => 'decimal:2',
         'min_investment_amount' => 'decimal:2',
         'max_investment_amount' => 'decimal:2',
+        'slider_step' => 'decimal:2',
         'allow_topups' => 'boolean',
+        'term_days' => 'integer',
         'daily_profit' => 'decimal:2',
         'total_return' => 'decimal:2',
         'is_active' => 'boolean',
@@ -126,12 +144,41 @@ class Plan extends Model
         return $this->allow_topups && $this->isFlexibleAmount();
     }
 
+    // Admin-configured slider step if set, else the same auto-computed
+    // (range / 50) fallback Plan Details always used before this field
+    // existed - so every plan without an explicit step keeps behaving
+    // exactly as before.
+    public function effectiveSliderStep(): float
+    {
+        if ($this->slider_step !== null && (float) $this->slider_step > 0) {
+            return (float) $this->slider_step;
+        }
+
+        if (! $this->isFlexibleAmount()) {
+            return 1.0;
+        }
+
+        return max(1.0, round(((float) $this->max_investment_amount - (float) $this->min_investment_amount) / 50));
+    }
+
     // Catalog-wide stock check — null max_purchases means unlimited.
     // Called from PlanPurchaseController before debiting wallet.
     public function isOutOfStock(): bool
     {
         return $this->max_purchases !== null
             && $this->total_purchases_count >= $this->max_purchases;
+    }
+
+    // Null means unlimited (no countdown to show). Can read briefly stale
+    // under concurrent purchases (total_purchases_count is a plain
+    // increment(), same accepted race as isOutOfStock() itself).
+    public function purchasesRemaining(): ?int
+    {
+        if ($this->max_purchases === null) {
+            return null;
+        }
+
+        return max(0, $this->max_purchases - $this->total_purchases_count);
     }
 
     // Both bounds are optional - a plan with neither is always in schedule,
@@ -159,9 +206,21 @@ class Plan extends Model
         return $this->userPlans()->distinct('user_id')->count('user_id');
     }
 
+    // Purchase-eligibility gate (PlanPurchaseController) - unchanged
+    // semantics, still just is_active. Active AND Hidden plans both keep
+    // is_active = true (a Hidden plan is still purchasable via an existing
+    // direct link - only Draft/Expired flip this to false).
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    // Catalog-discoverability gate for Explore/Home listings - only Active
+    // status plans show up here. Hidden plans are purchasable (see
+    // scopeActive above) but deliberately excluded from discovery.
+    public function scopeListable(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_ACTIVE);
     }
 
     public function scopeOrdered(Builder $query): Builder
