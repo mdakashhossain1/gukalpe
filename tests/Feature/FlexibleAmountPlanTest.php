@@ -189,7 +189,7 @@ class FlexibleAmountPlanTest extends TestCase
         ]);
     }
 
-    public function test_maturity_credits_the_exact_proportional_return_that_was_promised(): void
+    public function test_maturity_credits_the_full_promised_total_return(): void
     {
         $user = $this->userWithWallet(0);
         $plan = $this->flexiblePlan();
@@ -211,7 +211,7 @@ class FlexibleAmountPlanTest extends TestCase
         Artisan::call('plans:mature-holdings');
         $holding->refresh();
 
-        // Investment (5000) is non-refundable; ONLY profit (5600 - 5000 = 600) is credited to wallet
-        $this->assertEqualsWithDelta(600.0, WalletBalance::balanceFor($user->phone), 0.5);
+        // Full promised total_return (5000 invested + 600 profit = 5600) is credited to wallet.
+        $this->assertEqualsWithDelta(5600.0, WalletBalance::balanceFor($user->phone), 0.5);
     }
 }

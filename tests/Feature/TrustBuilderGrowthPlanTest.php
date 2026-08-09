@@ -187,8 +187,8 @@ class TrustBuilderGrowthPlanTest extends TestCase
         Artisan::call('plans:mature-holdings');
         $holding->refresh();
 
-        // Investment is non-refundable; ONLY profit (total_return - invested_amount) is credited to wallet
-        $profit = (float) $sixMonths->total_return - (float) $holding->invested_amount;
-        $this->assertEqualsWithDelta($balanceAfterPurchase + $profit, WalletBalance::balanceFor($user->phone), 0.5);
+        // Investment + profit (the full total_return) is credited to wallet at maturity.
+        $fullReturn = (float) $sixMonths->total_return;
+        $this->assertEqualsWithDelta($balanceAfterPurchase + $fullReturn, WalletBalance::balanceFor($user->phone), 0.5);
     }
 }

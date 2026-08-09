@@ -70,7 +70,7 @@ class ReportServiceTest extends TestCase
         $this->assertEquals(1000.0, $this->metric($report, 'Deposits (approved)')['amount']);
         $this->assertEquals(2, $this->metric($report, 'Investments (plan purchases)')['count']);
         $this->assertEquals(800.0, $this->metric($report, 'Investments (plan purchases)')['amount']);
-        $this->assertEquals(200.0, $this->metric($report, 'Profit credited')['amount']);
+        $this->assertEquals(200.0, $this->metric($report, 'Profit credited (legacy, pre-2026-08-09)')['amount']);
         $this->assertEquals(50.0, $this->metric($report, 'Referral bonus paid')['amount']);
         $this->assertEquals(400.0, $this->metric($report, 'Withdrawals (approved)')['amount']);
     }

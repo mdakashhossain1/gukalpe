@@ -13,7 +13,7 @@ class MaturePlanHoldingsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_credits_only_profit_to_wallet_on_maturity_not_the_invested_principal(): void
+    public function test_credits_investment_plus_profit_to_wallet_on_maturity(): void
     {
         $user = User::factory()->create(['phone' => '9876543210']);
         WalletBalance::firstOrCreate(['phone' => '9876543210'], ['balance' => 0]);
@@ -47,7 +47,9 @@ class MaturePlanHoldingsTest extends TestCase
 
         $this->artisan('plans:mature-holdings');
 
-        // 10/day * 30 days = 300 profit. Should NOT be 800 (invested+profit).
-        $this->assertEquals(300.0, WalletBalance::balanceFor('9876543210'));
+        // 10/day * 30 days = 300 profit, capped at maxProfit (800-500=300) since
+        // total_return is 800. invested (500) + profit (300) = 800 credited -
+        // both principal and profit now return to the wallet at maturity.
+        $this->assertEquals(800.0, WalletBalance::balanceFor('9876543210'));
     }
 }

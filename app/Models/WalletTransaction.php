@@ -19,7 +19,8 @@ class WalletTransaction extends Model
     public const TYPE_LABELS = [
         'add_money' => 'Add Money',
         'plan_purchase' => 'Plan Purchase',
-        'profit_credit' => 'Profit Credit',
+        'profit_credit' => 'Profit Credit', // legacy - see plan_maturity_credit (rows created before 2026-08-09)
+        'plan_maturity_credit' => 'Plan Maturity Credit',
         'referral_bonus' => 'Referral Bonus',
         'cashback' => 'Cashback',
         'withdrawal' => 'Withdrawal',

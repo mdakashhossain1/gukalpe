@@ -67,7 +67,12 @@ class ReportService
             ['label' => 'New users', 'count' => User::whereBetween('created_at', $between)->count(), 'amount' => null],
             ['label' => 'Deposits (approved)', 'count' => (clone $deposits)->count(), 'amount' => (float) (clone $deposits)->sum('amount')],
             ['label' => 'Investments (plan purchases)', 'count' => (clone $investments)->count(), 'amount' => (float) (clone $investments)->sum('invested_amount')],
-            ['label' => 'Profit credited', 'count' => null, 'amount' => $ledger('profit_credit')],
+            // 'profit_credit' rows predate 2026-08-09 (profit-only maturity payouts);
+            // 'plan_maturity_credit' rows are from that date on (principal + profit -
+            // see MaturePlanHoldings). Kept as two lines rather than merged so this
+            // report never silently reinterprets old ledger rows' original meaning.
+            ['label' => 'Profit credited (legacy, pre-2026-08-09)', 'count' => null, 'amount' => $ledger('profit_credit')],
+            ['label' => 'Plan maturity payouts (principal + profit)', 'count' => null, 'amount' => $ledger('plan_maturity_credit')],
             ['label' => 'Referral bonus paid', 'count' => null, 'amount' => $ledger('referral_bonus')],
             ['label' => 'Withdrawals (approved)', 'count' => (clone $withdrawals)->count(), 'amount' => (float) (clone $withdrawals)->sum('amount')],
         ];

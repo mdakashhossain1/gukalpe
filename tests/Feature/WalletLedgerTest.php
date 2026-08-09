@@ -32,7 +32,7 @@ class WalletLedgerTest extends TestCase
         ]);
     }
 
-    public function test_maturity_records_a_profit_credit_transaction(): void
+    public function test_maturity_records_a_plan_maturity_credit_transaction(): void
     {
         $user = User::factory()->create(['phone' => '9876543210']);
         WalletBalance::firstOrCreate(['phone' => '9876543210'], ['balance' => 0]);
@@ -52,10 +52,12 @@ class WalletLedgerTest extends TestCase
 
         $this->artisan('plans:mature-holdings');
 
-        $txn = WalletTransaction::where('phone', '9876543210')->where('type', 'profit_credit')->first();
+        $txn = WalletTransaction::where('phone', '9876543210')->where('type', 'plan_maturity_credit')->first();
         $this->assertNotNull($txn);
         $this->assertEquals('credit', $txn->direction);
-        $this->assertEquals('300.00', (string) $txn->amount); // profit only, not the 500 principal
+        $this->assertEquals('800.00', (string) $txn->amount); // 500 invested + 300 profit
         $this->assertEquals('Ledger Plan', $txn->meta['plan']);
+        $this->assertEquals(500.0, $txn->meta['invested_amount']);
+        $this->assertEquals(300.0, $txn->meta['profit_amount']);
     }
 }

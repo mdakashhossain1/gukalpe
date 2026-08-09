@@ -65,6 +65,7 @@ class FixedPlanNoDurationMaturityTest extends TestCase
 
         $holding->refresh();
         $this->assertSame(UserPlan::STATUS_WITHDRAWN, $holding->status);
-        $this->assertEqualsWithDelta(200 - 100 + 0.27, WalletBalance::balanceFor($user->phone), 0.01);
+        // Investment (100) + profit (0.27) both credit back at maturity.
+        $this->assertEqualsWithDelta(200 + 0.27, WalletBalance::balanceFor($user->phone), 0.01);
     }
 }
