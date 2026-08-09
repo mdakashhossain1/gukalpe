@@ -1,5 +1,16 @@
 # MEMORY.md — Project Log
 
+## 2026-08-09 — New: GET /cron/run - curl-triggered schedule:run fallback (new Cron module)
+
+Follow-up to the matures_at fix below. Checked this account's live hosting (Hostinger hPanel, Advanced → Cron Jobs) and confirmed the scheduler has **never run at all** on production: the only 2 cron jobs configured hit unrelated third-party domains (`scoreplusagt.com`, `creativlab.in`), nothing calls `php artisan schedule:run` for this app. `bootstrap/app.php`'s `->withSchedule()` (mature-holdings 18:30 UTC, notify-daily-profit 18:35 UTC, send-daily-returns-email 03:30 UTC) has been dead code in production the whole time.
+
+- **New module**: `app/Modules/Cron/` (`routes.php` + `Controllers/CronController.php`) — `GET /cron/run?token=...` calls `Artisan::call('schedule:run')`. Gated by `config('cron.secret')` (new `config/cron.php`, backed by `CRON_SECRET` env var) compared via `hash_equals`, same pattern as `ADMIN_PANEL_PASSWORD`/`config/admin.php`. Empty/unset secret permanently disables the endpoint (fails closed, not open).
+- **Why HTTP instead of a native cron entry**: this Hostinger account's existing cron jobs are all curl-hits-a-token-URL, matching how the account is already operated - this follows the same convention rather than requiring a native `* * * * * php artisan schedule:run` crontab line (SSH is available on this account, but the curl approach was explicitly requested and matches existing operational pattern for this hosting account).
+- **`EnsureNotInMaintenance`** updated to also exempt `cron/*` (alongside the existing admin-slug exemption) - payouts shouldn't silently stop firing just because the admin flipped `maintenance_mode` on.
+- **Tests**: `tests/Feature/CronEndpointTest.php` - no/wrong/missing-config token all 403; correct token returns 200 and invokes `Artisan::call('schedule:run')` (mocked - see the test's docblock for why a full end-to-end "holding actually matures" assertion isn't feasible here: Laravel spawns each due scheduled command as a **separate OS subprocess**, decoupled from the test's in-memory DB/transaction and `Carbon::setTestNow()`; the real maturity math is already covered by `MaturePlanHoldingsTest`/`FixedPlanNoDurationMaturityTest`).
+- **Deploy step still required**: this only works once (a) the code is pulled to production and (b) a new hPanel cron job is added: `curl -s "https://goldenrod-clam-729070.hostingersite.com/cron/run?token=<CRON_SECRET>" > /dev/null 2>&1` on `* * * * *`, and (c) `CRON_SECRET` is set in production `.env` to a real random value (generated with `bin2hex(random_bytes(32))`, never committed to git).
+- Full suite: **95 passed**.
+
 ## 2026-08-09 — Fix: Fixed plans with no Duration rows never matured (matures_at stayed null)
 
 User-reported bug: a **Fixed** plan bought against just the top-level Investment/Growth rate/Term (days) fields on the admin plan form — no Duration row added below — never paid out its promised profit, even after the term (e.g. 1 day) passed.

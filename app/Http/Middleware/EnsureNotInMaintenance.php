@@ -20,7 +20,7 @@ class EnsureNotInMaintenance
         if (AppSetting::enabled('maintenance_mode')) {
             $adminSlug = config('admin.panel_slug', 'admin');
 
-            if (! $request->is($adminSlug) && ! $request->is($adminSlug.'/*')) {
+            if (! $request->is($adminSlug) && ! $request->is($adminSlug.'/*') && ! $request->is('cron/*')) {
                 return response()->view('maintenance', [], 503);
             }
         }
