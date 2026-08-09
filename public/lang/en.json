@@ -440,5 +440,6 @@
     "Short feature tags shown as chips on Plan Details, e.g. '24x7 Support' or 'Instant Withdrawal'. Leave any blank to skip.": "Short feature tags shown as chips on Plan Details, e.g. '24x7 Support' or 'Instant Withdrawal'. Leave any blank to skip.",
     "Legal/plan-specific terms text shown to the customer on Plan Details.": "Legal/plan-specific terms text shown to the customer on Plan Details.",
     "Question & answer pairs shown on Plan Details to answer common customer questions. Leave any blank to skip.": "Question & answer pairs shown on Plan Details to answer common customer questions. Leave any blank to skip.",
-    "Always exactly 1 Day, auto-mature - the Duration options section below is hidden since it doesn't apply.": "Always exactly 1 Day, auto-mature - the Duration options section below is hidden since it doesn't apply."
+    "Always exactly 1 Day, auto-mature - the Duration options section below is hidden since it doesn't apply.": "Always exactly 1 Day, auto-mature - the Duration options section below is hidden since it doesn't apply.",
+    "If checked, a customer's contributions to this plan all combine into ONE ongoing pot with a single shared maturity date (SIP-style), instead of each investment becoming a separate holding with its own timer. Only works on Flexible plans.": "If checked, a customer's contributions to this plan all combine into ONE ongoing pot with a single shared maturity date (SIP-style), instead of each investment becoming a separate holding with its own timer. Only works on Flexible plans."
 }

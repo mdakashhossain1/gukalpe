@@ -244,6 +244,7 @@
                 <label class="sm:col-span-2 flex items-center gap-2.5 h-11 px-3.5 rounded-lg border border-[#CBD5E1] bg-white has-[:checked]:border-brand has-[:checked]:bg-brand/5 cursor-pointer transition-colors w-fit">
                     <input type="checkbox" name="allow_topups" value="1" class="accent-brand" {{ old('allow_topups', $plan->allow_topups) ? 'checked' : '' }}>
                     <span class="text-[13.5px] font-semibold text-[#0F172A]">Allow top-ups (SIP-style pot)</span>
+                    <x-info-tip text="If checked, a customer's contributions to this plan all combine into ONE ongoing pot with a single shared maturity date (SIP-style), instead of each investment becoming a separate holding with its own timer. Only works on Flexible plans." />
                 </label>
                 <p class="text-[11px] text-[#94A3B8] sm:col-span-2 -mt-1.5">A user's first contribution opens one ongoing pot; every later contribution adds to that SAME pot (one shared maturity date) up to Max investment, instead of each investment being a separate independent purchase.</p>
                 </div>
