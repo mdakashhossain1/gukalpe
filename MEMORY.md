@@ -1,5 +1,12 @@
 # MEMORY.md — Project Log
 
+## 2026-08-09 — Simplified all Plan form tooltips - first pass was too formal/complicated
+
+User rejected the first tooltip pass (this file's entry immediately below) as too complicated in both languages - too many technical/formal words, not enough concrete examples. Rewrote all 35 tooltips (plus the Trust Builder plan-type hint) in `Admin::plans.form` in plain everyday language with a worked example in nearly every one (e.g. "type 100 and no customer can invest less than ₹100" instead of "the minimum investable amount"). Hindi rewritten to match - simple conversational Hindi mixed with the same English loanwords (प्लान, कस्टमर, अमाउंट) already used throughout `public/lang/hi.json`, not formal/bookish Hindi.
+
+- 36 new dictionary entries added to `public/lang/en.json` and `public/lang/hi.json` (479 total, up from 443) for the simplified strings. The old complex-wording entries from the first pass are left in the dictionaries unused (harmless dead entries, safer than risking a stray delete) - only the blade file's `<x-info-tip>` text values changed to point at the new simpler entries.
+- Full suite: **102 passed** (pure content change, no logic touched).
+
 ## 2026-08-09 — New: bilingual (EN/Hindi) "i" info tooltips on every Plan form field
 
 User asked for an info icon (explicitly: "i" info, not AI) on every field across every section of the admin Plan form, hoverable, in both Hindi and English - said this is going into production and the field count/complexity was overwhelming without in-place explanations.
