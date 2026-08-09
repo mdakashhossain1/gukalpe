@@ -1,5 +1,16 @@
 # MEMORY.md — Project Log
 
+## 2026-08-09 — New: bilingual (EN/Hindi) "i" info tooltips on every Plan form field
+
+User asked for an info icon (explicitly: "i" info, not AI) on every field across every section of the admin Plan form, hoverable, in both Hindi and English - said this is going into production and the field count/complexity was overwhelming without in-place explanations.
+
+- **`x-info-tip` component** (`resources/views/components/info-tip.blade.php`): `@props(['text'])`, renders a small Bootstrap Icons `bi-info-circle` with `title="{{ $text }}"`. Deliberately uses the native `title` attribute (real browser tooltip, zero extra JS/CSS) rather than a custom tooltip widget - and because `title` is already one of `x-i18n-engine`'s `TRANSLATABLE_ATTRS`, toggling language translates every tooltip automatically for free, same mechanism the customer-facing app already uses.
+- **Admin panel had zero i18n before this** (DESIGN.md's "Ops console" section explicitly documented it as intentionally not loading i18n JS). To make the tooltips actually readable in Hindi, added real bilingual support to the whole admin panel for the first time: `layouts/admin.blade.php` now sets `data-lang-base` on `<body>` and includes `<x-i18n-engine />`; a new EN/हि toggle button (same `window.toggleLanguage()`, same `data-current-lang` badge convention as `layouts/simple.blade.php`) was added to both `admin-topbar.blade.php` (desktop) and `admin-sidebar.blade.php`'s mobile header.
+- **35 new dictionary entries** added to both `public/lang/en.json` and `public/lang/hi.json` (442 total, up from 410) - one per unique tooltip string used across the Plan form (Title, Category, Subtitle, Investment, Growth rate, Term days, Min/Max/Slider step, Lock duration, Sort order, Availability, Plan type, Max purchase/user, Cooldown, unlock-system fields, marketing fields, dates, Auto-mature, Max total purchases, all 4 Duration-row column headers, Highlights, Terms, FAQs, plus the Plan-type hint text). Hindi translations written directly (not machine-translated) in the same plain/professional register as the existing customer-facing dictionary.
+- **Verified end-to-end locally** (`php artisan serve`, Chrome MCP, real login): tooltips render on hover, `window.toggleLanguage()` correctly swaps every new tooltip's `title` to Hindi, confirmed via screenshot in both languages.
+- Scope: only `Admin::plans.form` got tooltips added (the field this session's confusion was about) - the i18n *infrastructure* (engine + toggle button) is now shared across the whole admin panel, so tooltips can be added to other admin pages later using the same `<x-info-tip>` component without repeating this setup.
+- Full suite: **102 passed** (no test changes needed - pure additive UI).
+
 ## 2026-08-09 — Admin plan form: hide Duration options entirely for Trust Builder, don't show a "locked" message
 
 User (site owner) said the "Duration options (max 4)" section showing a "Locked: 1 Day, auto-mature... the options below don't apply" message was confusing, on top of "Term (days)" sitting far away from the "Plan type" field that actually controls the lock - asked to just hide it instead of explaining it in place.

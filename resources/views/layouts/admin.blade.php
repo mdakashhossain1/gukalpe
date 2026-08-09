@@ -17,8 +17,9 @@
          shared bundled JS file. --}}
     @vite(['resources/css/app.css'])
 </head>
-<body class="admin-body bg-[#F4F6F7] font-sans text-[#0F172A] antialiased">
+<body class="admin-body bg-[#F4F6F7] font-sans text-[#0F172A] antialiased" data-lang-base="{{ asset('lang') }}">
     <x-toast />
     @yield('content')
+    <x-i18n-engine />
 </body>
 </html>

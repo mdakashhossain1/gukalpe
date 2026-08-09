@@ -49,7 +49,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label for="title" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Title</label>
+                    <label for="title" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Title<x-info-tip text="The plan's name - shown to customers on Explore, Home, and Plan Details." /></label>
                     <input type="text" name="title" id="title" maxlength="100" value="{{ old('title', $plan->title) }}" required
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('title')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
@@ -59,7 +59,7 @@
                         $currentBadge = old('badge', $plan->badge);
                         $isCustomBadge = $currentBadge === '__custom__' || ($currentBadge && ! $categories->contains($currentBadge));
                     @endphp
-                    <label for="badge-select" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Category</label>
+                    <label for="badge-select" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Category<x-info-tip text="Groups this plan under a category filter on Explore. Pick an existing one or type a new one." /></label>
                     <select name="badge" id="badge-select" required
                         onchange="document.getElementById('badge-custom-wrap').classList.toggle('hidden', this.value !== '__custom__'); document.getElementById('badge-custom').required = (this.value === '__custom__');"
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
@@ -100,7 +100,7 @@
             </div>
 
             <div>
-                <label for="subtitle" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Subtitle</label>
+                <label for="subtitle" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Subtitle<x-info-tip text="A short one-line description shown under the title on Explore and Plan Details." /></label>
                 <input type="text" name="subtitle" id="subtitle" maxlength="150" value="{{ old('subtitle', $plan->subtitle) }}" required
                     class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                 @error('subtitle')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
@@ -146,7 +146,7 @@
                 <div id="fixed-investment-section" class="rounded-xl border border-[#0A5C66]/20 bg-[#0A5C66]/[0.03] p-3.5 mb-3.5">
                     <p class="text-[11px] font-bold text-[#0A5C66] uppercase tracking-wide mb-2.5 flex items-center gap-1.5"><i class="bi bi-lock-fill"></i> Fixed Plan Amount</p>
                     <div class="max-w-xs">
-                        <label for="investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Investment (₹, one-time)</label>
+                        <label for="investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Investment (₹, one-time)<x-info-tip text="For Fixed plans only: every buyer pays exactly this one amount - no slider, no choice." /></label>
                         <input type="number" name="investment_amount" id="investment_amount" min="1" step="0.01" value="{{ old('investment_amount', $plan->investment_amount) }}" required
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                         <p class="text-[11px] text-[#94A3B8] mt-1">Every buyer pays exactly this amount. Only used in Fixed mode - ignored (and cleared) when Flexible is selected above.</p>
@@ -159,7 +159,7 @@
                      below inherits, and only the Investment field above is Fixed-only. --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                        <label for="growth_rate" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Growth rate (%/yr)</label>
+                        <label for="growth_rate" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Growth rate (%/yr)<x-info-tip text="The yearly return rate used to calculate profit. E.g. 12 means the plan grows 12% per year." /></label>
                         <div class="mb-2">
                             <span class="block text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide mb-1.5">Quick presets</span>
                             <div class="flex flex-wrap gap-1.5">
@@ -176,7 +176,7 @@
                         @error('growth_rate')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="term_days_calc" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Term (days)</label>
+                        <label for="term_days_calc" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Term (days)<x-info-tip text="How many days this plan actually runs for, e.g. enter 1 for a plan that matures in one day. Only used when you don't add any Duration option below - if you add Duration rows, each row's own Days value is used instead." /></label>
                         {{-- Not saved on the plan (there is no plan-level days column - only
                              durations have one); purely the multiplier that turns the yearly
                              rate above into the headline Daily/Total figures below. --}}
@@ -189,12 +189,12 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3.5">
                     <div>
-                        <label for="daily_profit" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Daily profit (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, system-computed</span></label>
+                        <label for="daily_profit" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Daily profit (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, system-computed</span><x-info-tip text="Preview only - not editable. Calculated automatically from Investment, Growth rate, and Term (days)." /></label>
                         <input type="number" id="daily_profit" min="0" step="0.01" value="{{ old('daily_profit', $plan->daily_profit) }}" disabled
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#94A3B8] bg-[#F8FAFC] outline-none">
                     </div>
                     <div>
-                        <label for="total_return" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Total return (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, system-computed</span></label>
+                        <label for="total_return" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Total return (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, system-computed</span><x-info-tip text="Preview only - not editable. This full amount (investment + profit) is what actually gets credited to the customer's wallet when the plan matures." /></label>
                         <input type="number" id="total_return" min="0" step="0.01" value="{{ old('total_return', $plan->total_return) }}" disabled
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#94A3B8] bg-[#F8FAFC] outline-none">
                     </div>
@@ -207,19 +207,19 @@
                 <p class="text-[11.5px] text-[#64748B] mb-3">Customer drags a slider between Min and Max to pick their own amount. <strong class="text-[#334155]">Both Min and Max are required</strong> in this mode - the plan won't save without a real range, so it can never silently fall back to acting like a Fixed plan.</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label for="min_investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Min investment (₹)</label>
+                    <label for="min_investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Min investment (₹)<x-info-tip text="The smallest amount the customer can drag the slider to. For Flexible plans only." /></label>
                     <input type="number" name="min_investment_amount" id="min_investment_amount" min="1" step="0.01" value="{{ old('min_investment_amount', $plan->min_investment_amount) }}"
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('min_investment_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="max_investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max investment (₹)</label>
+                    <label for="max_investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max investment (₹)<x-info-tip text="The largest amount the customer can drag the slider to. For Flexible plans only - required together with Min." /></label>
                     <input type="number" name="max_investment_amount" id="max_investment_amount" min="1" step="0.01" value="{{ old('max_investment_amount', $plan->max_investment_amount) }}"
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('max_investment_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
                 <div class="sm:col-span-2">
-                    <label for="slider_step" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Slider step (₹, optional)</label>
+                    <label for="slider_step" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Slider step (₹, optional)<x-info-tip text="How much the slider jumps per drag, e.g. ₹100 steps. Leave blank to auto-space it into about 50 steps." /></label>
                     <input type="number" name="slider_step" id="slider_step" min="0.01" step="0.01" placeholder="e.g. 100 - leave blank to auto-space ~50 steps" value="{{ old('slider_step', $plan->slider_step) }}"
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('slider_step')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
@@ -251,13 +251,13 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label for="lock_duration" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Lock duration</label>
+                    <label for="lock_duration" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Lock duration<x-info-tip text="Free text shown to the customer, e.g. '1 Day', '12 Months', or 'Flexible'. This is just a label - it does NOT control the actual math or the Fixed/Flexible slider behavior, only what's displayed." /></label>
                     <input type="text" name="lock_duration" id="lock_duration" maxlength="30" placeholder="e.g. Flexible, 12 Months, 36 Months" value="{{ old('lock_duration', $plan->lock_duration) }}" required
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('lock_duration')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="sort_order" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Sort order</label>
+                    <label for="sort_order" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Sort order<x-info-tip text="Controls display order on Explore/Home. Lower numbers show first." /></label>
                     <input type="number" name="sort_order" id="sort_order" min="0" value="{{ old('sort_order', $plan->sort_order) }}"
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('sort_order')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
@@ -265,7 +265,7 @@
             </div>
 
             <div class="max-w-xs">
-                <label for="status" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Availability</label>
+                <label for="status" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Availability<x-info-tip text="Controls whether customers can see and/or buy this plan. Draft = admin-only. Active = fully visible. Hidden = purchasable only via direct link, not listed. Expired = fully off." /></label>
                 @php $currentStatus = old('status', $plan->status ?? 'active'); @endphp
                 <select name="status" id="status" class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     <option value="draft" {{ $currentStatus === 'draft' ? 'selected' : '' }}>Draft (admin-only, not purchasable)</option>
@@ -281,7 +281,7 @@
                 <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-3">Unlock system</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                     <div>
-                        <label for="plan_type" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Plan type</label>
+                        <label for="plan_type" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Plan type<x-info-tip text="Regular = a normal plan with no special rules. Trust Builder = always exactly 1 Day, auto-mature, usually requires another plan first. Growth = a normal plan, usually the one that unlocks Trust Builder." /></label>
                         <select name="plan_type" id="plan_type" class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                             <option value="" {{ old('plan_type', $plan->plan_type) === null ? 'selected' : '' }}>Regular plan</option>
                             <option value="trust_builder" {{ old('plan_type', $plan->plan_type) === 'trust_builder' ? 'selected' : '' }}>Trust Builder Plan</option>
@@ -291,13 +291,13 @@
                         @error('plan_type')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="max_purchase_per_user" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max purchases per user</label>
+                        <label for="max_purchase_per_user" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max purchases per user<x-info-tip text="The most times ONE user can buy this specific plan, ever. Leave blank for unlimited." /></label>
                         <input type="number" name="max_purchase_per_user" id="max_purchase_per_user" min="1" placeholder="Unlimited" value="{{ old('max_purchase_per_user', $plan->max_purchase_per_user) }}"
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                         @error('max_purchase_per_user')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="cooldown_days" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Cooldown (days)</label>
+                        <label for="cooldown_days" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Cooldown (days)<x-info-tip text="How many days a user must wait after buying this plan before they can buy it again. Leave blank for no waiting period." /></label>
                         <input type="number" name="cooldown_days" id="cooldown_days" min="0" placeholder="None" value="{{ old('cooldown_days', $plan->cooldown_days) }}"
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                         @error('cooldown_days')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
@@ -307,11 +307,12 @@
                 <label class="flex items-center gap-2.5 h-11 px-3.5 rounded-lg border border-[#CBD5E1] has-[:checked]:border-brand has-[:checked]:bg-brand/5 cursor-pointer transition-colors w-fit mt-3">
                     <input type="checkbox" name="unlock_enabled" value="1" class="accent-brand" {{ old('unlock_enabled', $plan->unlock_enabled) ? 'checked' : '' }}>
                     <span class="text-[13.5px] font-semibold text-[#0F172A]">Require another plan to unlock this one</span>
+                    <x-info-tip text="If checked, a user must have already purchased the plan you pick below before they're allowed to buy this one." />
                 </label>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3">
                     <div>
-                        <label for="requires_plan_id" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Requires purchase of</label>
+                        <label for="requires_plan_id" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Requires purchase of<x-info-tip text="Which plan the user must already own to unlock this one. Only applies when the checkbox above is turned on." /></label>
                         <select name="requires_plan_id" id="requires_plan_id" class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                             <option value="">— None —</option>
                             @foreach ($requirablePlans as $requirable)
@@ -321,7 +322,7 @@
                         @error('requires_plan_id')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="unlock_message" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Unlock popup message</label>
+                        <label for="unlock_message" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Unlock popup message<x-info-tip text="The message shown in a popup to a user who tries to buy this plan before they've unlocked it." /></label>
                         <input type="text" name="unlock_message" id="unlock_message" maxlength="2000" placeholder="To unlock this plan, please activate a Growth Plan first." value="{{ old('unlock_message', $plan->unlock_message) }}"
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                         @error('unlock_message')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
@@ -334,7 +335,7 @@
                 <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-3">Marketing & availability</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                     <div>
-                        <label for="marketing_badge" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Marketing badge</label>
+                        <label for="marketing_badge" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Marketing badge<x-info-tip text="Small text ribbon shown on the plan card, e.g. 'Most Popular' or 'Trending'. Leave blank for no badge." /></label>
                         <input type="text" name="marketing_badge" id="marketing_badge" maxlength="40" placeholder="Most Popular" value="{{ old('marketing_badge', $plan->marketing_badge) }}"
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                         <p class="text-[11px] text-[#94A3B8] mt-1">Plain text now - pick the star/fire/etc. icon separately below instead of typing an emoji.</p>
@@ -355,7 +356,7 @@
                         @error('marketing_badge_icon')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="risk_level" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Risk level</label>
+                        <label for="risk_level" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Risk level<x-info-tip text="Shown to the customer as Low/Medium/High risk - for information only, does not affect any calculation." /></label>
                         <select name="risk_level" id="risk_level" class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                             <option value="">— Not set —</option>
                             @foreach (['Low', 'Medium', 'High'] as $risk)
@@ -391,13 +392,13 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3.5">
                     <div>
-                        <label for="start_date" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Start date</label>
+                        <label for="start_date" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Start date<x-info-tip text="The plan is only shown/purchasable on or after this date. Leave blank for no start limit." /></label>
                         <input type="date" name="start_date" id="start_date" value="{{ old('start_date', optional($plan->start_date)->format('Y-m-d')) }}"
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                         @error('start_date')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="end_date" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">End date</label>
+                        <label for="end_date" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">End date<x-info-tip text="The plan stops being shown/purchasable after this date. Leave blank for no end limit." /></label>
                         <input type="date" name="end_date" id="end_date" value="{{ old('end_date', optional($plan->end_date)->format('Y-m-d')) }}"
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                         @error('end_date')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
@@ -408,6 +409,7 @@
                     <label class="flex items-center gap-2.5 h-11 px-3.5 rounded-lg border border-[#CBD5E1] has-[:checked]:border-brand has-[:checked]:bg-brand/5 cursor-pointer transition-colors w-fit">
                         <input type="checkbox" name="auto_mature" value="1" class="accent-brand" {{ old('auto_mature', $plan->auto_mature) ? 'checked' : '' }}>
                         <span class="text-[13.5px] font-semibold text-[#0F172A]">Auto-mature (credit wallet automatically)</span>
+                        <x-info-tip text="If checked, the plan automatically credits the wallet and closes when it matures - no admin step needed. If unchecked, it stays active past maturity until a future manual action." />
                     </label>
                 </div>
 
@@ -415,7 +417,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3.5 border-t border-[#E5E9EB] pt-3.5">
                     <div>
                         <label for="max_purchases" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">
-                            Max total purchases (catalog-wide, optional)
+                            Max total purchases (catalog-wide, optional)<x-info-tip text="The total number of times this plan can EVER be bought, across ALL users combined (unlike 'Max purchases per user' above, which is per-person). Leave blank for unlimited." />
                         </label>
                         <input type="number" name="max_purchases" id="max_purchases" min="1" placeholder="Unlimited"
                             value="{{ old('max_purchases', $plan->max_purchases) }}"
@@ -441,7 +443,7 @@
                  1 Day server-side (PlanManagementController::syncDurations()), so
                  this whole section is simply irrelevant for it, not just "locked". --}}
             <div class="pt-4 mt-1 border-t border-[#E5E9EB]" id="duration-options-block">
-                <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-1">Duration options (max 4)</h2>
+                <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-1">Duration options (max 4)<x-info-tip text="Optional: let customers choose their own duration (e.g. 3/6/12 months) instead of one fixed Term (days). Each row has its own Days and Rate %, overriding the plan-level values above for that choice." /></h2>
 
                 <div id="flexible-duration-required-notice" style="display: none;" class="mb-3 flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-amber-50 border border-amber-200">
                     <i class="bi bi-exclamation-triangle-fill text-amber-600 text-[13px]"></i>
@@ -464,22 +466,22 @@
                         <div data-duration-row class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 items-end p-3 rounded-lg border border-[#E5E9EB]">
                             <input type="hidden" name="durations[{{ $i }}][id]" value="{{ old("durations.$i.id", $d?->id) }}">
                             <div class="col-span-2 sm:col-span-1">
-                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Default</label>
+                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Default<x-info-tip text="Which duration is pre-selected for the customer by default on Plan Details." /></label>
                                 <input type="radio" name="duration_default" value="{{ $i }}" class="accent-brand w-4 h-4"
                                     {{ (string) $i === (string) $defaultDurationIndex ? 'checked' : '' }}>
                             </div>
                             <div class="col-span-2 sm:col-span-1">
-                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Label</label>
+                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Label<x-info-tip text="What the customer sees on the button, e.g. '3 Months'." /></label>
                                 <input type="text" name="durations[{{ $i }}][label]" maxlength="30" placeholder="e.g. 3 Months" value="{{ old("durations.$i.label", $d?->label) }}"
                                     class="w-full h-9 rounded-lg border border-[#CBD5E1] px-2.5 text-[13px] text-[#0F172A] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
                             </div>
                             <div>
-                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Days</label>
+                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Days<x-info-tip text="How many days THIS duration option runs for." /></label>
                                 <input type="number" name="durations[{{ $i }}][duration_days]" min="1" value="{{ old("durations.$i.duration_days", $d?->duration_days) }}"
                                     class="w-full h-9 rounded-lg border border-[#CBD5E1] px-2.5 text-[13px] text-[#0F172A] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
                             </div>
                             <div>
-                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Rate %</label>
+                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Rate %<x-info-tip text="THIS duration's own yearly growth rate - can be different from the plan's main Growth rate above." /></label>
                                 <input type="number" name="durations[{{ $i }}][growth_rate]" min="0" value="{{ old("durations.$i.growth_rate", $d?->growth_rate) }}"
                                     class="w-full h-9 rounded-lg border border-[#CBD5E1] px-2.5 text-[13px] text-[#0F172A] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
                             </div>
@@ -503,7 +505,7 @@
             <div class="pt-4 mt-1 border-t border-[#E5E9EB]">
                 <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-3">Highlights, terms & FAQs</h2>
 
-                <label class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Highlight chips (up to 6)</label>
+                <label class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Highlight chips (up to 6)<x-info-tip text="Short feature tags shown as chips on Plan Details, e.g. '24x7 Support' or 'Instant Withdrawal'. Leave any blank to skip." /></label>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-3.5">
                     @php $existingHighlights = old('highlights', $plan->highlights ?? []); @endphp
                     @for ($i = 0; $i < 6; $i++)
@@ -513,13 +515,13 @@
                 </div>
 
                 <div class="mb-3.5">
-                    <label for="terms" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Terms</label>
+                    <label for="terms" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Terms<x-info-tip text="Legal/plan-specific terms text shown to the customer on Plan Details." /></label>
                     <textarea name="terms" id="terms" rows="3" maxlength="8000" placeholder="Standard GullakPe investment terms apply..."
                         class="w-full rounded-lg border border-[#CBD5E1] px-3 py-2 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">{{ old('terms', $plan->terms) }}</textarea>
                     @error('terms')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
 
-                <label class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">FAQs (up to 4)</label>
+                <label class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">FAQs (up to 4)<x-info-tip text="Question & answer pairs shown on Plan Details to answer common customer questions. Leave any blank to skip." /></label>
                 <div class="flex flex-col gap-2.5">
                     @php $existingFaqs = old('faqs', $plan->faqs ?? []); @endphp
                     @for ($i = 0; $i < 4; $i++)

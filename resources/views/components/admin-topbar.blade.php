@@ -17,6 +17,15 @@
     <span class="text-[14.5px] font-bold text-[#0F172A] truncate">{{ $title }}</span>
 
     <div class="flex items-center gap-3 shrink-0">
+        {{-- Admin panel's own EN/Hindi toggle - same window.toggleLanguage()
+             engine the customer-facing app uses, added 2026-08-09 so the
+             new field info-tips (x-info-tip) below can actually be read in
+             Hindi, not just English. --}}
+        <button type="button" onclick="window.toggleLanguage && window.toggleLanguage()" aria-label="Switch language" title="Switch language / भाषा बदलें"
+            class="relative w-9 h-9 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 transition-all active:scale-95 hover:border-[#0A5C66]/25 hover:text-[#0A5C66]">
+            <i class="bi bi-translate text-[15px]"></i>
+            <span data-current-lang class="absolute -bottom-1 -right-1 bg-[#0A5C66] text-white text-[8px] font-black px-1 rounded-full leading-tight border-2 border-white">EN</span>
+        </button>
         <x-admin-notification-bell id="admin-notif-bell-desktop" />
     </div>
 </header>
