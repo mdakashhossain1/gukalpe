@@ -287,6 +287,7 @@
                             <option value="trust_builder" {{ old('plan_type', $plan->plan_type) === 'trust_builder' ? 'selected' : '' }}>Trust Builder Plan</option>
                             <option value="growth" {{ old('plan_type', $plan->plan_type) === 'growth' ? 'selected' : '' }}>Growth Plan</option>
                         </select>
+                        <p id="plan-type-hint" class="text-[11px] text-[#94A3B8] mt-1"></p>
                         @error('plan_type')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
                     <div>
@@ -434,14 +435,13 @@
                 </div>
             </div>
 
-            {{-- ================= Multiple durations (max 4) ================= --}}
-            <div class="pt-4 mt-1 border-t border-[#E5E9EB]">
+            {{-- ================= Multiple durations (max 4) =================
+                 Hidden entirely (not just the rows) when Plan type = Trust Builder,
+                 further up in Unlock system - that plan type always forces exactly
+                 1 Day server-side (PlanManagementController::syncDurations()), so
+                 this whole section is simply irrelevant for it, not just "locked". --}}
+            <div class="pt-4 mt-1 border-t border-[#E5E9EB]" id="duration-options-block">
                 <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-1">Duration options (max 4)</h2>
-
-                <div id="trust-builder-duration-notice" style="display: none;" class="mb-3 flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-[#0A5C66]/8 border border-[#0A5C66]/20">
-                    <i class="bi bi-lock-fill text-[#0A5C66] text-[13px]"></i>
-                    <span class="text-[12.5px] font-semibold text-[#0A5C66]">Locked: 1 Day, auto-mature. Trust Builder plans always run for exactly 1 day and credit profit automatically - the options below don't apply.</span>
-                </div>
 
                 <div id="flexible-duration-required-notice" style="display: none;" class="mb-3 flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-amber-50 border border-amber-200">
                     <i class="bi bi-exclamation-triangle-fill text-amber-600 text-[13px]"></i>
@@ -867,16 +867,24 @@
         });
     }
 
-    // --- Duration Type (Trust Builder locks to 1 Day, hides the multi-duration builder) ---
+    // --- Duration Type (Trust Builder locks to 1 Day - hide the whole
+    //     Duration options section rather than show a "locked" message,
+    //     since it doesn't apply at all for this plan type) ---
     var planTypeEl = document.getElementById('plan_type');
-    var durationRowsSection = document.getElementById('duration-rows-section');
-    var trustBuilderNotice = document.getElementById('trust-builder-duration-notice');
+    var durationOptionsBlock = document.getElementById('duration-options-block');
+    var planTypeHint = document.getElementById('plan-type-hint');
     var autoMatureCheckbox = document.querySelector('input[name="auto_mature"]');
+
+    var PLAN_TYPE_HINTS = {
+        '': '',
+        'trust_builder': 'Always exactly 1 Day, auto-mature - the Duration options section below is hidden since it doesn\'t apply.',
+        'growth': ''
+    };
 
     function applyDurationTypeUI() {
         var isTrustBuilder = planTypeEl && planTypeEl.value === 'trust_builder';
-        if (durationRowsSection) durationRowsSection.style.display = isTrustBuilder ? 'none' : '';
-        if (trustBuilderNotice) trustBuilderNotice.style.display = isTrustBuilder ? '' : 'none';
+        if (durationOptionsBlock) durationOptionsBlock.style.display = isTrustBuilder ? 'none' : '';
+        if (planTypeHint) planTypeHint.textContent = planTypeEl ? (PLAN_TYPE_HINTS[planTypeEl.value] || '') : '';
         if (autoMatureCheckbox) {
             if (isTrustBuilder) {
                 autoMatureCheckbox.checked = true;

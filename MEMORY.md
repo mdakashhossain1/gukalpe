@@ -1,5 +1,12 @@
 # MEMORY.md — Project Log
 
+## 2026-08-09 — Admin plan form: hide Duration options entirely for Trust Builder, don't show a "locked" message
+
+User (site owner) said the "Duration options (max 4)" section showing a "Locked: 1 Day, auto-mature... the options below don't apply" message was confusing, on top of "Term (days)" sitting far away from the "Plan type" field that actually controls the lock - asked to just hide it instead of explaining it in place.
+
+- `Admin::plans.form`: the whole "Duration options" block (`id="duration-options-block"`, heading included, not just the row inputs) now gets `display: none` when Plan type = Trust Builder, instead of showing the old `#trust-builder-duration-notice` banner. The explanatory text moved to where it's actually controlled: a small hint (`#plan-type-hint`) directly under the "Plan type" dropdown in Unlock system, populated by `applyDurationTypeUI()`.
+- No backend change - `PlanManagementController::syncDurations()` already force-collapses Trust Builder to a single 1-Day row regardless of what's submitted; this is purely a form-display simplification.
+
 ## 2026-08-09 — BUSINESS RULE CHANGE: maturity now credits investment + profit (reverses spec R1/R2)
 
 User (site owner, confirmed via explicit question) reported that after a Fixed 1-Day plan matures, "all the returns and everything" should come back - not just the profit. Investigated and found the app had been built strictly to `docs/superpowers/specs/2026-07-28-admin-plan-system-and-engines-design.md`'s **R1/R2**: *"Investment Amount is NEVER returned. ONLY Profit is credited to wallet."* `MaturePlanHoldings` credited only `accruedProfit`; the invested principal stayed permanently deducted ("non-refundable" per the old maturity notification text) even though Plan Details' own "Maturity ₹219" figure had always displayed the full principal+profit value - a real mismatch between what the page promised and what the wallet actually received. **Explicitly asked the site owner to confirm this wasn't accidental scope creep** before touching money logic; they confirmed they want the full amount credited.
