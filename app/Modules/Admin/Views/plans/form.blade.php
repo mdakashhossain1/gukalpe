@@ -1019,13 +1019,16 @@
         // in them, matching PlanManagementController's own server-side reset.
         // (The server still resets them independently too - this is belt and
         // suspenders, not the only guard, since a direct/tampered POST
-        // bypasses JS entirely.)
+        // bypasses JS entirely.) slider_step is genuinely optional even in
+        // Flexible mode (server rule is 'nullable') - only min/max are
+        // actually required, so only those two toggle `required`.
         ['min_investment_amount', 'max_investment_amount', 'slider_step'].forEach(function (id) {
             var el = document.getElementById(id);
-            if (el) {
-                el.disabled = isFixed;
-                el.required = !isFixed;
-            }
+            if (el) el.disabled = isFixed;
+        });
+        ['min_investment_amount', 'max_investment_amount'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.required = !isFixed;
         });
         var topupsInput = document.querySelector('input[name="allow_topups"]');
         if (topupsInput) topupsInput.disabled = isFixed;
