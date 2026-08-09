@@ -128,7 +128,15 @@ class PlanPurchaseController extends Controller
         }
 
         $durationLabel = $duration?->label ?? $plan->lock_duration;
-        $maturesAt = $duration ? now()->addDays($duration->duration_days) : null;
+        // A Fixed plan with no Duration rows (only the top-level Investment /
+        // Growth rate / Term days fields) still has a real term - fall back
+        // to plan->term_days so plans:mature-holdings (which only ever looks
+        // at matures_at, see UserPlan::scopeMatured()) has a date to act on.
+        // Without this, such a purchase's matures_at stayed null forever and
+        // the promised profit was never credited.
+        $maturesAt = $duration
+            ? now()->addDays($duration->duration_days)
+            : ($plan->term_days ? now()->addDays($plan->term_days) : null);
 
         $available = WalletBalance::balanceFor($user->phone);
 

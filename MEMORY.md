@@ -1,5 +1,15 @@
 # MEMORY.md — Project Log
 
+## 2026-08-09 — Fix: Fixed plans with no Duration rows never matured (matures_at stayed null)
+
+User-reported bug: a **Fixed** plan bought against just the top-level Investment/Growth rate/Term (days) fields on the admin plan form — no Duration row added below — never paid out its promised profit, even after the term (e.g. 1 day) passed.
+
+- **Root cause**: `PlanPurchaseController::purchase()` set `matures_at = $duration ? now()->addDays($duration->duration_days) : null` — i.e. only plans with a `PlanDuration` row got a real maturity date. `UserPlan::scopeMatured()` requires `whereNotNull('matures_at')`, so a duration-less Fixed purchase was invisible to the nightly `plans:mature-holdings` scheduler (00:00 IST) forever: correct `daily_profit`/`total_return` were computed and stored at purchase time, but nothing ever credited the profit or marked the holding withdrawn.
+- **Why it was easy to hit**: the admin plan form always shows the Duration rows section (max 4) as optional — an admin can fill Investment/Growth rate/Term days at the top and leave every Duration row blank; validation only requires *either* `term_days` *or* at least one duration row, not both. That's a completely reasonable, common path for a simple one-shot Fixed plan, and it silently produced an un-maturing holding.
+- **Fix**: `matures_at` now falls back to `now()->addDays($plan->term_days)` when there's no duration row (`app/Modules/Plans/Controllers/PlanPurchaseController.php`, ~line 131). `topUp()` was already fine (never touches `matures_at` after the pot's first purchase).
+- **Regression test**: `tests/Feature/FixedPlanNoDurationMaturityTest.php` — creates a Plan with `term_days` only (no durations), purchases it, asserts `matures_at` is set, fast-forwards `purchased_at`+`matures_at` together (existing tests' convention — only moving `matures_at` under-reports accrued days since `UserPlan::currentHolding()` accrues off real elapsed time since `purchased_at`), runs the real `plans:mature-holdings` command, asserts wallet credited and holding withdrawn.
+- Full suite: **92 passed** (91 pre-existing + 1 new). No other call site depends on `matures_at` being null as a meaningful state, so this is a pure bugfix with no behavior change for plans that already had duration rows.
+
 ## 2026-08-02 — plan2.md gap-closure Tier C: Bank/UPI/USDT withdrawal methods (final item, all 10 done)
 
 Completes the plan2.md gap-closure effort (Tiers A/B above). This was the largest single item — a brand-new feature plan2.md added that plan.md never had at all.
