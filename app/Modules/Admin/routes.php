@@ -72,6 +72,7 @@ Route::prefix($slug)->group(function () {
         Route::get('/plans/{plan}/edit', [PlanManagementController::class, 'edit'])->name('admin.plans.edit');
         Route::post('/plans/{plan}', [PlanManagementController::class, 'update'])->name('admin.plans.update');
         Route::post('/plans/{plan}/toggle-active', [PlanManagementController::class, 'toggleActive'])->name('admin.plans.toggle-active');
+        Route::post('/plans/{plan}/delete', [PlanManagementController::class, 'destroy'])->name('admin.plans.delete');
 
         Route::get('/payment-gateway', [PaymentGatewayController::class, 'index'])->name('admin.payment-gateway');
         Route::post('/payment-gateway/settings', [PaymentGatewayController::class, 'updateSettings'])->name('admin.payment-gateway.settings');

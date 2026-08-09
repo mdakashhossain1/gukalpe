@@ -127,6 +127,12 @@
                                                 {{ $plan->status === 'active' ? 'Hide' : 'Activate' }}
                                             </button>
                                         </form>
+                                        @if ($plan->total_purchases_count === 0)
+                                            <form method="POST" action="{{ route('admin.plans.delete', $plan) }}" onsubmit="return confirm('Delete {{ $plan->title }} permanently? This can\'t be undone.');" title="Only possible while nobody has purchased this plan">
+                                                @csrf
+                                                <button type="submit" class="h-9 px-3.5 rounded-lg border border-red-200 text-red-600 text-[12.5px] font-bold hover:bg-red-50 transition-colors active:scale-95">Delete</button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

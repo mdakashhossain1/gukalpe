@@ -143,15 +143,21 @@
                     <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#0A5C66] bg-[#0A5C66]/8 px-2.5 py-1 rounded-full"><i class="bi bi-magic text-[11px]"></i> Auto-calculated</span>
                 </div>
 
-                {{-- You enter these three; Daily profit & Total return below fill in
-                     automatically (see the calculator script at the foot of this form). --}}
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                    <div id="fixed-investment-section">
+                <div id="fixed-investment-section" class="rounded-xl border border-[#0A5C66]/20 bg-[#0A5C66]/[0.03] p-3.5 mb-3.5">
+                    <p class="text-[11px] font-bold text-[#0A5C66] uppercase tracking-wide mb-2.5 flex items-center gap-1.5"><i class="bi bi-lock-fill"></i> Fixed Plan Amount</p>
+                    <div class="max-w-xs">
                         <label for="investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Investment (₹, one-time)</label>
                         <input type="number" name="investment_amount" id="investment_amount" min="1" step="0.01" value="{{ old('investment_amount', $plan->investment_amount) }}" required
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        <p class="text-[11px] text-[#94A3B8] mt-1">Every buyer pays exactly this amount. Only used in Fixed mode - ignored (and cleared) when Flexible is selected above.</p>
                         @error('investment_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                     </div>
+                </div>
+
+                {{-- Growth rate/Term days/Daily-Total preview apply to BOTH modes - Fixed
+                     uses them directly; Flexible uses them as the rate each Duration row
+                     below inherits, and only the Investment field above is Fixed-only. --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                         <label for="growth_rate" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Growth rate (%/yr)</label>
                         <div class="mb-2">
@@ -196,16 +202,19 @@
                 <p class="text-[11px] text-[#94A3B8] mt-2">Formula: <span class="font-semibold text-[#64748B]">Total = Investment × (1 + Rate%⁄yr × Days⁄365)</span>, and <span class="font-semibold text-[#64748B]">Daily = (Total − Investment) ⁄ Days</span>. Computed by the system on save - not editable.</p>
             </div>
 
-            <div id="flexible-investment-section" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div id="flexible-investment-section" class="rounded-xl border border-[#0A5C66]/20 bg-[#0A5C66]/[0.03] p-3.5">
+                <p class="text-[11px] font-bold text-[#0A5C66] uppercase tracking-wide mb-2.5 flex items-center gap-1.5"><i class="bi bi-sliders"></i> Flexible Plan Range</p>
+                <p class="text-[11.5px] text-[#64748B] mb-3">Customer drags a slider between Min and Max to pick their own amount. <strong class="text-[#334155]">Both Min and Max are required</strong> in this mode - the plan won't save without a real range, so it can never silently fall back to acting like a Fixed plan.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label for="min_investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Min investment (₹, optional)</label>
-                    <input type="number" name="min_investment_amount" id="min_investment_amount" min="1" step="0.01" placeholder="Leave both blank for a fixed amount" value="{{ old('min_investment_amount', $plan->min_investment_amount) }}"
+                    <label for="min_investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Min investment (₹)</label>
+                    <input type="number" name="min_investment_amount" id="min_investment_amount" min="1" step="0.01" value="{{ old('min_investment_amount', $plan->min_investment_amount) }}"
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('min_investment_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="max_investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max investment (₹, optional)</label>
-                    <input type="number" name="max_investment_amount" id="max_investment_amount" min="1" step="0.01" placeholder="Leave both blank for a fixed amount" value="{{ old('max_investment_amount', $plan->max_investment_amount) }}"
+                    <label for="max_investment_amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max investment (₹)</label>
+                    <input type="number" name="max_investment_amount" id="max_investment_amount" min="1" step="0.01" value="{{ old('max_investment_amount', $plan->max_investment_amount) }}"
                         class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     @error('max_investment_amount')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
@@ -216,7 +225,7 @@
                     @error('slider_step')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
 
-                <div id="range-preview" class="sm:col-span-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3.5 py-3" hidden>
+                <div id="range-preview" class="sm:col-span-2 rounded-xl border border-[#E2E8F0] bg-white px-3.5 py-3" hidden>
                     <p class="text-[10.5px] font-bold text-[#94A3B8] uppercase tracking-wide mb-2.5">Customer will see a slider like this on Plan Details</p>
                     <div class="flex items-center gap-2.5">
                         <span id="range-preview-min" class="text-[12.5px] font-black text-[#0F172A] whitespace-nowrap">₹0</span>
@@ -230,13 +239,14 @@
                     <p id="range-preview-step" class="text-[10.5px] text-[#94A3B8] mt-2"></p>
                 </div>
 
-                <p class="text-[11px] text-[#94A3B8] sm:col-span-2 -mt-1.5">Set both (max &gt; min) to show a real drag-slider on Plan Details letting the user invest any amount in this range - the return is then computed live from each duration's growth rate above rather than the fixed Investment amount. Requires at least one duration option below.</p>
+                <p class="text-[11px] text-[#94A3B8] sm:col-span-2 -mt-1.5">The return is computed live from each Duration row's growth rate below, proportional to whatever amount the customer actually picks. <strong class="text-[#334155]">Requires at least one Duration option below</strong> - the plan won't save without one, since without a duration there's no rate to compute a proportional return from.</p>
 
-                <label class="sm:col-span-2 flex items-center gap-2.5 h-11 px-3.5 rounded-lg border border-[#CBD5E1] has-[:checked]:border-brand has-[:checked]:bg-brand/5 cursor-pointer transition-colors w-fit">
+                <label class="sm:col-span-2 flex items-center gap-2.5 h-11 px-3.5 rounded-lg border border-[#CBD5E1] bg-white has-[:checked]:border-brand has-[:checked]:bg-brand/5 cursor-pointer transition-colors w-fit">
                     <input type="checkbox" name="allow_topups" value="1" class="accent-brand" {{ old('allow_topups', $plan->allow_topups) ? 'checked' : '' }}>
                     <span class="text-[13.5px] font-semibold text-[#0F172A]">Allow top-ups (SIP-style pot)</span>
                 </label>
-                <p class="text-[11px] text-[#94A3B8] sm:col-span-2 -mt-1.5">Only applies with a real Min/Max range above. A user's first contribution opens one ongoing pot; every later contribution adds to that SAME pot (one shared maturity date) up to Max investment, instead of each investment being a separate independent purchase.</p>
+                <p class="text-[11px] text-[#94A3B8] sm:col-span-2 -mt-1.5">A user's first contribution opens one ongoing pot; every later contribution adds to that SAME pot (one shared maturity date) up to Max investment, instead of each investment being a separate independent purchase.</p>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -431,6 +441,11 @@
                 <div id="trust-builder-duration-notice" style="display: none;" class="mb-3 flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-[#0A5C66]/8 border border-[#0A5C66]/20">
                     <i class="bi bi-lock-fill text-[#0A5C66] text-[13px]"></i>
                     <span class="text-[12.5px] font-semibold text-[#0A5C66]">Locked: 1 Day, auto-mature. Trust Builder plans always run for exactly 1 day and credit profit automatically - the options below don't apply.</span>
+                </div>
+
+                <div id="flexible-duration-required-notice" style="display: none;" class="mb-3 flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-amber-50 border border-amber-200">
+                    <i class="bi bi-exclamation-triangle-fill text-amber-600 text-[13px]"></i>
+                    <span class="text-[12.5px] font-semibold text-amber-700">Required for Flexible plans: at least one row below, or the plan won't save. Flexible purchases compute their return from a Duration row's rate - without one there's nothing to compute against.</span>
                 </div>
 
                 <div id="duration-rows-section">
@@ -998,6 +1013,25 @@
         // investment_amount required while its section is actually visible.
         var amountInput = document.getElementById('investment_amount');
         if (amountInput) amountInput.required = isFixed;
+
+        // Disabled fields don't get submitted at all - the inactive mode's
+        // values can no longer reach the server regardless of what's typed
+        // in them, matching PlanManagementController's own server-side reset.
+        // (The server still resets them independently too - this is belt and
+        // suspenders, not the only guard, since a direct/tampered POST
+        // bypasses JS entirely.)
+        ['min_investment_amount', 'max_investment_amount', 'slider_step'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.disabled = isFixed;
+                el.required = !isFixed;
+            }
+        });
+        var topupsInput = document.querySelector('input[name="allow_topups"]');
+        if (topupsInput) topupsInput.disabled = isFixed;
+
+        var flexDurationNotice = document.getElementById('flexible-duration-required-notice');
+        if (flexDurationNotice) flexDurationNotice.style.display = isFixed ? 'none' : 'flex';
 
         var activeClass   = 'px-5 py-2.5 text-[13.5px] font-bold transition-colors bg-[#0A5C66] text-white';
         var inactiveClass = 'px-5 py-2.5 text-[13.5px] font-bold transition-colors bg-white text-[#64748B]';

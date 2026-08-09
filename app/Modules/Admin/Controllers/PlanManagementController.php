@@ -139,6 +139,28 @@ class PlanManagementController extends Controller
             ->with('success', "{$plan->title} is now {$plan->status}.");
     }
 
+    // Only safe to hard-delete a plan nobody has ever bought - a purchased
+    // plan has UserPlan rows (and possibly PlanTopup/ReferralCommission rows
+    // chained off those) that reference plan_id, so deleting it would either
+    // orphan a real user's holding history or cascade-destroy it. Every
+    // other case (draft, misconfigured, leftover test data) goes through
+    // toggleActive() -> Hidden instead.
+    public function destroy(Plan $plan): RedirectResponse
+    {
+        if ($plan->userPlans()->exists()) {
+            return redirect()->route('admin.plans')
+                ->withErrors(['plan' => "{$plan->title} has real purchases and can't be deleted - hide it instead."]);
+        }
+
+        $title = $plan->title;
+        $plan->durations()->delete();
+        $plan->delete();
+
+        Log::channel('admin_security')->info('Plan deleted', ['title' => $title]);
+
+        return redirect()->route('admin.plans')->with('success', "{$title} deleted.");
+    }
+
     // The "Category" field is a <select> built from every known
     // PlanCategory, plus a "+ New category" option (value __custom__) that
     // reveals a plain text input (badge_custom) on the same form. This
@@ -187,9 +209,16 @@ class PlanManagementController extends Controller
             'badge_icon' => ['nullable', 'string', 'max:50'],
             'growth_rate' => ['required', 'integer', 'min:0', 'max:100'],
             'lock_duration' => ['required', 'string', 'max:30'],
+            'investment_mode' => ['required', 'in:fixed,flexible'],
             'investment_amount' => ['required', 'numeric', 'min:1'],
-            'min_investment_amount' => ['nullable', 'numeric', 'min:1'],
-            'max_investment_amount' => ['nullable', 'numeric', 'min:1', 'gt:min_investment_amount'],
+            // required_if (not just nullable) is what actually makes the Step 1
+            // switcher mean something server-side - previously investment_mode
+            // was submitted but never read, so a Flexible-looking plan saved
+            // with only Min filled in (Max left blank) silently fell back to a
+            // Fixed plan with no error at all. See MEMORY.md 2026-08-09 "Premium
+            // Plan" incident.
+            'min_investment_amount' => ['nullable', 'required_if:investment_mode,flexible', 'numeric', 'min:1'],
+            'max_investment_amount' => ['nullable', 'required_if:investment_mode,flexible', 'numeric', 'min:1', 'gt:min_investment_amount'],
             'slider_step' => ['nullable', 'numeric', 'min:0.01'],
             'term_days' => ['nullable', 'integer', 'min:1'],
             'status' => ['required', 'in:'.implode(',', Plan::STATUSES)],
@@ -235,6 +264,46 @@ class PlanManagementController extends Controller
         $validated['auto_mature'] = $request->boolean('auto_mature');
         $validated['allow_topups'] = $request->boolean('allow_topups');
 
+        $hasDurationRows = collect($request->input('durations', []))
+            ->contains(fn ($row) => trim((string) ($row['label'] ?? '')) !== '');
+
+        // investment_mode itself isn't a Plan column - it's what actually
+        // decides which of the two branches below applies, then gets
+        // discarded. Fixed mode: wipe any stray Min/Max/step/top-ups values
+        // still sitting in the request (e.g. the admin toggled to Flexible,
+        // typed a Min, then toggled back to Fixed before saving - the hidden
+        // fields aren't disabled, so their values still POST) so the saved
+        // row can never end up in the ambiguous "has a Min but no Max" state
+        // that made Premium Plan silently behave as Fixed while its own
+        // subtitle promised a slider. Flexible mode: a real Min+Max range is
+        // already guaranteed by the required_if rules above; also require at
+        // least one Duration row, since PlanPurchaseController's
+        // proportionalReturn() only proportions the return to the amount the
+        // user actually invests when a duration is present - without one, a
+        // Flexible plan would pay every buyer the same flat profit
+        // regardless of how much they invested.
+        if ($validated['investment_mode'] === 'fixed') {
+            $validated['min_investment_amount'] = null;
+            $validated['max_investment_amount'] = null;
+            $validated['slider_step'] = null;
+            $validated['allow_topups'] = false;
+        } else {
+            if (! $hasDurationRows) {
+                throw ValidationException::withMessages([
+                    'investment_mode' => 'Flexible plans need at least one Duration option below - without one, every buyer would get the same flat return regardless of how much they invest.',
+                ]);
+            }
+
+            // The base Investment field only ever feeds the plan-level
+            // preview/legacy display for Flexible plans (real purchases
+            // compute their own proportional return from whatever the user
+            // drags the slider to) - pin it to Min so there's one fewer
+            // number an admin has to keep in sync by hand.
+            $validated['investment_amount'] = $validated['min_investment_amount'];
+        }
+
+        unset($validated['investment_mode']);
+
         // Trust Builder is always "buy today, mature in 1 day, auto-credit" -
         // never trust a submitted checkbox to turn that off for this type.
         // Nullable rule means the key is absent from $validated entirely when
@@ -258,9 +327,6 @@ class PlanManagementController extends Controller
         // duration rows needs its own term_days to compute against; require
         // it explicitly instead of silently guessing 365 and surprising the
         // admin with numbers they didn't ask for.
-        $hasDurationRows = collect($request->input('durations', []))
-            ->contains(fn ($row) => trim((string) ($row['label'] ?? '')) !== '');
-
         if (! $hasDurationRows && $validated['term_days'] === null && $plan?->term_days === null) {
             throw ValidationException::withMessages([
                 'term_days' => 'Enter a term (days) for this plan, or add at least one duration option below.',

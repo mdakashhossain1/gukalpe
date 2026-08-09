@@ -38,6 +38,7 @@ class PlanAutoComputeAndTrustBuilderTest extends TestCase
             'badge_icon' => '',
             'plan_type' => '',
             'status' => 'active',
+            'investment_mode' => 'fixed',
             'growth_rate' => 10,
             'term_days' => 365,
             'lock_duration' => '1 Year',
