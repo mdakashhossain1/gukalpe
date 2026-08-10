@@ -210,7 +210,11 @@ class PlanManagementController extends Controller
             'growth_rate' => ['required', 'integer', 'min:0', 'max:100'],
             'lock_duration' => ['required', 'string', 'max:30'],
             'investment_mode' => ['required', 'in:fixed,flexible'],
-            'investment_amount' => ['required', 'numeric', 'min:1'],
+            // Only truly required in Fixed mode - Flexible plans derive this
+            // from min_investment_amount below (see the investment_mode
+            // branch further down), so the field is legitimately empty
+            // whenever Flexible is selected.
+            'investment_amount' => ['nullable', 'required_if:investment_mode,fixed', 'numeric', 'min:1'],
             // required_if (not just nullable) is what actually makes the Step 1
             // switcher mean something server-side - previously investment_mode
             // was submitted but never read, so a Flexible-looking plan saved
