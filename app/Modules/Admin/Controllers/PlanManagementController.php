@@ -249,6 +249,12 @@ class PlanManagementController extends Controller
             'faqs.*.a' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        // Blank input -> "" -> null under the 'nullable' rule, and an
+        // explicit null in the insert overrides the column's ->default(0)
+        // (defaults only apply when the column is omitted entirely), which
+        // trips the NOT NULL constraint. Coalesce back to 0 here instead.
+        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+
         // The Bootstrap-class icon field was replaced on the form by an icon
         // image upload, so it no longer arrives in the POST body. Keep the
         // column (still NOT NULL, and a fallback wherever no icon image is set)
