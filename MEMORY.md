@@ -1,5 +1,19 @@
 # MEMORY.md — Project Log
 
+## 2026-08-11 — Real-time JavaScript preview and calculation for Flexible Plans
+
+User requested real-time JavaScript preview and return calculation for Flexible Plans in both the Admin Plan form and customer Plan Details view.
+
+- **Admin Plan Form (`app/Modules/Admin/Views/plans/form.blade.php`)**:
+  - `recalcPlanLevel()` and `recalcRow()` now compute the active investment base dynamically (`effectiveAmount = mode === 'flexible' ? min_investment_amount : investment_amount`).
+  - Editing `min_investment_amount`, `max_investment_amount`, `growth_rate`, `term_days`, or `slider_step` recalculates `daily_profit`, `total_return`, Explore card preview, and duration option rows in real time.
+  - Enhanced `#range-preview` in the Flexible section to display live real-time returns (Daily Profit & Total Return) at both **Min Investment** and **Max Investment**.
+  - `setPlanMode()` triggers instant UI recalculation when toggling between Fixed and Flexible modes.
+- **Customer Plan Details View (`app/Modules/PlanDetails/Views/plan-details.blade.php`)**:
+  - Slider `updateValues()` script updated to calculate exact real-time daily profit `(amount × rate% / 365)` and total return `amount × (1 + rate% × days / 365)` using the active duration's rate and term days.
+  - Metric pods (`#pd-metric-daily-profit`, `#pd-metric-total-profit`, `#pd-flex-return`, summary cards, sticky bar) recalculate live as the slider moves or duration pills are clicked.
+- Full test suite: **102 passed**.
+
 ## 2026-08-09 — Simplified all Plan form tooltips - first pass was too formal/complicated
 
 User rejected the first tooltip pass (this file's entry immediately below) as too complicated in both languages - too many technical/formal words, not enough concrete examples. Rewrote all 35 tooltips (plus the Trust Builder plan-type hint) in `Admin::plans.form` in plain everyday language with a worked example in nearly every one (e.g. "type 100 and no customer can invest less than ₹100" instead of "the minimum investable amount"). Hindi rewritten to match - simple conversational Hindi mixed with the same English loanwords (प्लान, कस्टमर, अमाउंट) already used throughout `public/lang/hi.json`, not formal/bookish Hindi.

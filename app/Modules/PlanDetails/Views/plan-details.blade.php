@@ -157,6 +157,8 @@
                                 data-label="{{ $dur->label }}"
                                 data-daily-profit="+₹{{ number_format((float) $dur->daily_profit, 2) }}/day"
                                 data-total-return="₹{{ number_format((float) $dur->total_return, 0) }}"
+                                data-rate="{{ (float) $dur->growth_rate }}"
+                                data-days="{{ (int) $dur->duration_days }}"
                                 class="dur-pill-btn relative p-2 sm:p-3 rounded-xl border border-slate-200 text-left transition-all {{ $dur->is_default ? 'bg-[#0A5C66] text-white shadow-md' : 'bg-slate-50/50 text-slate-700 hover:bg-slate-100' }}">
                                 @if($dur->is_default)
                                     <span class="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-900 text-[6.5px] sm:text-[8px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full shadow-2xs whitespace-nowrap">
@@ -243,7 +245,7 @@
                     $flexStep = $plan->effectiveSliderStep();
                 @endphp
                 <div class="bg-white p-4 sm:p-5 rounded-[24px] border border-slate-100 shadow-2xs space-y-4" id="pd-flex-calc"
-                    data-min="{{ $flexMin }}" data-max="{{ $flexMax }}" data-step="{{ $flexStep }}" data-balance="{{ (float) $balance }}">
+                    data-min="{{ $flexMin }}" data-max="{{ $flexMax }}" data-step="{{ $flexStep }}" data-balance="{{ (float) $balance }}" data-growth-rate="{{ (float) $plan->growth_rate }}" data-term-days="{{ (int) $plan->term_days }}">
                     
                     <div class="flex items-center justify-between gap-2">
                         <h3 class="text-[12.5px] sm:text-[14px] font-extrabold text-[#0D1F3C] font-poppins min-w-0 truncate">Choose Your Investment</h3>
@@ -902,6 +904,10 @@
             if (profitEl) profitEl.textContent = '₹' + Math.round(profit).toLocaleString('en-IN') + '+';
             if (durationLabelEl) durationLabelEl.textContent = 'for ' + button.dataset.label;
         }
+
+        if (typeof window.updateFlexibleSliderValues === 'function') {
+            window.updateFlexibleSliderValues();
+        }
     }
     </script>
 
@@ -950,9 +956,25 @@
             return '₹' + Math.round(val).toLocaleString('en-IN');
         }
 
+        function getActiveRateAndDays() {
+            var activePill = document.querySelector('.dur-pill-btn.bg-\\[\\#0A5C66\\]');
+            var flexCalc = document.getElementById('pd-flex-calc');
+            var rate = 0;
+            var days = 365;
+
+            if (activePill && activePill.dataset.rate) {
+                rate = parseFloat(activePill.dataset.rate) || 0;
+                days = parseInt(activePill.dataset.days, 10) || 365;
+            } else if (flexCalc) {
+                rate = parseFloat(flexCalc.dataset.growthRate) || 0;
+                days = parseInt(flexCalc.dataset.termDays, 10) || 365;
+            }
+            return { rate: rate, days: days };
+        }
+
         function updateValues() {
             if (!slider) return;
-            var val = parseFloat(slider.value) || 199;
+            var val = parseFloat(slider.value) || 0;
             var formatted = formatMoney(val);
 
             if (amountDisplay) amountDisplay.textContent = formatted;
@@ -961,15 +983,29 @@
             if (stickyAmount) stickyAmount.textContent = formatted;
             if (stickyBtnAmount) stickyBtnAmount.textContent = formatted;
 
-            var yearlyInvested = val * 12;
-            var yearlyProfit = val * 0.267 * 12;
-            var totalReturn = yearlyInvested + yearlyProfit;
+            var info = getActiveRateAndDays();
+            var ratePct = info.rate || 0;
+            var days = info.days || 365;
 
-            if (summaryInvested) summaryInvested.textContent = formatMoney(yearlyInvested);
-            if (summaryProfit) summaryProfit.textContent = formatMoney(yearlyProfit) + '+';
+            var totalReturn = val * (1 + (ratePct / 100) * (days / 365));
+            var dailyProfit = (totalReturn - val) / days;
+            var totalProfit = Math.max(0, totalReturn - val);
+
+            var dailyProfitEl = document.getElementById('pd-metric-daily-profit');
+            var totalProfitEl = document.getElementById('pd-metric-total-profit');
+            var maturityEl = document.getElementById('pd-metric-maturity');
+
+            if (dailyProfitEl) dailyProfitEl.textContent = '+₹' + dailyProfit.toFixed(2) + '/day';
+            if (totalProfitEl) totalProfitEl.textContent = formatMoney(totalReturn);
+            if (maturityEl) maturityEl.textContent = formatMoney(totalReturn);
+
+            if (summaryInvested) summaryInvested.textContent = formatMoney(val);
+            if (summaryProfit) summaryProfit.textContent = formatMoney(totalProfit) + '+';
             if (summaryReturn) summaryReturn.textContent = formatMoney(totalReturn) + '+';
             if (stickyReturn) stickyReturn.textContent = formatMoney(totalReturn);
         }
+
+        window.updateFlexibleSliderValues = updateValues;
 
         if (slider) {
             slider.addEventListener('input', updateValues);

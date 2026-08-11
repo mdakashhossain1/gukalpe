@@ -236,7 +236,11 @@
                         </div>
                         <span id="range-preview-max" class="text-[12.5px] font-black text-[#0F172A] whitespace-nowrap">₹0</span>
                     </div>
-                    <p id="range-preview-step" class="text-[10.5px] text-[#94A3B8] mt-2"></p>
+                    <div id="range-preview-returns" class="mt-2.5 flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-medium text-slate-600 border-t border-slate-100 pt-2 gap-1">
+                        <span id="range-preview-min-return" class="text-[#0A5C66] font-bold">Min: Daily profit — · Total return —</span>
+                        <span id="range-preview-max-return" class="text-[#0A5C66] font-bold">Max: Daily profit — · Total return —</span>
+                    </div>
+                    <p id="range-preview-step" class="text-[10.5px] text-[#94A3B8] mt-1.5"></p>
                 </div>
 
                 <p class="text-[11px] text-[#94A3B8] sm:col-span-2 -mt-1.5">The return is computed live from each Duration row's growth rate below, proportional to whatever amount the customer actually picks. <strong class="text-[#334155]">Requires at least one Duration option below</strong> - the plan won't save without one, since without a duration there's no rate to compute a proportional return from.</p>
@@ -826,6 +830,18 @@
     }
 
     var investmentEl = document.getElementById('investment_amount');
+    var minInvestEl = document.getElementById('min_investment_amount');
+    var maxInvestEl = document.getElementById('max_investment_amount');
+    var sliderStepEl = document.getElementById('slider_step');
+
+    function getEffectiveInvestmentAmount() {
+        var modeInput = document.getElementById('investment_mode');
+        var isFlexible = modeInput && modeInput.value === 'flexible';
+        if (isFlexible) {
+            return num(minInvestEl) || 0;
+        }
+        return num(investmentEl) || 0;
+    }
 
     // --- Plan-level headline figures (Investment + Growth rate + Term days) ---
     var rateEl = document.getElementById('growth_rate');
@@ -833,13 +849,70 @@
     var dailyEl = document.getElementById('daily_profit');
     var totalEl = document.getElementById('total_return');
 
-    function recalcPlanLevel() {
-        var r = computeReturn(num(investmentEl), num(rateEl), num(termEl));
-        if (!r) return;
-        fill(dailyEl, r.daily);
-        fill(totalEl, r.total);
+    function updateRangePreview() {
+        var rangePreview = document.getElementById('range-preview');
+        var minPreview = document.getElementById('range-preview-min');
+        var maxPreview = document.getElementById('range-preview-max');
+        var stepPreview = document.getElementById('range-preview-step');
+        var minReturnEl = document.getElementById('range-preview-min-return');
+        var maxReturnEl = document.getElementById('range-preview-max-return');
+
+        var modeInput = document.getElementById('investment_mode');
+        var isFlexible = modeInput && modeInput.value === 'flexible';
+
+        if (!isFlexible || !rangePreview) {
+            if (rangePreview) rangePreview.hidden = true;
+            return;
+        }
+
+        var minVal = num(minInvestEl) || 0;
+        var maxVal = num(maxInvestEl) || 0;
+
+        if (minVal > 0 && maxVal > minVal) {
+            rangePreview.hidden = false;
+            if (minPreview) minPreview.textContent = '₹' + Math.round(minVal).toLocaleString('en-IN');
+            if (maxPreview) maxPreview.textContent = '₹' + Math.round(maxVal).toLocaleString('en-IN');
+
+            var rate = num(rateEl) || 0;
+            var days = num(termEl) || 365;
+
+            var minR = computeReturn(minVal, rate, days);
+            var maxR = computeReturn(maxVal, rate, days);
+
+            if (minR && minReturnEl) {
+                minReturnEl.textContent = 'Min ₹' + Math.round(minVal).toLocaleString('en-IN') + ': +₹' + minR.daily.toFixed(2) + '/day (Total ₹' + minR.total.toLocaleString('en-IN') + ')';
+            }
+            if (maxR && maxReturnEl) {
+                maxReturnEl.textContent = 'Max ₹' + Math.round(maxVal).toLocaleString('en-IN') + ': +₹' + maxR.daily.toFixed(2) + '/day (Total ₹' + maxR.total.toLocaleString('en-IN') + ')';
+            }
+
+            var stepVal = num(sliderStepEl);
+            if (stepPreview) {
+                if (stepVal > 0) {
+                    var stepsCount = Math.round((maxVal - minVal) / stepVal);
+                    stepPreview.textContent = 'Step size: ₹' + stepVal.toLocaleString('en-IN') + ' (' + stepsCount + ' stops along the slider)';
+                } else {
+                    stepPreview.textContent = 'Auto step spacing (~50 stops along the slider)';
+                }
+            }
+        } else {
+            rangePreview.hidden = true;
+        }
     }
-    [investmentEl, rateEl, termEl].forEach(function (el) {
+
+    function recalcPlanLevel() {
+        var amount = getEffectiveInvestmentAmount();
+        var r = computeReturn(amount, num(rateEl), num(termEl));
+        if (r) {
+            fill(dailyEl, r.daily);
+            fill(totalEl, r.total);
+        } else {
+            fill(dailyEl, '');
+            fill(totalEl, '');
+        }
+        updateRangePreview();
+    }
+    [investmentEl, minInvestEl, maxInvestEl, sliderStepEl, rateEl, termEl].forEach(function (el) {
         if (el) el.addEventListener('input', recalcPlanLevel);
     });
 
@@ -852,7 +925,8 @@
         var rTotalEl = document.getElementById('duration-total-' + i);
 
         function recalcRow() {
-            var r = computeReturn(num(investmentEl), num(rRateEl), num(daysEl));
+            var amount = getEffectiveInvestmentAmount();
+            var r = computeReturn(amount, num(rRateEl), num(daysEl));
             if (!r) return;
             fill(rDailyEl, r.daily);
             fill(rTotalEl, r.total);
@@ -863,12 +937,14 @@
         return recalcRow;
     });
 
-    // A change to the shared Investment cascades into every duration row too.
-    if (investmentEl) {
-        investmentEl.addEventListener('input', function () {
-            rowState.forEach(function (recalc) { recalc(); });
-        });
-    }
+    // Changes to Investment or Min Investment cascade into every duration row too.
+    [investmentEl, minInvestEl].forEach(function (el) {
+        if (el) {
+            el.addEventListener('input', function () {
+                rowState.forEach(function (recalc) { recalc(); });
+            });
+        }
+    });
 
     // --- Duration Type (Trust Builder locks to 1 Day - hide the whole
     //     Duration options section rather than show a "locked" message,
@@ -1051,6 +1127,11 @@
         var inactiveClass = 'px-5 py-2.5 text-[13.5px] font-bold transition-colors bg-white text-[#64748B]';
         if (btnFixed) btnFixed.className = isFixed ? activeClass : inactiveClass;
         if (btnFlex)  btnFlex.className  = isFixed ? inactiveClass : activeClass;
+
+        recalcPlanLevel();
+        if (typeof rowState !== 'undefined') {
+            rowState.forEach(function (recalc) { recalc(); });
+        }
     };
 
     // --- Interest Rate Presets ---
