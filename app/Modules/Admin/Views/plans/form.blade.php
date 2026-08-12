@@ -154,52 +154,57 @@
                     </div>
                 </div>
 
-                {{-- Growth rate/Term days/Daily-Total preview apply to BOTH modes - Fixed
-                     uses them directly; Flexible uses them as the rate each Duration row
-                     below inherits, and only the Investment field above is Fixed-only. --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div>
-                        <label for="growth_rate" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Growth rate (%/yr)<x-info-tip text="How much profit this plan gives in one year. Example: type 12 and it means the money grows by 12% every year." /></label>
-                        <div class="mb-2">
-                            <span class="block text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide mb-1.5">Quick presets</span>
-                            <div class="flex flex-wrap gap-1.5">
-                                @foreach ([1, 2, 3, 5, 8, 10, 12, 15, 20] as $rp)
+                {{-- Growth rate/Term days/Daily-Total preview are Fixed-only, same as the
+                     Investment field above - a Fixed plan has exactly one rate/term, set
+                     here. A Flexible plan's real return comes from the amount the customer
+                     drags the slider to combined with whichever Duration row's own rate/days
+                     they pick below - this block plays no part in that, so it's hidden for
+                     Flexible (toggled alongside #fixed-investment-section in setPlanMode()). --}}
+                <div id="fixed-rate-preview-section">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label for="growth_rate" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Growth rate (%/yr)<x-info-tip text="How much profit this plan gives in one year. Example: type 12 and it means the money grows by 12% every year." /></label>
+                            <div class="mb-2">
+                                <span class="block text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide mb-1.5">Quick presets</span>
+                                <div class="flex flex-wrap gap-1.5">
+                                    @foreach ([1, 2, 3, 5, 8, 10, 12, 15, 20] as $rp)
+                                        <button type="button" class="rate-preset px-2.5 py-0.5 rounded-full border border-[#CBD5E1] text-[11px] font-bold text-[#334155] hover:border-[#0A5C66] hover:text-[#0A5C66] transition-all"
+                                            data-rate="{{ $rp }}" onclick="window.applyRatePreset({{ $rp }})">{{ $rp }}%</button>
+                                    @endforeach
                                     <button type="button" class="rate-preset px-2.5 py-0.5 rounded-full border border-[#CBD5E1] text-[11px] font-bold text-[#334155] hover:border-[#0A5C66] hover:text-[#0A5C66] transition-all"
-                                        data-rate="{{ $rp }}" onclick="window.applyRatePreset({{ $rp }})">{{ $rp }}%</button>
-                                @endforeach
-                                <button type="button" class="rate-preset px-2.5 py-0.5 rounded-full border border-[#CBD5E1] text-[11px] font-bold text-[#334155] hover:border-[#0A5C66] hover:text-[#0A5C66] transition-all"
-                                    data-rate="custom" onclick="window.applyRatePreset(null)">Custom %</button>
+                                        data-rate="custom" onclick="window.applyRatePreset(null)">Custom %</button>
+                                </div>
                             </div>
+                            <input type="number" name="growth_rate" id="growth_rate" min="0" max="100" value="{{ old('growth_rate', $plan->growth_rate) }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                            @error('growth_rate')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
                         </div>
-                        <input type="number" name="growth_rate" id="growth_rate" min="0" max="100" value="{{ old('growth_rate', $plan->growth_rate) }}" required
-                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                        @error('growth_rate')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                        <div>
+                            <label for="term_days_calc" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Term (days)<x-info-tip text="How many days the plan lasts. Example: type 1 if it finishes in 1 day, or type 365 if it finishes in 1 year." /></label>
+                            {{-- Not saved on the plan (there is no plan-level days column - only
+                                 durations have one); purely the multiplier that turns the yearly
+                                 rate above into the headline Daily/Total figures below. --}}
+                            <input type="number" name="term_days" id="term_days_calc" min="1" placeholder="e.g. 365" value="{{ old('term_days', $plan->term_days) }}"
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                            <p class="text-[11px] text-[#94A3B8] mt-1">Length used to compute the numbers below.</p>
+                            @error('term_days')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+                        </div>
                     </div>
-                    <div>
-                        <label for="term_days_calc" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Term (days)<x-info-tip text="How many days the plan lasts. Example: type 1 if it finishes in 1 day, or type 365 if it finishes in 1 year. This is only used if you don't add any Duration option below - if you do add Duration options, those numbers are used instead." /></label>
-                        {{-- Not saved on the plan (there is no plan-level days column - only
-                             durations have one); purely the multiplier that turns the yearly
-                             rate above into the headline Daily/Total figures below. --}}
-                        <input type="number" name="term_days" id="term_days_calc" min="1" placeholder="e.g. 365" value="{{ old('term_days', $plan->term_days) }}"
-                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
-                        <p class="text-[11px] text-[#94A3B8] mt-1">Length used to compute the numbers below. Required when there are no duration options.</p>
-                        @error('term_days')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3.5">
-                    <div>
-                        <label for="daily_profit" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Daily profit (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, system-computed</span><x-info-tip text="You cannot type here - the system fills this in for you. It shows how much profit the customer earns every single day." /></label>
-                        <input type="number" id="daily_profit" min="0" step="0.01" value="{{ old('daily_profit', $plan->daily_profit) }}" disabled
-                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#94A3B8] bg-[#F8FAFC] outline-none">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3.5">
+                        <div>
+                            <label for="daily_profit" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Daily profit (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, system-computed</span><x-info-tip text="You cannot type here - the system fills this in for you. It shows how much profit the customer earns every single day." /></label>
+                            <input type="number" id="daily_profit" min="0" step="0.01" value="{{ old('daily_profit', $plan->daily_profit) }}" disabled
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#94A3B8] bg-[#F8FAFC] outline-none">
+                        </div>
+                        <div>
+                            <label for="total_return" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Total return (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, system-computed</span><x-info-tip text="You cannot type here - the system fills this in for you. This is the FULL amount (money invested + profit) that goes into the customer's wallet when the plan finishes." /></label>
+                            <input type="number" id="total_return" min="0" step="0.01" value="{{ old('total_return', $plan->total_return) }}" disabled
+                                class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#94A3B8] bg-[#F8FAFC] outline-none">
+                        </div>
                     </div>
-                    <div>
-                        <label for="total_return" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Total return (₹) <span class="text-[10.5px] font-normal text-[#94A3B8]">· auto, system-computed</span><x-info-tip text="You cannot type here - the system fills this in for you. This is the FULL amount (money invested + profit) that goes into the customer's wallet when the plan finishes." /></label>
-                        <input type="number" id="total_return" min="0" step="0.01" value="{{ old('total_return', $plan->total_return) }}" disabled
-                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#94A3B8] bg-[#F8FAFC] outline-none">
-                    </div>
+                    <p class="text-[11px] text-[#94A3B8] mt-2">Formula: <span class="font-semibold text-[#64748B]">Total = Investment × (1 + Rate%⁄yr × Days⁄365)</span>, and <span class="font-semibold text-[#64748B]">Daily = (Total − Investment) ⁄ Days</span>. Computed by the system on save - not editable.</p>
                 </div>
-                <p class="text-[11px] text-[#94A3B8] mt-2">Formula: <span class="font-semibold text-[#64748B]">Total = Investment × (1 + Rate%⁄yr × Days⁄365)</span>, and <span class="font-semibold text-[#64748B]">Daily = (Total − Investment) ⁄ Days</span>. Computed by the system on save - not editable.</p>
             </div>
 
             <div id="flexible-investment-section" class="rounded-xl border border-[#0A5C66]/20 bg-[#0A5C66]/[0.03] p-3.5">
@@ -840,6 +845,22 @@
     var maxInvestEl = document.getElementById('max_investment_amount');
     var sliderStepEl = document.getElementById('slider_step');
 
+    // First Duration row with a non-blank label - same "first row with a
+    // label wins" resolution PlanManagementController::validated() uses
+    // server-side to default a Flexible plan's rate/days.
+    function getFirstDurationRateAndDays() {
+        var rowEls = document.querySelectorAll('#duration-rows [data-duration-row]');
+        for (var i = 0; i < rowEls.length; i++) {
+            var labelEl = rowEls[i].querySelector('input[name$="[label]"]');
+            if (labelEl && labelEl.value.trim() !== '') {
+                var d = num(rowEls[i].querySelector('input[name$="[duration_days]"]'));
+                var r = num(rowEls[i].querySelector('input[name$="[growth_rate]"]'));
+                return { rate: isNaN(r) ? 0 : r, days: isNaN(d) ? 365 : d };
+            }
+        }
+        return null;
+    }
+
     function getEffectiveInvestmentAmount() {
         var modeInput = document.getElementById('investment_mode');
         var isFlexible = modeInput && modeInput.value === 'flexible';
@@ -879,8 +900,13 @@
             if (minPreview) minPreview.textContent = '₹' + Math.round(minVal).toLocaleString('en-IN');
             if (maxPreview) maxPreview.textContent = '₹' + Math.round(maxVal).toLocaleString('en-IN');
 
-            var rate = num(rateEl) || 0;
-            var days = num(termEl) || 365;
+            // growth_rate/term_days are Fixed-only and hidden in Flexible mode
+            // now - a Flexible plan's real rate/days always come from a
+            // Duration row (required, same rule the server enforces), so
+            // preview off the first filled row instead of the hidden fields.
+            var firstDur = getFirstDurationRateAndDays();
+            var rate = firstDur ? firstDur.rate : (num(rateEl) || 0);
+            var days = firstDur ? firstDur.days : (num(termEl) || 365);
 
             var minR = computeReturn(minVal, rate, days);
             var maxR = computeReturn(maxVal, rate, days);
@@ -925,6 +951,7 @@
     // --- Duration rows (Days + Rate %, against the plan's Investment) ---
     var rows = Array.prototype.slice.call(document.querySelectorAll('#duration-rows [data-duration-row]'));
     var rowState = rows.map(function (row, i) {
+        var labelEl = row.querySelector('input[name$="[label]"]');
         var daysEl = row.querySelector('input[name$="[duration_days]"]');
         var rRateEl = row.querySelector('input[name$="[growth_rate]"]');
         var rDailyEl = document.getElementById('duration-daily-' + i);
@@ -933,11 +960,16 @@
         function recalcRow() {
             var amount = getEffectiveInvestmentAmount();
             var r = computeReturn(amount, num(rRateEl), num(daysEl));
-            if (!r) return;
-            fill(rDailyEl, r.daily);
-            fill(rTotalEl, r.total);
+            if (r) {
+                fill(rDailyEl, r.daily);
+                fill(rTotalEl, r.total);
+            }
+            // Flexible plans preview off this row's rate/days (see
+            // getFirstDurationRateAndDays()), so any edit here needs to
+            // refresh that preview too, not just this row's own Daily/Total.
+            updateRangePreview();
         }
-        [daysEl, rRateEl].forEach(function (el) {
+        [labelEl, daysEl, rRateEl].forEach(function (el) {
             if (el) el.addEventListener('input', recalcRow);
         });
         return recalcRow;
@@ -1103,11 +1135,21 @@
         if (fixedEl) fixedEl.style.display = isFixed ? '' : 'none';
         if (flexEl)  flexEl.style.display  = isFixed ? 'none' : '';
 
+        // Growth rate/Term days/Daily-Total preview are Fixed-only too (a
+        // Flexible plan's return comes from the slider amount + whichever
+        // Duration row the customer picks, not this single top-level rate) -
+        // hidden/shown in lockstep with fixedEl.
+        var fixedRatePreviewEl = document.getElementById('fixed-rate-preview-section');
+        if (fixedRatePreviewEl) fixedRatePreviewEl.style.display = isFixed ? '' : 'none';
+
         // A hidden `required` field is barred from being focused, so an empty
         // one silently blocks form submission with no visible error. Only keep
-        // investment_amount required while its section is actually visible.
+        // investment_amount/growth_rate required while their section is
+        // actually visible.
         var amountInput = document.getElementById('investment_amount');
         if (amountInput) amountInput.required = isFixed;
+        var growthRateInput = document.getElementById('growth_rate');
+        if (growthRateInput) growthRateInput.required = isFixed;
 
         // Disabled fields don't get submitted at all - the inactive mode's
         // values can no longer reach the server regardless of what's typed
@@ -1128,7 +1170,7 @@
         var topupsInput = document.querySelector('input[name="allow_topups"]');
         if (topupsInput) topupsInput.disabled = isFixed;
 
-        // Duration options only apply to Fixed, non-Trust-Builder plans -
+        // Duration options only apply to Flexible, non-Trust-Builder plans -
         // re-evaluate its visibility every time the mode switches.
         if (typeof applyDurationTypeUI === 'function') applyDurationTypeUI();
 
