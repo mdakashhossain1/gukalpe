@@ -1,5 +1,20 @@
 # MEMORY.md — Project Log
 
+## 2026-08-12 — Exploration & Fix for Multiple Duration Plan Validation and Trust Builder Verification
+
+User requested checking `error.txt` for bugs, verifying their existence, fixing genuine issues, and preparing a GitHub PR branch.
+
+- **Exploration Findings**:
+  - **Fixed Bug**: In `PlanManagementController.php`, `growth_rate` was strictly `required` during validation, causing admin creation/update of Multiple Duration plans to fail if top-level `growth_rate` was left empty.
+  - Updated `validated()` in `PlanManagementController.php` so top-level `growth_rate` and `term_days` are `nullable` when duration rows are present (`$hasDurationRows`), defaulting to the first duration row's rate/days if omitted. For single duration mode, both fields remain strictly `required`.
+  - **Verified Working (No Bug)**:
+    - **Trust Builder Unlock**: Purchasing Growth Plan creates a `UserPlan` holding that unlocks Trust Builder for the user (`TrustBuilderGrowthPlanTest.php`).
+    - **Multiple Duration Calculations**: Customer Plan Details dynamically updates metric pods, return preview, and maturity calculations according to selected duration pill rates/days (`selectDuration()`).
+    - **FAQ Preservation**: Admin-entered FAQs saved on `$plan->faqs` render on Plan Details view and are never replaced.
+- Added feature test: `tests/Feature/PlanMultipleDurationValidationAndUnlockUITest.php`.
+- Full test suite: **104 passed (319 assertions)**.
+- Pushed branch `fix/multiple-duration-validation-and-verification` to GitHub (`origin`).
+
 ## 2026-08-11 — Real-time JavaScript preview and calculation for Flexible Plans
 
 User requested real-time JavaScript preview and return calculation for Flexible Plans in both the Admin Plan form and customer Plan Details view.
