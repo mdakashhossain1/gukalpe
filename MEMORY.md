@@ -1,5 +1,14 @@
 # MEMORY.md — Project Log
 
+## 2026-08-13 — Fixed-plan calc box: Daily + Total instead of Investment + Profit
+
+Diagnosed a follow-up to yesterday's "Profit: ₹24.61+" fix using a database file the user downloaded separately (`C:\Users\ARKNOX\Downloads\database.sqlite`, queried directly via PDO, not the project's own dev DB) - found the actual plan ("Grow Your Savings", Fixed, ₹499 @ 20%/90 days). Traced the exact numbers: total_return=523.6103→rounds to 523.61, daily=(523.61-499)/90=0.2734→rounds to 0.27, profit=523.61-499=24.61 exactly. Confirmed **not a bug** - `0.27 × 90 ≈ 24.30` vs the real `24.61` is just two independently-rounded figures not reconciling by naive multiplication (the precise 0.27344.../day rounds to 0.27 for display, losing ~0.31 over 90 days). Explained this to the user rather than "fixing" something that wasn't broken.
+
+- User then asked to change what that small box under the Fixed-plan calculator shows: was "Investment: ₹499" / "Profit: ₹24.61+" - now "Daily: ₹0.27/day" / "Total: ₹523.61+" (`plan-details.blade.php`). Investment is already shown large above this box, so dropping it here isn't a loss; showing daily rate + full total (both server-rendered at 2 decimals, same reasoning as yesterday's rounding fix) is more informative than investment + profit-only.
+- Renamed the ids this touches for clarity now that they mean something different: `pd-fixed-calc-profit` → `pd-fixed-calc-total`, added `pd-fixed-calc-daily`. Updated `selectDuration()`'s JS to populate both from the clicked duration pill's `data-daily-profit` (already a formatted string) and `data-total-return-raw` (added yesterday for precision).
+- Verified via a real HTTP request reproducing the exact reported plan shape (₹499/20%/90 days) - confirmed `₹0.27/day` and `₹523.61+` both render with the new ids, old `Investment:`/`pd-fixed-calc-profit` are gone.
+- Full suite: **108 passed (346 assertions)**, Pint clean.
+
 ## 2026-08-13 — Three unrelated customer-facing bugs: FAQ answers invisible, sidebar always shows Login, Fixed-plan profit rounds to ₹0
 
 User reported three separate issues while testing the live app: admin-entered FAQ answers not showing, the "Profit" figure on a Fixed plan's calculator card showing ₹0, and the desktop sidebar showing a "Log in" button even while logged in.

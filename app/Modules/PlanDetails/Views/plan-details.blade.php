@@ -331,12 +331,12 @@
 
                             <div class="shrink-0 flex items-center gap-1.5">
                                 <div class="text-[7.5px] sm:text-[10px] font-bold text-slate-500 leading-snug whitespace-nowrap">
-                                    <p>Investment: <strong class="text-slate-800">₹{{ number_format($flexMin, 0) }}</strong></p>
                                     {{-- 2 decimals, not the usual 0 - a low-rate short-term plan's
-                                         real profit can be a small fraction (e.g. Trust Builder's
-                                         1-day ₹0.08), which number_format(...,0) would round down
-                                         to a misleading "₹0+". --}}
-                                    <p>Profit: <strong id="pd-fixed-calc-profit" class="text-[#19B36B]">₹{{ number_format(max(0, (float) $plan->total_return - $flexMin), 2) }}+</strong></p>
+                                         real daily/total figures can be small fractions (e.g. Trust
+                                         Builder's 1-day ₹0.08/day), which number_format(...,0) would
+                                         round down to a misleading "₹0". --}}
+                                    <p>Daily: <strong id="pd-fixed-calc-daily" class="text-slate-800">₹{{ number_format((float) $plan->daily_profit, 2) }}/day</strong></p>
+                                    <p>Total: <strong id="pd-fixed-calc-total" class="text-[#19B36B]">₹{{ number_format((float) $plan->total_return, 2) }}+</strong></p>
                                 </div>
                                 <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-50 text-[#19B36B] flex items-center justify-center shrink-0">
                                     <i class="bi bi-graph-up-arrow text-[10px] sm:text-[12px]"></i>
@@ -896,21 +896,22 @@
         if (maturityEl) maturityEl.textContent = button.dataset.totalReturn;
 
         // Fixed-amount plans show a "Live Projection" card too (Investment
-        // is constant, only the return/profit/duration change per duration).
+        // is constant, only the return/daily/total change per duration).
         var fixedCalc = document.getElementById('pd-fixed-calc');
         if (fixedCalc) {
-            var investment = parseFloat(fixedCalc.dataset.investment) || 0;
-            // Raw (unrounded) total return for the profit math - the display
-            // string in data-total-return is already rounded to whole rupees,
-            // which silently floors a small real profit (e.g. ₹0.08) to ₹0.
+            // Raw (unrounded) total return - the display string in
+            // data-total-return is already rounded to whole rupees, which
+            // silently floors a small real total (e.g. ₹0.08 above
+            // investment) to a misleading round number.
             var totalReturnRaw = parseFloat(button.dataset.totalReturnRaw);
             var totalReturn = !isNaN(totalReturnRaw) ? totalReturnRaw : (parseFloat((button.dataset.totalReturn || '').replace(/[^0-9.]/g, '')) || 0);
-            var profit = Math.max(0, totalReturn - investment);
             var returnEl = document.getElementById('pd-fixed-calc-return');
-            var profitEl = document.getElementById('pd-fixed-calc-profit');
+            var dailyEl = document.getElementById('pd-fixed-calc-daily');
+            var totalEl = document.getElementById('pd-fixed-calc-total');
             var durationLabelEl = document.getElementById('pd-fixed-calc-duration-label');
             if (returnEl) returnEl.textContent = button.dataset.totalReturn + '+';
-            if (profitEl) profitEl.textContent = '₹' + profit.toFixed(2) + '+';
+            if (dailyEl) dailyEl.textContent = button.dataset.dailyProfit;
+            if (totalEl) totalEl.textContent = '₹' + totalReturn.toFixed(2) + '+';
             if (durationLabelEl) durationLabelEl.textContent = 'for ' + button.dataset.label;
         }
 
