@@ -197,6 +197,9 @@ class PlanManagementController extends Controller
 
     private function validated(Request $request, ?Plan $plan = null): array
     {
+        $hasDurationRows = collect($request->input('durations', []))
+            ->contains(fn ($row) => trim((string) ($row['label'] ?? '')) !== '');
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:100', $plan
                 ? 'unique:plans,title,'.$plan->id
@@ -207,7 +210,7 @@ class PlanManagementController extends Controller
             'icon' => ['nullable', 'string', 'max:50'],
             'badge' => ['required', 'string', 'max:30'],
             'badge_icon' => ['nullable', 'string', 'max:50'],
-            'growth_rate' => ['required', 'integer', 'min:0', 'max:100'],
+            'growth_rate' => $hasDurationRows ? ['nullable', 'integer', 'min:0', 'max:100'] : ['required', 'integer', 'min:0', 'max:100'],
             'lock_duration' => ['required', 'string', 'max:30'],
             'investment_mode' => ['required', 'in:fixed,flexible'],
             // Only truly required in Fixed mode - Flexible plans derive this
@@ -224,7 +227,7 @@ class PlanManagementController extends Controller
             'min_investment_amount' => ['nullable', 'required_if:investment_mode,flexible', 'numeric', 'min:1'],
             'max_investment_amount' => ['nullable', 'required_if:investment_mode,flexible', 'numeric', 'min:1', 'gt:min_investment_amount'],
             'slider_step' => ['nullable', 'numeric', 'min:0.01'],
-            'term_days' => ['nullable', 'integer', 'min:1'],
+            'term_days' => $hasDurationRows ? ['nullable', 'integer', 'min:1'] : ['required', 'integer', 'min:1'],
             'status' => ['required', 'in:'.implode(',', Plan::STATUSES)],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'plan_type' => ['nullable', 'in:trust_builder,growth'],
@@ -273,9 +276,6 @@ class PlanManagementController extends Controller
         $validated['unlock_enabled'] = $request->boolean('unlock_enabled');
         $validated['auto_mature'] = $request->boolean('auto_mature');
         $validated['allow_topups'] = $request->boolean('allow_topups');
-
-        $hasDurationRows = collect($request->input('durations', []))
-            ->contains(fn ($row) => trim((string) ($row['label'] ?? '')) !== '');
 
         // investment_mode itself isn't a Plan column - it's what actually
         // decides which of the two branches below applies, then gets
@@ -330,22 +330,20 @@ class PlanManagementController extends Controller
             ->filter(fn ($f) => $f['q'] !== '' && $f['a'] !== '')
             ->values()->all() ?: null;
 
-        // Daily profit / total return are system-computed only (plan.md
-        // Section 5: "admin never enters this manually") - recomputed here
-        // unconditionally rather than trusting whatever the (now disabled,
-        // JS-filled) form fields would have submitted. A plan with no
-        // duration rows needs its own term_days to compute against; require
-        // it explicitly instead of silently guessing 365 and surprising the
-        // admin with numbers they didn't ask for.
-        if (! $hasDurationRows && $validated['term_days'] === null && $plan?->term_days === null) {
-            throw ValidationException::withMessages([
-                'term_days' => 'Enter a term (days) for this plan, or add at least one duration option below.',
-            ]);
+        if ($hasDurationRows) {
+            $firstDur = collect($request->input('durations', []))
+                ->first(fn ($r) => trim((string) ($r['label'] ?? '')) !== '');
+            if (($validated['growth_rate'] ?? null) === null) {
+                $validated['growth_rate'] = (int) ($firstDur['growth_rate'] ?? $plan?->growth_rate ?? 0);
+            }
+            if (($validated['term_days'] ?? null) === null) {
+                $validated['term_days'] = (int) ($firstDur['duration_days'] ?? $plan?->term_days ?? 365);
+            }
         }
 
         [$validated['daily_profit'], $validated['total_return']] = $this->computeReturns(
             (float) $validated['investment_amount'],
-            (float) $validated['growth_rate'],
+            (float) ($validated['growth_rate'] ?? 0),
             (int) ($validated['term_days'] ?? $plan?->term_days ?? 365)
         );
 
