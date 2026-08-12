@@ -277,9 +277,6 @@ class PlanManagementController extends Controller
         $validated['auto_mature'] = $request->boolean('auto_mature');
         $validated['allow_topups'] = $request->boolean('allow_topups');
 
-        $hasDurationRows = collect($request->input('durations', []))
-            ->contains(fn ($row) => trim((string) ($row['label'] ?? '')) !== '');
-
         // investment_mode itself isn't a Plan column - it's what actually
         // decides which of the two branches below applies, then gets
         // discarded. Fixed mode: wipe any stray Min/Max/step/top-ups values
