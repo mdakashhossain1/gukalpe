@@ -42,7 +42,13 @@ class PlanMultipleDurationValidationAndUnlockUITest extends TestCase
 
     public function test_multiple_duration_mode_does_not_require_top_level_growth_rate_or_term_days(): void
     {
+        // Multiple Duration is a Flexible-mode feature - Fixed plans always
+        // collapse to a single top-level rate/term (see
+        // PlanInvestmentModeEnforcementTest for that guarantee).
         $fields = $this->baseFields([
+            'investment_mode' => 'flexible',
+            'min_investment_amount' => 499,
+            'max_investment_amount' => 5000,
             'durations' => [
                 ['label' => '3 Months', 'duration_days' => 90, 'growth_rate' => 12],
                 ['label' => '6 Months', 'duration_days' => 180, 'growth_rate' => 15],

@@ -14,8 +14,16 @@ use Tests\TestCase;
  * promised a slider - because investment_mode was submitted by the form but
  * never read by PlanManagementController. These tests make the Fixed/
  * Flexible switcher server-authoritative: Flexible requires a real Min+Max
- * range AND at least one Duration row; Fixed always wipes any stray Min/Max/
- * step/top-ups values regardless of what was submitted.
+ * range; Fixed always wipes any stray Min/Max/step/top-ups values regardless
+ * of what was submitted.
+ *
+ * 2026-08-12: Duration options (a per-term choice - 3mo/6mo/1yr, each its
+ * own rate) is exclusively a Flexible-mode feature now - Flexible requires
+ * at least one admin-submitted Duration row (unchanged rule, restored after
+ * a brief detour). Fixed plans always collapse to exactly one Duration row
+ * derived from their own top-level growth_rate/term_days - any Duration
+ * rows submitted for a Fixed plan (e.g. a direct/tampered request) are
+ * silently discarded, same guarantee Trust Builder already had.
  */
 class PlanInvestmentModeEnforcementTest extends TestCase
 {
@@ -87,7 +95,10 @@ class PlanInvestmentModeEnforcementTest extends TestCase
             'investment_mode' => 'flexible',
             'min_investment_amount' => 100,
             'max_investment_amount' => 1000,
-            'durations' => [['label' => '3 Months', 'duration_days' => 90, 'growth_rate' => 12]],
+            'durations' => [
+                ['label' => '3 Months', 'duration_days' => 90, 'growth_rate' => 12],
+                ['label' => '6 Months', 'duration_days' => 180, 'growth_rate' => 15],
+            ],
         ]);
 
         $this->withSession(['admin_authenticated' => true])
@@ -100,6 +111,11 @@ class PlanInvestmentModeEnforcementTest extends TestCase
         // investment_amount is pinned to Min, not left at whatever the admin
         // typed in the (now Fixed-only) Investment field.
         $this->assertEquals(100.0, (float) $plan->investment_amount);
+        // Both submitted rows are kept - Flexible is where a real per-term
+        // choice lives.
+        $this->assertCount(2, $plan->durations);
+        $this->assertEquals(12, $plan->durations->firstWhere('label', '3 Months')->growth_rate);
+        $this->assertEquals(15, $plan->durations->firstWhere('label', '6 Months')->growth_rate);
     }
 
     public function test_fixed_mode_wipes_stray_min_max_values_even_if_submitted(): void
@@ -125,6 +141,35 @@ class PlanInvestmentModeEnforcementTest extends TestCase
         $this->assertNull($plan->min_investment_amount);
         $this->assertNull($plan->max_investment_amount);
         $this->assertFalse($plan->allow_topups);
+    }
+
+    public function test_fixed_mode_ignores_submitted_duration_rows_and_derives_one_from_top_level_fields(): void
+    {
+        // The Duration options section is hidden for Fixed mode - a
+        // direct/tampered request submitting rows here must not create real
+        // multi-duration options, same guarantee as Trust Builder.
+        $fields = $this->baseFields([
+            'investment_mode' => 'fixed',
+            'growth_rate' => 11,
+            'term_days' => 90,
+            'lock_duration' => '90 Days',
+            'durations' => [
+                ['label' => '3 Months', 'duration_days' => 90, 'growth_rate' => 12],
+                ['label' => '6 Months', 'duration_days' => 180, 'growth_rate' => 15],
+            ],
+        ]);
+
+        $this->withSession(['admin_authenticated' => true])
+            ->post(route('admin.plans.store'), $fields)
+            ->assertRedirect(route('admin.plans'));
+
+        $plan = Plan::where('title', 'Mode Test Plan')->firstOrFail();
+
+        $this->assertFalse($plan->isFlexibleAmount());
+        $this->assertCount(1, $plan->durations);
+        $this->assertEquals('90 Days', $plan->durations->first()->label);
+        $this->assertEquals(11, $plan->durations->first()->growth_rate);
+        $this->assertEquals(90, $plan->durations->first()->duration_days);
     }
 
     public function test_investment_mode_is_required(): void
