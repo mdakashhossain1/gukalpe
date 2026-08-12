@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
@@ -298,12 +297,6 @@ class PlanManagementController extends Controller
             $validated['slider_step'] = null;
             $validated['allow_topups'] = false;
         } else {
-            if (! $hasDurationRows) {
-                throw ValidationException::withMessages([
-                    'investment_mode' => 'Flexible plans need at least one Duration option below - without one, every buyer would get the same flat return regardless of how much they invest.',
-                ]);
-            }
-
             // The base Investment field only ever feeds the plan-level
             // preview/legacy display for Flexible plans (real purchases
             // compute their own proportional return from whatever the user
@@ -372,25 +365,39 @@ class PlanManagementController extends Controller
     // or created fresh when absent; any existing row not resubmitted is
     // removed, so deleting a duration row in the form actually deletes it.
     //
-    // Trust Builder plans (plan_type = trust_builder) ignore whatever rows
-    // were submitted and always collapse to exactly one system-defined 1-day
-    // row - this is enforced here (not just hidden in the UI) so a Trust
-    // Builder plan can never end up with a real multi-duration option, even
-    // via a direct/tampered request.
+    // Trust Builder plans (plan_type = trust_builder) and Flexible-amount
+    // plans both ignore whatever rows were submitted and always collapse to
+    // exactly one system-defined row - this is enforced here (not just
+    // hidden in the UI) so neither can ever end up with a real multi-duration
+    // option, even via a direct/tampered request. Trust Builder's row is a
+    // fixed 1 day; Flexible's row mirrors the plan's own top-level
+    // growth_rate/term_days, since Flexible plans now offer one rate/term
+    // (set via those fields) rather than a per-term choice - the purchase
+    // flow and Plan Details slider both still resolve their rate through a
+    // PlanDuration row, so one is created here rather than changing that.
     private function syncDurations(Plan $plan, Request $request): void
     {
-        if ($plan->plan_type === 'trust_builder') {
+        $forcesSingleRow = $plan->plan_type === 'trust_builder' || $plan->isFlexibleAmount();
+
+        if ($forcesSingleRow) {
             // Reuse whichever existing row is around (rather than delete +
             // recreate) so an already-purchased holding's plan_duration_id
             // stays pointed at a live row instead of nulling out.
             $existingId = $plan->durations()->value('id');
 
-            $rows = collect([[
-                'id' => $existingId,
-                'label' => '1 Day',
-                'duration_days' => 1,
-                'growth_rate' => (int) $plan->growth_rate,
-            ]]);
+            $rows = $plan->plan_type === 'trust_builder'
+                ? collect([[
+                    'id' => $existingId,
+                    'label' => '1 Day',
+                    'duration_days' => 1,
+                    'growth_rate' => (int) $plan->growth_rate,
+                ]])
+                : collect([[
+                    'id' => $existingId,
+                    'label' => $plan->lock_duration,
+                    'duration_days' => max(1, (int) $plan->term_days),
+                    'growth_rate' => (int) $plan->growth_rate,
+                ]]);
         } else {
             $rows = collect($request->input('durations', []))
                 ->filter(fn ($row) => trim((string) ($row['label'] ?? '')) !== '')
@@ -401,7 +408,7 @@ class PlanManagementController extends Controller
         // Radio value is the row's array index (always present, unlike `id`
         // which new rows don't have yet) - simplest stable key to compare
         // against regardless of whether the row is new or existing.
-        $defaultIndex = $plan->plan_type === 'trust_builder' ? '0' : $request->input('duration_default');
+        $defaultIndex = $forcesSingleRow ? '0' : $request->input('duration_default');
 
         $keptIds = [];
 

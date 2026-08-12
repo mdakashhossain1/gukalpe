@@ -1,5 +1,17 @@
 # MEMORY.md — Project Log
 
+## 2026-08-12 — Hide Duration options for Flexible plans; single rate/term instead of per-term rows
+
+User was confused why the admin Plan form's "Duration options (max 4)" section still appeared while editing a Flexible plan - expected it hidden like it already is for Trust Builder. Investigated first: the section wasn't dead weight (`plan-details.blade.php`'s `getActiveRateAndDays()` genuinely preferred a selected duration pill's rate over the plan's top-level `growth_rate`/`term_days`), so hiding it is a real behavior change, not just a UI fix - flagged this and got explicit confirmation before touching the money-calculation path.
+
+- **Admin form** (`Admin::plans.form`): `applyDurationTypeUI()` now hides `#duration-options-block` when `investment_mode === 'flexible'`, not just `plan_type === 'trust_builder'`; called from `setPlanMode()` so switching modes re-evaluates visibility live. Removed the now-obsolete `#flexible-duration-required-notice` banner and its toggle.
+- **`PlanManagementController::validated()`**: removed the throw that required Flexible plans to submit a Duration row (`ValidationException` import now unused, removed). `growth_rate`/`term_days` stay required at the top level for Flexible (same `$hasDurationRows`-driven rule as before - Flexible submissions never have rows now, so these become the single source of rate/term).
+- **`PlanManagementController::syncDurations()`**: extended the Trust-Builder single-row-collapse pattern to Flexible plans too (`$forcesSingleRow = plan_type === 'trust_builder' || $plan->isFlexibleAmount()`) - a Flexible plan always gets exactly one system-generated `PlanDuration` row mirroring its own top-level `growth_rate`/`term_days`, reusing the existing row's id (not delete+recreate) to keep any purchased holding's `plan_duration_id` FK valid. Any duration rows submitted via a direct/tampered request are discarded for Flexible plans, same guarantee Trust Builder already had.
+- **Why a row still gets created at all**: the purchase flow (`PlanPurchaseController::proportionalReturn()`) and the customer Plan Details slider (`getActiveRateAndDays()`) both resolve their rate through a `PlanDuration` row, not a bare plan-level fallback in the common case - synthesizing one row server-side was simpler and lower-risk than changing those two read paths to special-case "no duration exists."
+- **Test updated**: `PlanInvestmentModeEnforcementTest::test_flexible_mode_without_any_duration_row_is_rejected` (asserted the old, now-removed rule) replaced with two tests - saving with no submitted rows now succeeds and derives one row from top-level fields, and submitting rows directly (tampered request) is silently ignored in favor of the same derived row.
+- Full suite: **104 passed (325 assertions)**.
+- Not touched: the customer Plan Details "Select Duration" pill section still renders for any plan with `durations->count() > 0`, including a Flexible plan's new single auto-generated row - left as-is since Trust Builder's existing 1-Day pill already established that a single-option pill list is acceptable, and changing customer-facing UI wasn't requested.
+
 ## 2026-08-12 — Exploration & Fix for Multiple Duration Plan Validation and Trust Builder Verification
 
 User requested checking `error.txt` for bugs, verifying their existence, fixing genuine issues, and preparing a GitHub PR branch.
