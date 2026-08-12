@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
@@ -278,17 +279,22 @@ class PlanManagementController extends Controller
 
         // investment_mode itself isn't a Plan column - it's what actually
         // decides which of the two branches below applies, then gets
-        // discarded. Fixed mode: wipe any stray Min/Max/step/top-ups values
-        // still sitting in the request (e.g. the admin toggled to Flexible,
-        // typed a Min, then toggled back to Fixed before saving - the hidden
-        // fields aren't disabled, so their values still POST) so the saved
-        // row can never end up in the ambiguous "has a Min but no Max" state
-        // that made Premium Plan silently behave as Fixed while its own
-        // subtitle promised a slider. Flexible mode: a real Min+Max range is
-        // already guaranteed by the required_if rules above; also require at
-        // least one Duration row, since PlanPurchaseController's
+        // discarded. Fixed mode: always exactly one rate/term (the top-level
+        // Growth rate + Term days fields) - wipe any stray Min/Max/step/
+        // top-ups values still sitting in the request (e.g. the admin
+        // toggled to Flexible, typed a Min, then toggled back to Fixed
+        // before saving - the hidden fields aren't disabled, so their values
+        // still POST) so the saved row can never end up in the ambiguous
+        // "has a Min but no Max" state that made Premium Plan silently
+        // behave as Fixed while its own subtitle promised a slider. Any
+        // Duration rows submitted are discarded server-side too (see
+        // syncDurations()) - Fixed plans never offer a per-term choice.
+        // Flexible mode: a real Min+Max range is already guaranteed by the
+        // required_if rules above; also require at least one Duration row -
+        // Flexible is where the per-term choice (3mo/6mo/1yr, each its own
+        // rate) actually lives, and PlanPurchaseController's
         // proportionalReturn() only proportions the return to the amount the
-        // user actually invests when a duration is present - without one, a
+        // user actually invests when a duration is present, so without one a
         // Flexible plan would pay every buyer the same flat profit
         // regardless of how much they invested.
         if ($validated['investment_mode'] === 'fixed') {
@@ -297,6 +303,12 @@ class PlanManagementController extends Controller
             $validated['slider_step'] = null;
             $validated['allow_topups'] = false;
         } else {
+            if (! $hasDurationRows) {
+                throw ValidationException::withMessages([
+                    'investment_mode' => 'Flexible plans need at least one Duration option below - without one, every buyer would get the same flat return regardless of how much they invest.',
+                ]);
+            }
+
             // The base Investment field only ever feeds the plan-level
             // preview/legacy display for Flexible plans (real purchases
             // compute their own proportional return from whatever the user
@@ -365,19 +377,20 @@ class PlanManagementController extends Controller
     // or created fresh when absent; any existing row not resubmitted is
     // removed, so deleting a duration row in the form actually deletes it.
     //
-    // Trust Builder plans (plan_type = trust_builder) and Flexible-amount
-    // plans both ignore whatever rows were submitted and always collapse to
+    // Trust Builder plans (plan_type = trust_builder) and Fixed-amount plans
+    // both ignore whatever rows were submitted and always collapse to
     // exactly one system-defined row - this is enforced here (not just
     // hidden in the UI) so neither can ever end up with a real multi-duration
     // option, even via a direct/tampered request. Trust Builder's row is a
-    // fixed 1 day; Flexible's row mirrors the plan's own top-level
-    // growth_rate/term_days, since Flexible plans now offer one rate/term
-    // (set via those fields) rather than a per-term choice - the purchase
-    // flow and Plan Details slider both still resolve their rate through a
-    // PlanDuration row, so one is created here rather than changing that.
+    // fixed 1 day; Fixed's row mirrors the plan's own top-level
+    // growth_rate/term_days, since a Fixed plan always offers exactly one
+    // rate/term (set via those fields), never a per-term choice - that
+    // choice is what Flexible mode is for. The purchase flow and Plan
+    // Details slider both still resolve their rate through a PlanDuration
+    // row, so one is created here rather than changing those read paths.
     private function syncDurations(Plan $plan, Request $request): void
     {
-        $forcesSingleRow = $plan->plan_type === 'trust_builder' || $plan->isFlexibleAmount();
+        $forcesSingleRow = $plan->plan_type === 'trust_builder' || ! $plan->isFlexibleAmount();
 
         if ($forcesSingleRow) {
             // Reuse whichever existing row is around (rather than delete +

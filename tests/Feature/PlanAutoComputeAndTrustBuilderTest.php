@@ -121,10 +121,35 @@ class PlanAutoComputeAndTrustBuilderTest extends TestCase
         $this->assertEquals('1 Day', $plan->durations->first()->label);
     }
 
-    public function test_growth_plan_type_keeps_normal_multi_duration_behavior(): void
+    public function test_growth_plan_type_in_fixed_mode_collapses_to_single_duration(): void
+    {
+        // Multi-duration rows are a Flexible-mode feature - a Fixed growth
+        // plan always collapses to one row from its own top-level
+        // growth_rate/term_days, same guarantee as Trust Builder.
+        $fields = $this->baseFields([
+            'plan_type' => 'growth',
+            'durations' => [
+                ['label' => '3 Months', 'duration_days' => 90, 'growth_rate' => 12],
+                ['label' => '6 Months', 'duration_days' => 180, 'growth_rate' => 15],
+            ],
+        ]);
+
+        $this->withSession(['admin_authenticated' => true])
+            ->post(route('admin.plans.store'), $fields)
+            ->assertRedirect(route('admin.plans'));
+
+        $plan = Plan::where('title', 'Auto Compute Plan')->with('durations')->firstOrFail();
+
+        $this->assertCount(1, $plan->durations);
+    }
+
+    public function test_growth_plan_type_in_flexible_mode_keeps_normal_multi_duration_behavior(): void
     {
         $fields = $this->baseFields([
             'plan_type' => 'growth',
+            'investment_mode' => 'flexible',
+            'min_investment_amount' => 1000,
+            'max_investment_amount' => 10000,
             'durations' => [
                 ['label' => '3 Months', 'duration_days' => 90, 'growth_rate' => 12],
                 ['label' => '6 Months', 'duration_days' => 180, 'growth_rate' => 15],

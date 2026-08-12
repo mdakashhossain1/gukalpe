@@ -444,15 +444,22 @@
 
             {{-- ================= Multiple durations (max 4) =================
                  Hidden entirely (not just the rows) when Plan type = Trust Builder
-                 or Investment mode = Flexible. Trust Builder always forces exactly
-                 1 Day server-side; Flexible plans use a single rate/term from the
-                 top-level Growth rate + Term days fields instead of a per-term
-                 choice (both collapsed to one row by
+                 or Investment mode = Fixed. Trust Builder always forces exactly
+                 1 Day server-side; Fixed plans always use a single rate/term from
+                 the top-level Growth rate + Term days fields instead of a
+                 per-term choice (both collapsed to one row by
                  PlanManagementController::syncDurations()) - so this whole section
-                 is simply irrelevant for either, not just "locked". Only Fixed,
-                 non-Trust-Builder plans can define real multi-term rows here. --}}
+                 is simply irrelevant for either, not just "locked". Only Flexible,
+                 non-Trust-Builder plans can define real multi-term rows here -
+                 required for Flexible, since the purchase flow computes each
+                 buyer's return from a Duration row's rate. --}}
             <div class="pt-4 mt-1 border-t border-[#E5E9EB]" id="duration-options-block">
-                <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-1">Duration options (max 4)<x-info-tip text="Optional. Instead of one fixed number of days, let customers pick their own choice - like '3 Months' or '6 Months' or '12 Months'. Each choice has its own days and its own profit rate." /></h2>
+                <h2 class="font-poppins font-bold text-[14px] text-[#0F172A] mb-1">Duration options (max 4)<x-info-tip text="Let customers pick their own term - like '3 Months' or '6 Months' or '12 Months'. Each choice has its own days and its own profit rate." /></h2>
+
+                <div class="mb-3 flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-amber-50 border border-amber-200">
+                    <i class="bi bi-exclamation-triangle-fill text-amber-600 text-[13px]"></i>
+                    <span class="text-[12.5px] font-semibold text-amber-700">Required: at least one row below, or the plan won't save. Flexible purchases compute their return from a Duration row's rate - without one there's nothing to compute against.</span>
+                </div>
 
                 <div id="duration-rows-section">
                     <p class="text-[12px] text-[#64748B] mb-3">Leave a row's label blank to skip it. When set, users pick one of these on Plan Details instead of the single duration/return above. Mark one row as the default. <span class="text-[#0A5C66] font-semibold">Enter Days + Rate % and each row's Daily ₹ / Total ₹ fill in automatically</span> from the Investment above.</p>
@@ -945,10 +952,10 @@
         }
     });
 
-    // --- Duration Type (Trust Builder locks to 1 Day, Flexible uses a
-    //     single top-level rate/term - hide the whole Duration options
-    //     section rather than show a "locked" message, since it doesn't
-    //     apply at all for either) ---
+    // --- Duration Type (Trust Builder locks to 1 Day, Fixed uses a single
+    //     top-level rate/term - hide the whole Duration options section
+    //     rather than show a "locked" message, since it doesn't apply at
+    //     all for either. Only Flexible plans define real per-term rows.) ---
     var planTypeEl = document.getElementById('plan_type');
     var durationOptionsBlock = document.getElementById('duration-options-block');
     var planTypeHint = document.getElementById('plan-type-hint');
@@ -963,7 +970,7 @@
     function applyDurationTypeUI() {
         var isTrustBuilder = planTypeEl && planTypeEl.value === 'trust_builder';
         var isFlexible = (document.getElementById('investment_mode') || {}).value === 'flexible';
-        if (durationOptionsBlock) durationOptionsBlock.style.display = (isTrustBuilder || isFlexible) ? 'none' : '';
+        if (durationOptionsBlock) durationOptionsBlock.style.display = (isTrustBuilder || ! isFlexible) ? 'none' : '';
         if (planTypeHint) planTypeHint.textContent = planTypeEl ? (PLAN_TYPE_HINTS[planTypeEl.value] || '') : '';
         if (autoMatureCheckbox) {
             if (isTrustBuilder) {
