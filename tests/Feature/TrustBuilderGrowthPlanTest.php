@@ -68,7 +68,14 @@ class TrustBuilderGrowthPlanTest extends TestCase
         $growth = $this->growthPlan();
         $sixMonths = $growth->durations->firstWhere('label', '6 Months');
 
+        // Growth Plan is Flexible-amount (2026-08-12 migration) - a real
+        // amount must be submitted now, unlike the old Fixed-amount
+        // behavior where investment_amount alone decided the charge.
+        // Submitting exactly investment_amount (499, pinned to min) keeps
+        // every assertion below numerically identical to before the
+        // Fixed-to-Flexible conversion.
         $response = $this->actingAs($user)->post($this->purchaseUrl($growth), [
+            'amount' => (float) $growth->investment_amount,
             'duration_id' => $sixMonths->id,
         ]);
 
@@ -101,6 +108,7 @@ class TrustBuilderGrowthPlanTest extends TestCase
         $growth = $this->growthPlan();
 
         $response = $this->actingAs($user)->post($this->purchaseUrl($growth), [
+            'amount' => (float) $growth->investment_amount,
             'duration_id' => $growth->durations->first()->id,
         ]);
 
@@ -148,7 +156,10 @@ class TrustBuilderGrowthPlanTest extends TestCase
         $growth = $this->growthPlan();
         $sixMonths = $growth->durations->firstWhere('label', '6 Months');
 
-        $this->actingAs($user)->post($this->purchaseUrl($growth), ['duration_id' => $sixMonths->id]);
+        $this->actingAs($user)->post($this->purchaseUrl($growth), [
+            'amount' => (float) $growth->investment_amount,
+            'duration_id' => $sixMonths->id,
+        ]);
 
         $holding = UserPlan::where('user_id', $user->id)->where('plan_id', $growth->id)->firstOrFail();
         $this->assertEqualsWithDelta(now()->addDays(180)->timestamp, $holding->matures_at->timestamp, 5);

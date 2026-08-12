@@ -99,7 +99,13 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 align-top">
-                                    @if ($plan->durations->isNotEmpty())
+                                    {{-- Every plan now always has >=1 auto-generated PlanDuration row
+                                         (Fixed/Trust Builder collapse to one, see
+                                         PlanManagementController::syncDurations()) - only badge it when
+                                         there's a real customer-facing choice (>1), same threshold
+                                         Explore's own duration-pill dropdown uses, or "1 durations"
+                                         would show on every single plan regardless of setup. --}}
+                                    @if ($plan->durations->count() > 1)
                                         <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-teal-50 text-teal-700 border-teal-200 whitespace-nowrap">{{ $plan->durations->count() }} durations</span>
                                     @else
                                         <span class="text-[12px] text-[#94A3B8]">—</span>
