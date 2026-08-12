@@ -44,8 +44,10 @@
 
     </nav>
 
-    <a href="{{ route('login') }}" id="sidebar-login-btn"
-        class="mt-auto h-11 rounded-xl bg-brand text-white font-semibold text-[13.5px] hover:bg-brand-light transition-colors flex items-center justify-center">
-        Log in
-    </a>
+    @guest
+        <a href="{{ route('login') }}" id="sidebar-login-btn"
+            class="mt-auto h-11 rounded-xl bg-brand text-white font-semibold text-[13.5px] hover:bg-brand-light transition-colors flex items-center justify-center">
+            Log in
+        </a>
+    @endguest
 </aside>
