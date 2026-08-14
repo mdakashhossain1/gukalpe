@@ -7,6 +7,7 @@ use App\Modules\Admin\Controllers\PaymentGatewayController;
 use App\Modules\Admin\Controllers\PlanManagementController;
 use App\Modules\Admin\Controllers\ReportController;
 use App\Modules\Admin\Controllers\RoleController;
+use App\Modules\Admin\Controllers\WithdrawalSettingsController;
 use Illuminate\Support\Facades\Route;
 
 // Slug comes from config/admin.php (ADMIN_PANEL_SLUG in .env) - change the
@@ -21,6 +22,7 @@ Route::prefix($slug)->group(function () {
     Route::middleware('admin.auth')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
         Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
+        Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('admin.users.show');
         Route::post('/users/{user}/toggle-ban', [AdminController::class, 'toggleBanUser'])->name('admin.users.toggle-ban');
         Route::get('/deposits', [AdminController::class, 'deposits'])->name('admin.deposits');
         Route::post('/deposits/{deposit}/approve', [AdminController::class, 'approveDeposit'])->name('admin.deposits.approve');
@@ -36,6 +38,7 @@ Route::prefix($slug)->group(function () {
         Route::get('/banners/{banner}/edit', [BannerController::class, 'edit'])->name('admin.banners.edit');
         Route::post('/banners/{banner}', [BannerController::class, 'update'])->name('admin.banners.update');
         Route::post('/banners/{banner}/toggle-active', [BannerController::class, 'toggleActive'])->name('admin.banners.toggle-active');
+        Route::post('/banners/{banner}/duplicate', [BannerController::class, 'duplicate'])->name('admin.banners.duplicate');
         Route::post('/banners/{banner}/delete', [BannerController::class, 'destroy'])->name('admin.banners.delete');
 
         Route::get('/plan-analytics', [AdminController::class, 'planAnalytics'])->name('admin.plan-analytics');
@@ -63,7 +66,10 @@ Route::prefix($slug)->group(function () {
         Route::get('/settings', [AdminController::class, 'settingsPage'])->name('admin.settings');
         Route::post('/settings/referral-toggle', [AdminController::class, 'toggleReferral'])->name('admin.settings.referral-toggle');
         Route::post('/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+        Route::get('/withdrawal-settings', [WithdrawalSettingsController::class, 'index'])->name('admin.withdrawal-settings');
+        Route::post('/withdrawal-settings', [WithdrawalSettingsController::class, 'update'])->name('admin.withdrawal-settings.update');
         Route::get('/logs', [AdminController::class, 'logs'])->name('admin.logs');
+        Route::get('/audit-log', [AdminController::class, 'auditLog'])->name('admin.audit-log');
         Route::get('/push-notification', [AdminController::class, 'pushNotificationForm'])->name('admin.push-notification');
         Route::post('/push-notification', [AdminController::class, 'sendPushNotification'])->name('admin.push-notification.send');
         Route::get('/plans', [PlanManagementController::class, 'index'])->name('admin.plans');
@@ -82,6 +88,7 @@ Route::prefix($slug)->group(function () {
         Route::get('/payment-gateway/upi-accounts/{upiAccount}/edit', [PaymentGatewayController::class, 'editUpi'])->name('admin.payment-gateway.upi-accounts.edit');
         Route::post('/payment-gateway/upi-accounts/{upiAccount}', [PaymentGatewayController::class, 'updateUpi'])->name('admin.payment-gateway.upi-accounts.update');
         Route::post('/payment-gateway/upi-accounts/{upiAccount}/toggle-active', [PaymentGatewayController::class, 'toggleUpiActive'])->name('admin.payment-gateway.upi-accounts.toggle-active');
+        Route::post('/payment-gateway/upi-accounts/{upiAccount}/move', [PaymentGatewayController::class, 'moveUpi'])->name('admin.payment-gateway.upi-accounts.move');
         Route::post('/payment-gateway/upi-accounts/{upiAccount}/delete', [PaymentGatewayController::class, 'deleteUpi'])->name('admin.payment-gateway.upi-accounts.delete');
 
         Route::get('/payment-gateway/bank-accounts/create', [PaymentGatewayController::class, 'createBank'])->name('admin.payment-gateway.bank-accounts.create');
@@ -89,6 +96,7 @@ Route::prefix($slug)->group(function () {
         Route::get('/payment-gateway/bank-accounts/{bankAccount}/edit', [PaymentGatewayController::class, 'editBank'])->name('admin.payment-gateway.bank-accounts.edit');
         Route::post('/payment-gateway/bank-accounts/{bankAccount}', [PaymentGatewayController::class, 'updateBank'])->name('admin.payment-gateway.bank-accounts.update');
         Route::post('/payment-gateway/bank-accounts/{bankAccount}/toggle-active', [PaymentGatewayController::class, 'toggleBankActive'])->name('admin.payment-gateway.bank-accounts.toggle-active');
+        Route::post('/payment-gateway/bank-accounts/{bankAccount}/move', [PaymentGatewayController::class, 'moveBank'])->name('admin.payment-gateway.bank-accounts.move');
         Route::post('/payment-gateway/bank-accounts/{bankAccount}/delete', [PaymentGatewayController::class, 'deleteBank'])->name('admin.payment-gateway.bank-accounts.delete');
 
         Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');

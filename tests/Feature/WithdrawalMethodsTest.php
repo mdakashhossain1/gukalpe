@@ -232,13 +232,11 @@ class WithdrawalMethodsTest extends TestCase
     public function test_super_admin_can_save_withdrawal_method_toggles(): void
     {
         $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
-            ->post(route('admin.settings.update'), [
-                'commission_percent' => 5,
-                'max_deposit_limit' => 50000,
+            ->post(route('admin.withdrawal-settings.update'), [
                 'withdrawal_method_bank_enabled' => '1',
                 'withdrawal_method_usdt_enabled' => '1',
             ])
-            ->assertRedirect(route('admin.settings'));
+            ->assertRedirect(route('admin.withdrawal-settings'));
 
         $this->assertTrue(AppSetting::enabled('withdrawal_method_bank_enabled'));
         $this->assertTrue(AppSetting::enabled('withdrawal_method_usdt_enabled'));

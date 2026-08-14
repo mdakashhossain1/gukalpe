@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminAuditLog;
 use App\Models\AppSetting;
 use App\Models\DepositRequest;
 use App\Models\PaymentBankAccount;
@@ -60,6 +61,7 @@ class PaymentGatewayController extends Controller
         }
 
         Log::channel('admin_security')->info('Payment gateway amount ranges updated', $validated);
+        AdminAuditLog::record($request, 'payment_gateway_ranges_updated', null, null, $validated);
 
         return redirect()->route('admin.payment-gateway')->with('success', 'Payment ranges updated.');
     }
@@ -80,9 +82,10 @@ class PaymentGatewayController extends Controller
         $data = $this->validatedUpi($request);
         $data['qr_image'] = $this->storeUploadedImage($request, 'qr_image');
 
-        PaymentUpiAccount::create($data);
+        $upiAccount = PaymentUpiAccount::create($data);
 
         Log::channel('admin_security')->info('UPI payment account created', ['upi_id' => $data['upi_id']]);
+        AdminAuditLog::record($request, 'upi_account_created', $upiAccount);
 
         return redirect()->route('admin.payment-gateway')->with('success', 'UPI account added.');
     }
@@ -106,11 +109,12 @@ class PaymentGatewayController extends Controller
         $upiAccount->update($data);
 
         Log::channel('admin_security')->info('UPI payment account updated', ['id' => $upiAccount->id]);
+        AdminAuditLog::record($request, 'upi_account_updated', $upiAccount);
 
         return redirect()->route('admin.payment-gateway')->with('success', 'UPI account updated.');
     }
 
-    public function toggleUpiActive(PaymentUpiAccount $upiAccount): RedirectResponse
+    public function toggleUpiActive(Request $request, PaymentUpiAccount $upiAccount): RedirectResponse
     {
         $upiAccount->update(['is_active' => ! $upiAccount->is_active]);
 
@@ -118,14 +122,57 @@ class PaymentGatewayController extends Controller
             'id' => $upiAccount->id,
             'is_active' => $upiAccount->is_active,
         ]);
+        AdminAuditLog::record($request, 'upi_account_toggled', $upiAccount, null, ['is_active' => $upiAccount->is_active]);
 
         return redirect()->route('admin.payment-gateway')
             ->with('success', $upiAccount->upi_id.' is now '.($upiAccount->is_active ? 'active' : 'disabled').'.');
     }
 
-    public function deleteUpi(PaymentUpiAccount $upiAccount): RedirectResponse
+    // Simple up/down reorder over the existing sort_order column (client
+    // item 9.7: "Priority/Rotation Order" admin control) - swaps this
+    // account's sort_order with its immediate neighbor in the ordered()
+    // list, rather than requiring admins to hand-edit numbers.
+    public function moveUpi(Request $request, PaymentUpiAccount $upiAccount): RedirectResponse
+    {
+        $this->moveInOrder(PaymentUpiAccount::ordered()->get(), $upiAccount, (string) $request->input('direction'));
+        AdminAuditLog::record($request, 'upi_account_reordered', $upiAccount);
+
+        return redirect()->route('admin.payment-gateway');
+    }
+
+    public function moveBank(Request $request, PaymentBankAccount $bankAccount): RedirectResponse
+    {
+        $this->moveInOrder(PaymentBankAccount::ordered()->get(), $bankAccount, (string) $request->input('direction'));
+        AdminAuditLog::record($request, 'bank_account_reordered', $bankAccount);
+
+        return redirect()->route('admin.payment-gateway');
+    }
+
+    // Reassigns sort_order sequentially (0, 1, 2...) across the whole list
+    // after swapping the target's position - a plain value-swap would be a
+    // silent no-op whenever two rows share the same sort_order (e.g. every
+    // row still at its 0 default), so this always produces a visible move.
+    private function moveInOrder($ordered, $account, string $direction): void
+    {
+        $items = $ordered->values();
+        $index = $items->search(fn ($a) => $a->id === $account->id);
+        $swapIndex = $direction === 'up' ? $index - 1 : $index + 1;
+        if ($index === false || ! $items->has($swapIndex)) {
+            return;
+        }
+
+        $reordered = $items->all();
+        [$reordered[$index], $reordered[$swapIndex]] = [$reordered[$swapIndex], $reordered[$index]];
+
+        foreach ($reordered as $position => $item) {
+            $item->update(['sort_order' => $position]);
+        }
+    }
+
+    public function deleteUpi(Request $request, PaymentUpiAccount $upiAccount): RedirectResponse
     {
         $upiId = $upiAccount->upi_id;
+        AdminAuditLog::record($request, 'upi_account_deleted', $upiAccount, null, ['upi_id' => $upiId]);
         $upiAccount->delete();
 
         Log::channel('admin_security')->info('UPI payment account deleted', ['upi_id' => $upiId]);
@@ -146,9 +193,10 @@ class PaymentGatewayController extends Controller
     public function storeBank(Request $request): RedirectResponse
     {
         $data = $this->validatedBank($request);
-        PaymentBankAccount::create($data);
+        $bankAccount = PaymentBankAccount::create($data);
 
         Log::channel('admin_security')->info('Bank payment account created', ['bank_name' => $data['bank_name']]);
+        AdminAuditLog::record($request, 'bank_account_created', $bankAccount);
 
         return redirect()->route('admin.payment-gateway')->with('success', 'Bank account added.');
     }
@@ -166,11 +214,12 @@ class PaymentGatewayController extends Controller
         $bankAccount->update($this->validatedBank($request));
 
         Log::channel('admin_security')->info('Bank payment account updated', ['id' => $bankAccount->id]);
+        AdminAuditLog::record($request, 'bank_account_updated', $bankAccount);
 
         return redirect()->route('admin.payment-gateway')->with('success', 'Bank account updated.');
     }
 
-    public function toggleBankActive(PaymentBankAccount $bankAccount): RedirectResponse
+    public function toggleBankActive(Request $request, PaymentBankAccount $bankAccount): RedirectResponse
     {
         $bankAccount->update(['is_active' => ! $bankAccount->is_active]);
 
@@ -178,14 +227,16 @@ class PaymentGatewayController extends Controller
             'id' => $bankAccount->id,
             'is_active' => $bankAccount->is_active,
         ]);
+        AdminAuditLog::record($request, 'bank_account_toggled', $bankAccount, null, ['is_active' => $bankAccount->is_active]);
 
         return redirect()->route('admin.payment-gateway')
             ->with('success', $bankAccount->bank_name.' is now '.($bankAccount->is_active ? 'active' : 'disabled').'.');
     }
 
-    public function deleteBank(PaymentBankAccount $bankAccount): RedirectResponse
+    public function deleteBank(Request $request, PaymentBankAccount $bankAccount): RedirectResponse
     {
         $bankName = $bankAccount->bank_name;
+        AdminAuditLog::record($request, 'bank_account_deleted', $bankAccount, null, ['bank_name' => $bankName]);
         $bankAccount->delete();
 
         Log::channel('admin_security')->info('Bank payment account deleted', ['bank_name' => $bankName]);
