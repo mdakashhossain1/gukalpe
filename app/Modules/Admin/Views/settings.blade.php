@@ -42,6 +42,41 @@
                         <input type="number" name="max_deposit_limit" id="setting-max-deposit-limit" min="0" step="1" value="{{ old('max_deposit_limit', $settings['max_deposit_limit']) }}"
                             class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
                     </div>
+                    <div>
+                        <label for="setting-referral-min-qualifying-amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Min qualifying amount (₹)</label>
+                        <input type="number" name="referral_min_qualifying_amount" id="setting-referral-min-qualifying-amount" min="0" step="0.01" placeholder="No minimum"
+                            value="{{ old('referral_min_qualifying_amount', $settings['referral_min_qualifying_amount']) }}"
+                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        <p class="text-[11px] text-[#94A3B8] mt-1">Deposit/purchase must be at least this to earn commission. Blank = no minimum.</p>
+                    </div>
+                    <div>
+                        <label for="setting-referral-max-qualifying-amount" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Max qualifying amount (₹)</label>
+                        <input type="number" name="referral_max_qualifying_amount" id="setting-referral-max-qualifying-amount" min="0" step="0.01" placeholder="No maximum"
+                            value="{{ old('referral_max_qualifying_amount', $settings['referral_max_qualifying_amount']) }}"
+                            class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                        <p class="text-[11px] text-[#94A3B8] mt-1">Blank = no maximum.</p>
+                    </div>
+                </div>
+
+                <div class="pt-4 mt-2 border-t border-[#E5E9EB]">
+                    <h3 class="text-[13.5px] font-bold text-[#0F172A] mb-1">Commission source</h3>
+                    <p class="text-[11.5px] text-[#94A3B8] mb-3">Which qualifying activity earns the referrer a commission. Both can be on at once - they're independent, one-time-per-referred-user rewards.</p>
+                    <div class="flex flex-col gap-2.5">
+                        @foreach ([
+                            ['referral_source_plan_purchase_enabled', 'Plan purchase', "Referred user's first investment"],
+                            ['referral_source_deposit_enabled', 'Deposit', "Referred user's first qualifying approved deposit"],
+                        ] as [$key, $label, $hint])
+                            <label for="setting-{{ $key }}" class="flex items-center justify-between gap-3 py-2 px-3 rounded-lg border border-[#E5E9EB] bg-white cursor-pointer">
+                                <span>
+                                    <span class="block text-[13px] font-semibold text-[#0F172A]">{{ $label }}</span>
+                                    <span class="block text-[11px] text-[#94A3B8]">{{ $hint }}</span>
+                                </span>
+                                <input type="checkbox" name="{{ $key }}" id="setting-{{ $key }}" value="1"
+                                    {{ ($settings[$key] ?? 'false') === 'true' ? 'checked' : '' }}
+                                    class="w-5 h-5 rounded accent-brand shrink-0">
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
 
                 <div class="pt-4 mt-2 border-t border-[#E5E9EB]">

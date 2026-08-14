@@ -24,6 +24,7 @@ class AdminRoles
         'approve_deposits' => 'Approve deposits',
         'approve_withdrawals' => 'Approve withdrawals',
         'wallet_adjust' => 'Adjust wallets',
+        'manage_referrals' => 'Manage referral commissions',
         'manage_banners' => 'Manage banners',
         'view_reports' => 'View reports & analytics',
         'manage_settings' => 'Manage settings',
@@ -33,9 +34,9 @@ class AdminRoles
 
     /** @var array<string, string[]> role => granted permission keys */
     public const MATRIX = [
-        'super_admin' => ['manage_plans', 'approve_deposits', 'approve_withdrawals', 'wallet_adjust', 'manage_banners', 'view_reports', 'manage_settings', 'manage_roles', 'manage_backups'],
-        'manager' => ['manage_plans', 'approve_deposits', 'approve_withdrawals', 'manage_banners', 'view_reports'],
-        'finance' => ['approve_deposits', 'approve_withdrawals', 'wallet_adjust', 'view_reports'],
+        'super_admin' => ['manage_plans', 'approve_deposits', 'approve_withdrawals', 'wallet_adjust', 'manage_referrals', 'manage_banners', 'view_reports', 'manage_settings', 'manage_roles', 'manage_backups'],
+        'manager' => ['manage_plans', 'approve_deposits', 'approve_withdrawals', 'manage_referrals', 'manage_banners', 'view_reports'],
+        'finance' => ['approve_deposits', 'approve_withdrawals', 'wallet_adjust', 'manage_referrals', 'view_reports'],
         'support' => ['view_reports'],
         'marketing' => ['manage_plans', 'manage_banners', 'view_reports'],
     ];

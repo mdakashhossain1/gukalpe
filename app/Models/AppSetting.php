@@ -21,6 +21,14 @@ class AppSetting extends Model
     public const DEFAULTS = [
         'referral_enabled' => 'true',
         'commission_percent' => '5',
+        // Which qualifying activity earns a commission - plan purchase kept
+        // on by default (matches pre-existing behavior for upgrading
+        // deployments), deposit is opt-in. A blank min/max = unbounded,
+        // same [min, max] convention as upi_min_amount/upi_max_amount below.
+        'referral_source_plan_purchase_enabled' => 'true',
+        'referral_source_deposit_enabled' => 'false',
+        'referral_min_qualifying_amount' => '',
+        'referral_max_qualifying_amount' => '',
         'cashback_amount' => '100',
         'settlement_time' => '00:00',
         'max_deposit_limit' => '50000',

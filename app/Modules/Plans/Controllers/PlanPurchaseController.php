@@ -13,8 +13,8 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\UserPlan;
 use App\Models\WalletBalance;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -44,7 +44,7 @@ class PlanPurchaseController extends Controller
         }
 
         // System kill-switch (plan.md Section 41): admin can pause new investments.
-        if (! \App\Models\AppSetting::enabled('allow_investment')) {
+        if (! AppSetting::enabled('allow_investment')) {
             return back()->withErrors(['plan' => 'New investments are temporarily disabled. Please try again later.']);
         }
 
@@ -231,7 +231,7 @@ class PlanPurchaseController extends Controller
 
             return back()->withErrors([
                 'plan' => $remaining > 0
-                    ? 'You can add up to ₹'.number_format($remaining, 2)." more to this plan (max ₹".number_format($max, 0).' total).'
+                    ? 'You can add up to ₹'.number_format($remaining, 2).' more to this plan (max ₹'.number_format($max, 0).' total).'
                     : 'This plan has already reached its maximum investment of ₹'.number_format($max, 0).'.',
             ]);
         }
@@ -291,7 +291,7 @@ class PlanPurchaseController extends Controller
 
     /**
      * @return array{0: float, 1: float} [totalReturn, dailyProfit] for
-     *   $amount over $duration's full length at $duration's growth_rate.
+     *                                   $amount over $duration's full length at $duration's growth_rate.
      */
     private function proportionalReturn(float $amount, PlanDuration $duration): array
     {
@@ -355,14 +355,26 @@ class PlanPurchaseController extends Controller
     }
 
     /**
-     * Refer & Earn: a one-time commission to whoever referred $user, paid
-     * only on their first-ever plan purchase (checked via the unique
-     * user_plan_id on referral_commissions plus this exists() check, so a
-     * retried request or a later purchase can never pay twice).
+     * Refer & Earn: a one-time PENDING commission for whoever referred
+     * $user, created only on their first-ever plan purchase (checked via
+     * the unique user_plan_id on referral_commissions plus this exists()
+     * check, so a retried request or a later purchase can never pay
+     * twice). No wallet credit happens here - money only moves once an
+     * admin approves it from the referral-commissions admin page
+     * (ReferralCommissionController::approve()), same review gate the new
+     * deposit-sourced commission goes through.
      */
     private function creditReferralCommissionIfEligible(User $user, UserPlan $userPlan, float $investedAmount): void
     {
-        if (! $user->referred_by || AppSetting::get('referral_enabled', 'true') !== 'true') {
+        if (! $user->referred_by
+            || AppSetting::get('referral_enabled', 'true') !== 'true'
+            || ! AppSetting::enabled('referral_source_plan_purchase_enabled')) {
+            return;
+        }
+
+        $min = AppSetting::get('referral_min_qualifying_amount', '');
+        $max = AppSetting::get('referral_max_qualifying_amount', '');
+        if (($min !== '' && $investedAmount < (float) $min) || ($max !== '' && $investedAmount > (float) $max)) {
             return;
         }
 
@@ -384,23 +396,24 @@ class PlanPurchaseController extends Controller
             return;
         }
 
-        ReferralCommission::create([
+        $commission = ReferralCommission::create([
             'referrer_id' => $referrer->id,
             'referred_user_id' => $user->id,
             'user_plan_id' => $userPlan->id,
+            'source' => ReferralCommission::SOURCE_PLAN_PURCHASE,
+            'status' => ReferralCommission::STATUS_PENDING,
             'amount' => $amount,
             'commission_percent' => $percent,
         ]);
 
-        WalletBalance::credit($referrer->phone, $amount, 'referral_bonus', ['commission_percent' => $percent]);
-
         AdminNotification::notify(
             'referral_commission',
-            'Referral commission paid',
-            "{$referrer->name} earned ₹".number_format($amount, 2)." for referring {$user->name}"
+            'Referral commission pending review',
+            "{$referrer->name} earned ₹".number_format($amount, 2)." for referring {$user->name} - awaiting approval"
         );
 
-        Log::info('Referral commission credited', [
+        Log::info('Referral commission created (pending)', [
+            'referral_commission_id' => $commission->id,
             'referrer_id' => $referrer->id,
             'referred_user_id' => $user->id,
             'user_plan_id' => $userPlan->id,

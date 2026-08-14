@@ -11,6 +11,7 @@ use App\Models\AdminUser;
 use App\Models\AppSetting;
 use App\Models\DepositRequest;
 use App\Models\Plan;
+use App\Models\ReferralCommission;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\UserPlan;
@@ -587,10 +588,20 @@ class AdminController extends Controller
         $validated = $request->validate([
             'commission_percent' => ['required', 'numeric', 'min:0', 'max:100'],
             'max_deposit_limit' => ['required', 'numeric', 'min:0'],
+            'referral_min_qualifying_amount' => ['nullable', 'numeric', 'min:0'],
+            'referral_max_qualifying_amount' => ['nullable', 'numeric', 'min:0', 'gte:referral_min_qualifying_amount'],
         ]);
 
         AppSetting::set('commission_percent', (string) $validated['commission_percent']);
         AppSetting::set('max_deposit_limit', (string) $validated['max_deposit_limit']);
+        // Blank = unbounded, same convention as upi_min_amount/upi_max_amount -
+        // stored as an empty string, not '0', so AppSetting::get()'s '' check
+        // in the commission-eligibility code treats it as "no bound" not "$0".
+        AppSetting::set('referral_min_qualifying_amount', $validated['referral_min_qualifying_amount'] !== null ? (string) $validated['referral_min_qualifying_amount'] : '');
+        AppSetting::set('referral_max_qualifying_amount', $validated['referral_max_qualifying_amount'] !== null ? (string) $validated['referral_max_qualifying_amount'] : '');
+        foreach (['referral_source_plan_purchase_enabled', 'referral_source_deposit_enabled'] as $switch) {
+            AppSetting::set($switch, $request->boolean($switch) ? 'true' : 'false');
+        }
         // Only 'manual' exists (no payment gateway in this app - see AppSetting::DEFAULTS
         // comment); still write it explicitly so the setting round-trips through the form.
         AppSetting::set('withdrawal_processing_mode', 'manual');
@@ -668,6 +679,8 @@ class AdminController extends Controller
             'new_balance' => (float) $wallet->balance,
         ]);
 
+        $this->creditReferralCommissionForDeposit($deposit);
+
         AdminAuditLog::record($request, 'deposit_approved', $deposit, null, [
             'phone' => $deposit->phone,
             'amount' => (float) $deposit->amount,
@@ -676,6 +689,78 @@ class AdminController extends Controller
         ]);
 
         return back()->with('success', "Approved. ₹{$deposit->amount} credited to {$deposit->phone}.");
+    }
+
+    /**
+     * Refer & Earn, deposit source: a one-time PENDING commission for
+     * whoever referred the depositor, created only on their first-ever
+     * qualifying approved deposit (checked via the unique
+     * deposit_request_id on referral_commissions plus this exists() check).
+     * Mirrors PlanPurchaseController::creditReferralCommissionIfEligible()
+     * - same eligibility shape, different trigger event and own source
+     * toggle/enable flag. Only ever called from here (deposit approval),
+     * never on submission, so a rejected deposit structurally can't
+     * produce a commission.
+     */
+    private function creditReferralCommissionForDeposit(DepositRequest $deposit): void
+    {
+        $user = User::where('phone', $deposit->phone)->first();
+        if (! $user
+            || ! $user->referred_by
+            || AppSetting::get('referral_enabled', 'true') !== 'true'
+            || ! AppSetting::enabled('referral_source_deposit_enabled')) {
+            return;
+        }
+
+        $amount = (float) $deposit->amount;
+        $min = AppSetting::get('referral_min_qualifying_amount', '');
+        $max = AppSetting::get('referral_max_qualifying_amount', '');
+        if (($min !== '' && $amount < (float) $min) || ($max !== '' && $amount > (float) $max)) {
+            return;
+        }
+
+        $hadEarlierQualifyingDeposit = ReferralCommission::where('referred_user_id', $user->id)
+            ->where('source', ReferralCommission::SOURCE_DEPOSIT)
+            ->exists();
+        if ($hadEarlierQualifyingDeposit) {
+            return;
+        }
+
+        $referrer = User::find($user->referred_by);
+        if (! $referrer || ! $referrer->phone) {
+            return;
+        }
+
+        $percent = (float) AppSetting::get('commission_percent', '5');
+        $commissionAmount = round($amount * $percent / 100, 2);
+        if ($commissionAmount <= 0) {
+            return;
+        }
+
+        $commission = ReferralCommission::create([
+            'referrer_id' => $referrer->id,
+            'referred_user_id' => $user->id,
+            'deposit_request_id' => $deposit->id,
+            'source' => ReferralCommission::SOURCE_DEPOSIT,
+            'status' => ReferralCommission::STATUS_PENDING,
+            'amount' => $commissionAmount,
+            'commission_percent' => $percent,
+        ]);
+
+        AdminNotification::notify(
+            'referral_commission',
+            'Referral commission pending review',
+            "{$referrer->name} earned ₹".number_format($commissionAmount, 2)." for referring {$user->name} - awaiting approval"
+        );
+
+        Log::info('Referral commission created (pending, deposit source)', [
+            'referral_commission_id' => $commission->id,
+            'referrer_id' => $referrer->id,
+            'referred_user_id' => $user->id,
+            'deposit_request_id' => $deposit->id,
+            'amount' => $commissionAmount,
+            'commission_percent' => $percent,
+        ]);
     }
 
     public function rejectDeposit(Request $request, DepositRequest $deposit): RedirectResponse

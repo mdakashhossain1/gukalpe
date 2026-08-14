@@ -346,7 +346,7 @@
             <p class="text-slate-500 text-[13.5px] font-medium mb-6 leading-relaxed">Please login or create your account to activate this investment plan.</p>
 
             <div class="w-full flex flex-col gap-2.5">
-                <button onclick="closePopups(); if (window.openAuth) { window.openAuth(); } else { const auth = document.getElementById('auth-overlay'); if (auth) auth.classList.remove('hidden'); }" class="w-full bg-[#0E7680] text-white font-bold text-[15px] h-[48px] rounded-full active:scale-95 transition-all shadow-md shadow-[#0E7680]/20">Login / Sign Up</button>
+                <a href="{{ route('login') }}" class="w-full bg-[#0E7680] text-white font-bold text-[15px] h-[48px] rounded-full active:scale-95 transition-all shadow-md shadow-[#0E7680]/20 flex items-center justify-center">Login / Sign Up</a>
                 <button onclick="closePopups();" class="w-full bg-slate-100/80 text-slate-600 font-bold text-[14px] h-[44px] rounded-full hover:bg-slate-200/80 active:scale-95 transition-all">Later</button>
             </div>
         </div>

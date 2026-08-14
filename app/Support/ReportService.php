@@ -73,7 +73,14 @@ class ReportService
             // report never silently reinterprets old ledger rows' original meaning.
             ['label' => 'Profit credited (legacy, pre-2026-08-09)', 'count' => null, 'amount' => $ledger('profit_credit')],
             ['label' => 'Plan maturity payouts (principal + profit)', 'count' => null, 'amount' => $ledger('plan_maturity_credit')],
+            // Same "keep legacy and current as separate lines" precedent as
+            // profit_credit/plan_maturity_credit above: 'referral_bonus' rows
+            // predate the Pending->Approved commission workflow (instant
+            // auto-pay on plan purchase); 'referral_commission' rows are
+            // admin-approved payouts from that workflow on, either source.
             ['label' => 'Referral bonus paid', 'count' => null, 'amount' => $ledger('referral_bonus')],
+            ['label' => 'Referral commission paid', 'count' => null, 'amount' => $ledger('referral_commission')],
+            ['label' => 'Referral commission reversed', 'count' => null, 'amount' => $ledger('referral_reversal')],
             ['label' => 'Withdrawals (approved)', 'count' => (clone $withdrawals)->count(), 'amount' => (float) (clone $withdrawals)->sum('amount')],
         ];
     }

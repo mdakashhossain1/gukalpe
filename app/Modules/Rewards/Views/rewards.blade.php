@@ -38,7 +38,7 @@
 
                     <div class="relative z-10 min-w-0">
                         <span class="text-[10.5px] font-bold uppercase tracking-wider text-white/50 block">Reward Balance</span>
-                        <p class="text-[10px] text-white/40 font-semibold leading-snug mt-1 max-w-[170px]"><span>Credited instantly to your wallet -</span> {{ $commissionPercent }}% <span>of every friend's first investment</span></p>
+                        <p class="text-[10px] text-white/40 font-semibold leading-snug mt-1 max-w-[170px]"><span>You earn</span> {{ $commissionPercent }}% <span>of every friend's first qualifying deposit or investment - credited to your wallet after a quick review</span></p>
                     </div>
                     <div class="relative z-10 text-[26px] font-black text-[#3FEA8A] font-poppins tracking-tight shrink-0">₹{{ number_format($totalCommission, 2) }}</div>
                 </div>
@@ -47,7 +47,11 @@
                 <div class="bg-white rounded-[20px] border border-slate-100 shadow-[0_1px_2px_rgba(15,23,42,0.04)] px-4 py-3.5">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-[13.5px] font-black text-[#0F172A] font-poppins tracking-tight">Commission Center</h3>
-                        <span class="text-[9.5px] font-bold text-[#19B36B] bg-[#19B36B]/10 px-2 py-0.5 rounded-full">Instant payout</span>
+                        @if ($pendingCommission > 0)
+                            <span class="text-[9.5px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">₹{{ number_format($pendingCommission, 2) }} pending review</span>
+                        @else
+                            <span class="text-[9.5px] font-bold text-[#19B36B] bg-[#19B36B]/10 px-2 py-0.5 rounded-full">Reviewed payout</span>
+                        @endif
                     </div>
 
                     <div class="grid grid-cols-3 divide-x divide-slate-100">

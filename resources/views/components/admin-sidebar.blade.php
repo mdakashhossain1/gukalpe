@@ -1,4 +1,4 @@
-@props(['active' => 'overview', 'pendingDepositCount' => 0, 'pendingWithdrawalCount' => 0])
+@props(['active' => 'overview', 'pendingDepositCount' => 0, 'pendingWithdrawalCount' => 0, 'pendingReferralCommissionCount' => 0])
 
 {{-- Every section is its own real, server-rendered route now - Overview,
      Deposit requests, and Withdrawal requests were already real pages;
@@ -14,6 +14,7 @@
         ['route' => 'admin.deposits', 'key' => 'deposits', 'icon' => 'fa-money-bill-transfer', 'label' => 'Deposit requests', 'count' => $pendingDepositCount],
         ['route' => 'admin.withdrawals', 'key' => 'withdrawals', 'icon' => 'fa-money-bill-transfer fa-flip-horizontal', 'label' => 'Withdrawal requests', 'count' => $pendingWithdrawalCount],
         ['route' => 'admin.transactions', 'key' => 'transactions', 'icon' => 'fa-receipt', 'label' => 'Transactions'],
+        ['route' => 'admin.referral-commissions', 'key' => 'referral-commissions', 'icon' => 'fa-user-plus', 'label' => 'Referral commissions', 'count' => $pendingReferralCommissionCount],
         ['route' => 'admin.banners', 'key' => 'banners', 'icon' => 'fa-image', 'label' => 'Banners'],
         ['route' => 'admin.plan-analytics', 'key' => 'plan-analytics', 'icon' => 'fa-chart-column', 'label' => 'Plan analytics'],
         ['route' => 'admin.reports', 'key' => 'reports', 'icon' => 'fa-file-lines', 'label' => 'Reports'],
@@ -34,6 +35,7 @@
         'deposits' => 'approve_deposits',
         'withdrawals' => 'approve_withdrawals',
         'transactions' => 'view_reports',
+        'referral-commissions' => 'manage_referrals',
         'banners' => 'manage_banners',
         'plan-analytics' => 'view_reports',
         'reports' => 'view_reports',

@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminNotification;
 use App\Models\User;
 use App\Rules\IndianMobile;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -37,7 +37,7 @@ class GoogleAuthController extends Controller
         // than creating a duplicate row.
         $user = User::where('google_id', $googleUser->getId())->first()
             ?? User::where('email', $googleUser->getEmail())->first()
-            ?? new User();
+            ?? new User;
 
         $isNew = ! $user->exists;
 
@@ -61,7 +61,12 @@ class GoogleAuthController extends Controller
 
             $code = $request->session()->get('pending_referral_code');
             $referrer = $code ? User::where('referral_code', $code)->first() : null;
-            if ($referrer) {
+            // Same defense-in-depth guard as PhoneAuthController::attributeReferral() -
+            // a brand-new Google signup can't collide with the referrer's own
+            // email (this branch only runs when $isNew, i.e. no existing row
+            // matched that email), so this is a future-proofing check, not a
+            // currently-reachable exploit closure.
+            if ($referrer && ! ($referrer->email && $referrer->email === $user->email)) {
                 $user->referred_by = $referrer->id;
             }
         }

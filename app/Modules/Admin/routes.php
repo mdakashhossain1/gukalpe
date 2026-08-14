@@ -5,6 +5,7 @@ use App\Modules\Admin\Controllers\BackupController;
 use App\Modules\Admin\Controllers\BannerController;
 use App\Modules\Admin\Controllers\PaymentGatewayController;
 use App\Modules\Admin\Controllers\PlanManagementController;
+use App\Modules\Admin\Controllers\ReferralCommissionController;
 use App\Modules\Admin\Controllers\ReportController;
 use App\Modules\Admin\Controllers\RoleController;
 use App\Modules\Admin\Controllers\WithdrawalSettingsController;
@@ -31,6 +32,12 @@ Route::prefix($slug)->group(function () {
         Route::post('/withdrawals/{withdraw}/approve', [AdminController::class, 'approveWithdrawal'])->name('admin.withdrawals.approve');
         Route::post('/withdrawals/{withdraw}/reject', [AdminController::class, 'rejectWithdrawal'])->name('admin.withdrawals.reject');
         Route::get('/transactions', [AdminController::class, 'transactions'])->name('admin.transactions');
+
+        Route::get('/referral-commissions', [ReferralCommissionController::class, 'index'])->name('admin.referral-commissions');
+        Route::post('/referral-commissions/{referralCommission}/approve', [ReferralCommissionController::class, 'approve'])->name('admin.referral-commissions.approve');
+        Route::post('/referral-commissions/{referralCommission}/reject', [ReferralCommissionController::class, 'reject'])->name('admin.referral-commissions.reject');
+        Route::post('/referral-commissions/{referralCommission}/adjust', [ReferralCommissionController::class, 'adjust'])->name('admin.referral-commissions.adjust');
+        Route::post('/referral-commissions/{referralCommission}/reverse', [ReferralCommissionController::class, 'reverse'])->name('admin.referral-commissions.reverse');
 
         Route::get('/banners', [BannerController::class, 'index'])->name('admin.banners');
         Route::get('/banners/create', [BannerController::class, 'create'])->name('admin.banners.create');

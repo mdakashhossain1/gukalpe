@@ -22,7 +22,9 @@ class WalletTransaction extends Model
         'plan_purchase' => 'Plan Purchase',
         'profit_credit' => 'Profit Credit', // legacy - see plan_maturity_credit (rows created before 2026-08-09)
         'plan_maturity_credit' => 'Plan Maturity Credit',
-        'referral_bonus' => 'Referral Bonus',
+        'referral_bonus' => 'Referral Bonus', // legacy - see referral_commission (rows created before the Pending->Approved workflow)
+        'referral_commission' => 'Referral Commission',
+        'referral_reversal' => 'Referral Reversal',
         'cashback' => 'Cashback',
         'withdrawal' => 'Withdrawal',
         'manual_credit' => 'Manual Credit',

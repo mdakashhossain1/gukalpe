@@ -48,21 +48,32 @@ class RewardsController extends Controller
             ? collect()
             : DepositRequest::whereIn('phone', $referredPhones)->status(DepositRequest::STATUS_APPROVED)->distinct()->pluck('phone');
 
-        $commissions = ReferralCommission::where('referrer_id', $user->id)->get()
-            ->keyBy('referred_user_id');
+        // A referred user can now earn the referrer TWO commission rows
+        // (plan-purchase and deposit are independent sources) - group
+        // rather than keyBy so a second row never silently overwrites the
+        // first, and sum per referred user for the history table.
+        $commissions = ReferralCommission::where('referrer_id', $user->id)->get();
+        $commissionsByReferred = $commissions->groupBy('referred_user_id');
 
-        $referralHistory = $referrals->map(function (User $referred) use ($investedUserIds, $commissions) {
+        $referralHistory = $referrals->map(function (User $referred) use ($investedUserIds, $commissionsByReferred) {
             return [
                 'name' => $referred->name,
                 'maskedPhone' => $referred->phone ? '+91 ******'.substr($referred->phone, -4) : null,
                 'joinedAt' => $referred->created_at,
                 'hasInvested' => $investedUserIds->contains($referred->id),
-                'commissionEarned' => $commissions->get($referred->id)?->amount,
+                'commissionEarned' => $commissionsByReferred->get($referred->id)?->sum('amount'),
             ];
         });
 
         $totalInvites = $referrals->count();
         $totalInvested = $investedUserIds->count();
+
+        // Commissions are no longer credited instantly - split by status so
+        // the page can be honest about what's actually in the wallet
+        // (paid) vs still awaiting admin review (pending). Total = both,
+        // since both represent commission genuinely earned.
+        $pendingCommission = (float) $commissions->where('status', ReferralCommission::STATUS_PENDING)->sum('amount');
+        $paidCommission = (float) $commissions->where('status', ReferralCommission::STATUS_PAID)->sum('amount');
 
         return view('Rewards::rewards', [
             'user' => $user,
@@ -72,7 +83,9 @@ class RewardsController extends Controller
             'totalRegistered' => $totalInvites - $totalInvested,
             'totalDeposited' => $depositedPhones->count(),
             'totalInvested' => $totalInvested,
-            'totalCommission' => $commissions->sum('amount'),
+            'totalCommission' => $pendingCommission + $paidCommission,
+            'pendingCommission' => $pendingCommission,
+            'paidCommission' => $paidCommission,
             'walletBalance' => $user->phone ? WalletBalance::balanceFor($user->phone) : 0.0,
             'commissionPercent' => AppSetting::get('commission_percent', '5'),
             'referralHistory' => $referralHistory,

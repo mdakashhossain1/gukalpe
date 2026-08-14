@@ -4,6 +4,7 @@ namespace App\Modules\Auth\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminNotification;
+use App\Models\AppSetting;
 use App\Models\PhoneOtp;
 use App\Models\User;
 use App\Rules\IndianMobile;
@@ -31,6 +32,7 @@ use Illuminate\View\View;
 class PhoneAuthController extends Controller
 {
     private const MPIN_MAX_ATTEMPTS = 5;
+
     private const MPIN_LOCKOUT_SECONDS = 900; // 15 minutes
 
     public function showPhoneForm(): View
@@ -59,7 +61,7 @@ class PhoneAuthController extends Controller
 
         // System kill-switch (plan.md Section 41): admin can close new signups.
         // Only blocks a brand-new phone; existing accounts can still log in.
-        if (! $user && ! \App\Models\AppSetting::enabled('allow_registration')) {
+        if (! $user && ! AppSetting::enabled('allow_registration')) {
             return back()->withErrors(['phone' => 'New registrations are currently closed. Please try again later.']);
         }
 
@@ -303,8 +305,20 @@ class PhoneAuthController extends Controller
         }
 
         $referrer = User::where('referral_code', $code)->first();
-        if ($referrer) {
-            $user->referred_by = $referrer->id;
+        if (! $referrer) {
+            return;
         }
+
+        // A brand-new phone signup can't literally collide with the
+        // referrer's own phone (users.phone is unique), so this can't
+        // trigger via this exact call path today - kept as defense in
+        // depth at the actual attribution point (HomeController's earlier
+        // link-capture check only covers a *logged-in* user clicking their
+        // own link, not every way referred_by could end up set).
+        if ($referrer->phone && $referrer->phone === $user->phone) {
+            return;
+        }
+
+        $user->referred_by = $referrer->id;
     }
 }
