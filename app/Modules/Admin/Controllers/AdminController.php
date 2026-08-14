@@ -243,20 +243,28 @@ class AdminController extends Controller
      */
     public function users(): View
     {
+        return view('Admin::users', [
+            'users' => $this->usersWithWalletBalances(),
+            'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
+            'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
+        ]);
+    }
+
+    /**
+     * Shared by users() and logs() - both render the same user list, each
+     * row's wallet balance attached from a single phone=>balance map (no
+     * N+1), just with a different set of row actions.
+     */
+    private function usersWithWalletBalances()
+    {
         $balances = WalletBalance::pluck('balance', 'phone');
 
-        $users = User::withCount('referrals')
+        return User::withCount('referrals')
             ->latest()
             ->get()
             ->each(function (User $user) use ($balances) {
                 $user->wallet_balance = (float) ($balances[$user->phone] ?? 0);
             });
-
-        return view('Admin::users', [
-            'users' => $users,
-            'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
-            'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
-        ]);
     }
 
     /**
@@ -465,42 +473,19 @@ class AdminController extends Controller
     }
 
     /**
-     * Real, database-backed admin audit trail (client item 7: "Current
-     * browser/local activity log should be changed to: Database-based
-     * permanent Admin Audit Log"). This IS the Activity Logs page the client
-     * meant - not a separate new page alongside it. Every
-     * AdminAuditLog::record() call site is listed at the top of
-     * AdminAuditLog for reference. The old localStorage-only referral/
-     * commission simulation debug panel (Simulations-paired, pre-existing
-     * before this feature) stays on this same page below the real log,
-     * clearly separated - it tests different math (commission calculation),
-     * not admin actions, so it wasn't part of what needed to move to the DB.
+     * Activity Logs page: every registered user, with a Details ("i") button
+     * per row opening that user's full profile (wallet, deposits,
+     * withdrawals, investments, referrals, recent admin actions - everything
+     * already aggregated on admin.users.show). Not a chronological
+     * action-by-action audit table - the AdminAuditLog trail itself is still
+     * written on every money/state-changing action (see AdminAuditLog) and
+     * still shown on each user's own profile page under "Recent admin
+     * actions"; this page is the manual per-user lookup view instead.
      */
-    public function logs(Request $request): View
+    public function logs(): View
     {
-        $action = $request->query('action', 'all');
-
-        $query = AdminAuditLog::query()->latest('id');
-        if ($action !== 'all') {
-            $query->where('action', $action);
-        }
-
-        // Cap the rendered set; the client-side datatable paginates/searches
-        // it, same convention as transactions() above.
-        $entries = $query->limit(1000)->get();
-
-        // Every detail (including the target) renders inline in the table
-        // now rather than behind a per-entry page, so User targets are
-        // batch-loaded here to link out to the profile without an N+1.
-        $targetUsers = User::whereIn('id', $entries->where('target_type', 'User')->pluck('target_id')->unique())
-            ->get()
-            ->keyBy('id');
-
         return view('Admin::logs', [
-            'action' => $action,
-            'actions' => AdminAuditLog::query()->select('action')->distinct()->orderBy('action')->pluck('action'),
-            'entries' => $entries,
-            'targetUsers' => $targetUsers,
+            'users' => $this->usersWithWalletBalances(),
             'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
             'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
         ]);

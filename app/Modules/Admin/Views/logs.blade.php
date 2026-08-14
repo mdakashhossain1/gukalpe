@@ -6,17 +6,24 @@
 
 <link rel="stylesheet" href="{{ asset('libs/simple-datatables/style.css') }}">
 <style>
-    #audit-table-card .datatable-top { padding: 0 0 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
-    #audit-table-card .datatable-bottom { padding: 14px 0 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
-    #audit-table-card .datatable-search input { height: 38px; border: 1px solid #E5E9EB; border-radius: 8px; padding: 0 12px; font-size: 13px; color: #0F172A; outline: none; min-width: 220px; }
-    #audit-table-card .datatable-search input:focus { border-color: #0A5C66; box-shadow: 0 0 0 3px rgba(10,92,102,.12); }
-    #audit-table-card .datatable-selector { height: 38px; border: 1px solid #E5E9EB; border-radius: 8px; padding: 0 8px; font-size: 13px; color: #334155; }
-    #audit-table-card .datatable-info { font-size: 12.5px; color: #64748B; }
-    #audit-table-card .datatable-container { overflow-x: auto; border: 0; }
-    #audit-table-card table.datatable-table { min-width: 980px; }
-    #audit-table-card .datatable-pagination a { border-radius: 8px; padding: 6px 11px; font-size: 12.5px; font-weight: 600; color: #334155; }
-    #audit-table-card .datatable-pagination a:hover { background: #F1F5F9; }
-    #audit-table-card .datatable-pagination .datatable-active a { background: #0A5C66; color: #fff; }
+    #logs-users-table-card .datatable-top { padding: 0 0 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    #logs-users-table-card .datatable-bottom { padding: 14px 0 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    #logs-users-table-card .datatable-search input { height: 38px; border: 1px solid #E5E9EB; border-radius: 8px; padding: 0 12px; font-size: 13px; color: #0F172A; outline: none; min-width: 220px; }
+    #logs-users-table-card .datatable-search input:focus { border-color: #0A5C66; box-shadow: 0 0 0 3px rgba(10,92,102,.12); }
+    #logs-users-table-card .datatable-selector { height: 38px; border: 1px solid #E5E9EB; border-radius: 8px; padding: 0 8px; font-size: 13px; color: #334155; }
+    #logs-users-table-card .datatable-info { font-size: 12.5px; color: #64748B; }
+    #logs-users-table-card .datatable-container { overflow-x: auto; border: 0; }
+    #logs-users-table-card table.datatable-table { min-width: 820px; }
+    #logs-users-table-card .datatable-pagination a { border-radius: 8px; padding: 6px 11px; font-size: 12.5px; font-weight: 600; color: #334155; }
+    #logs-users-table-card .datatable-pagination a:hover { background: #F1F5F9; }
+    #logs-users-table-card .datatable-pagination .datatable-active a { background: #0A5C66; color: #fff; }
+
+    .logs-i-btn {
+        width: 34px; height: 34px; border-radius: 9999px; border: 1px solid #CBD5E1; background: #fff;
+        color: #0A5C66; display: inline-flex; align-items: center; justify-content: center;
+        font-size: 14px; transition: background-color .15s, border-color .15s;
+    }
+    .logs-i-btn:hover { background: #F0FDFA; border-color: #0A5C66; }
 
     /* Self-contained switch so its colors never depend on the Tailwind build. */
     .logs-switch { position: relative; width: 40px; height: 24px; border-radius: 9999px; background: #10B981; transition: background-color .15s; cursor: pointer; flex-shrink: 0; border: 0; padding: 0; }
@@ -35,80 +42,56 @@
         <div class="px-6 md:px-10 py-8 md:py-10">
 
         <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-1">Activity logs</h1>
-        <p class="text-[13.5px] text-[#64748B] mb-6">Permanent, database-backed record of every money- or state-changing admin action: who did it, what, why, and when. Wallet changes, deposit/withdrawal approvals, bans, plan/settings/payment-gateway changes, and admin/role changes all land here - never dependent on browser storage.</p>
+        <p class="text-[13.5px] text-[#64748B] mb-6">Every registered user. Click the <i class="fa-solid fa-circle-info text-[#0A5C66]"></i> button on any row to open that user's full activity: wallet, deposits, withdrawals, investments, referrals, and recent admin actions.</p>
 
-        <div class="flex gap-1.5 mb-4 bg-[#F1F5F9] rounded-lg p-1 w-fit flex-wrap">
-            <a href="{{ route('admin.logs') }}"
-                class="h-8 px-4 rounded-md text-[12.5px] transition-colors flex items-center {{ $action === 'all' ? 'font-bold bg-white text-[#0F172A] shadow-sm' : 'font-semibold text-[#64748B]' }}">
-                All
-            </a>
-            @foreach ($actions as $a)
-                <a href="{{ route('admin.logs', ['action' => $a]) }}"
-                    class="h-8 px-4 rounded-md text-[12.5px] transition-colors flex items-center {{ $action === $a ? 'font-bold bg-white text-[#0F172A] shadow-sm' : 'font-semibold text-[#64748B]' }}">
-                    {{ ucfirst(str_replace('_', ' ', $a)) }}
-                </a>
-            @endforeach
-        </div>
-
-        {{-- Every detail visible directly in the table - no click-through
-             required. With a high volume of activity, having to open each
-             entry on its own page to see what actually happened isn't
-             practical, so the full meta renders as a wrapped list of chips
-             right in the row instead of behind a "View" link. --}}
-        <div class="bg-white rounded-xl border border-[#E5E9EB] p-4 mb-8" id="audit-table-card">
+        <div class="bg-white rounded-xl border border-[#E5E9EB] p-4 mb-8" id="logs-users-table-card">
             <div class="overflow-x-auto">
-                <table id="audit-table" class="w-full text-left border-collapse min-w-[1180px]">
+                <table id="logs-users-table" class="w-full text-left border-collapse min-w-[820px]">
                     <thead>
                         <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
-                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">When</th>
-                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Admin</th>
-                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Action</th>
-                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Target</th>
-                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Reason</th>
-                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Details</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">User</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Phone</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Wallet</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Joined</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Details</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($entries as $entry)
+                        @forelse ($users as $user)
                             <tr class="border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FAFC] transition-colors">
-                                <td class="px-4 py-3 align-middle text-[12px] text-[#64748B] whitespace-nowrap" data-order="{{ $entry->created_at?->timestamp }}">
-                                    {{ $entry->created_at?->format('d M Y, h:i A') }}
-                                </td>
-                                <td class="px-4 py-3 align-middle text-[13px] font-semibold text-[#0F172A] whitespace-nowrap">{{ $entry->admin_label }}</td>
-                                <td class="px-4 py-3 align-middle whitespace-nowrap">
-                                    <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-slate-50 text-slate-600 border-slate-200">{{ $entry->actionLabel() }}</span>
-                                </td>
-                                <td class="px-4 py-3 align-middle text-[12.5px] font-mono text-[#334155] whitespace-nowrap">
-                                    @if ($entry->target_type === 'User' && ($targetUser = $targetUsers[$entry->target_id] ?? null))
-                                        <a href="{{ route('admin.users.show', $targetUser) }}" class="text-[#0A5C66] hover:underline">User #{{ $entry->target_id }}</a>
-                                    @else
-                                        {{ $entry->target_type ? $entry->target_type.' #'.$entry->target_id : '—' }}
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 align-middle text-[12.5px] text-[#334155] max-w-[240px]">{{ $entry->reason ?: '—' }}</td>
-                                <td class="px-4 py-3 align-middle max-w-[320px]">
-                                    @if ($entry->meta)
-                                        <div class="flex flex-wrap gap-1.5">
-                                            @foreach ($entry->meta as $key => $value)
-                                                <span class="inline-flex items-baseline gap-1 text-[11px] px-2 py-1 rounded-md bg-[#F8FAFC] border border-[#F1F5F9] whitespace-nowrap">
-                                                    <span class="font-semibold text-[#94A3B8]">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span>
-                                                    <span class="font-mono font-semibold text-[#334155]">
-                                                        @if (is_bool($value)) {{ $value ? 'Yes' : 'No' }}
-                                                        @elseif ($value === null || $value === '') —
-                                                        @else {{ $value }}
-                                                        @endif
-                                                    </span>
+                                <td class="px-4 py-3 align-middle">
+                                    <div class="flex items-center gap-3">
+                                        @if ($user->avatar)
+                                            <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-[#E5E9EB]" referrerpolicy="no-referrer">
+                                        @else
+                                            <div class="w-9 h-9 rounded-full bg-[#0A5C66]/10 text-[#0A5C66] font-bold text-[13px] flex items-center justify-center shrink-0 uppercase">
+                                                {{ mb_substr($user->name ?: '?', 0, 1) }}
+                                            </div>
+                                        @endif
+                                        <div class="flex flex-col gap-0.5 min-w-0">
+                                            <span class="text-[13.5px] font-bold text-[#0F172A]">{{ $user->name ?: '—' }}</span>
+                                            @if ($user->isBanned())
+                                                <span class="w-fit text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-red-50 text-red-700 border-red-200">
+                                                    <i class="fa-solid fa-ban text-[9px]"></i> Banned
                                                 </span>
-                                            @endforeach
+                                            @endif
                                         </div>
-                                    @else
-                                        <span class="text-[12px] text-[#CBD5E1]">—</span>
-                                    @endif
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 align-middle text-[13px] font-mono text-[#334155] whitespace-nowrap">{{ $user->phone ?: '—' }}</td>
+                                <td class="px-4 py-3 align-middle text-[13px] font-mono font-semibold text-[#0F172A] whitespace-nowrap">₹{{ number_format($user->wallet_balance, 2) }}</td>
+                                <td class="px-4 py-3 align-middle text-[13px] text-[#64748B] whitespace-nowrap" data-order="{{ $user->created_at?->timestamp }}">
+                                    {{ $user->created_at?->format('d M Y') ?? '—' }}
+                                </td>
+                                <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
+                                    <a href="{{ route('admin.users.show', $user) }}" class="logs-i-btn" title="View {{ $user->name ?: $user->phone }}'s full details" aria-label="View details">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                    </a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-8 text-center text-[13.5px] text-[#94A3B8] italic">No activity recorded yet.</td>
+                                <td colspan="5" class="px-4 py-8 text-center text-[13.5px] text-[#94A3B8] italic">No users yet.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -164,26 +147,26 @@
     </main>
 </div>
 
-@if ($entries->isNotEmpty())
+@if ($users->isNotEmpty())
     <script src="{{ asset('libs/simple-datatables/simple-datatables.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof simpleDatatables === 'undefined') return;
 
-            new simpleDatatables.DataTable('#audit-table', {
+            new simpleDatatables.DataTable('#logs-users-table', {
                 searchable: true,
                 paging: true,
                 perPage: 25,
                 perPageSelect: [25, 50, 100],
                 sortable: true,
-                // Details is a set of meta chips, not a single sortable value.
-                columns: [{ select: 5, sortable: false }],
+                // Last column is the "i" details button, not sortable text.
+                columns: [{ select: 4, sortable: false }],
                 labels: {
-                    placeholder: 'Search activity logs...',
+                    placeholder: 'Search users...',
                     perPage: '{select} per page',
-                    noRows: 'No activity found',
-                    noResults: 'No entries match your search',
-                    info: 'Showing {start}–{end} of {rows} entries',
+                    noRows: 'No users found',
+                    noResults: 'No users match your search',
+                    info: 'Showing {start}–{end} of {rows} users',
                 },
             });
         });

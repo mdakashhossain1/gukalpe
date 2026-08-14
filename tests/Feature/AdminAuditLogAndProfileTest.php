@@ -183,49 +183,24 @@ class AdminAuditLogAndProfileTest extends TestCase
             ->assertSee('₹500.00', false);
     }
 
-    public function test_activity_logs_page_lists_recorded_audit_entries(): void
+    public function test_activity_logs_page_lists_every_user_with_a_details_link_to_their_profile(): void
     {
-        // The client's "Activity Logs" page - not a separate "Audit Log"
-        // page - is the real database-backed record now (item 7: "current
-        // browser/local activity log should be changed to..."), so this
-        // asserts against admin.logs directly.
-        $user = User::factory()->create(['phone' => '9990001111']);
-        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
-            ->post(route('admin.users.toggle-ban', $user), ['reason' => 'Test reason']);
+        // "Activity logs" went through several iterations - a chronological
+        // admin-action audit table, truncated JSON details, a modal, a
+        // separate per-entry page, inline meta chips - before landing on
+        // what was actually asked for: a plain list of every user, with an
+        // "i" details button per row that opens that user's full profile
+        // (wallet, deposits, withdrawals, investments, referrals, recent
+        // admin actions - all already aggregated there). The chronological
+        // AdminAuditLog trail itself is untouched and still feeds that
+        // profile page's "Recent admin actions" section.
+        $user = User::factory()->create(['phone' => '9990001111', 'name' => 'Log Page User']);
 
         $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
             ->get(route('admin.logs'))
             ->assertOk()
-            ->assertSee('Test reason');
-    }
-
-    public function test_activity_logs_table_shows_full_meta_details_inline(): void
-    {
-        // Detail rendering went through several iterations - truncated JSON,
-        // then a modal, then a separate per-entry page - before landing here:
-        // with high activity volume, clicking into each entry to see what
-        // happened isn't practical, so every meta field must be readable
-        // directly in the row without navigating anywhere else.
-        $user = User::factory()->create(['phone' => '9990009995']);
-        WalletBalance::credit('9990009995', 100, 'add_money');
-
-        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
-            ->post(route('admin.wallet-tools.adjust'), [
-                'phone' => '9990009995', 'direction' => 'increase', 'amount' => 25, 'reason' => 'Full details inline test',
-            ])
-            ->assertRedirect();
-
-        AdminAuditLog::where('action', 'wallet_adjustment')->where('reason', 'Full details inline test')->firstOrFail();
-
-        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
-            ->get(route('admin.logs'))
-            ->assertOk()
-            ->assertSee('Master Admin')
-            ->assertSee('Full details inline test')
-            ->assertSee('Balance before')
-            ->assertSee('Balance after')
-            ->assertSee('100', false)
-            ->assertSee('125', false)
+            ->assertSee('Log Page User')
+            ->assertSee('9990001111')
             ->assertSee(route('admin.users.show', $user), false);
     }
 }

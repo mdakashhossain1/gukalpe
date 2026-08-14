@@ -1,5 +1,15 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — "Activity Logs" redefined: a per-user list with an "i" details button, not an audit trail (previous audit-table entries superseded)
+
+User rejected the entire admin-action audit-trail table (the last several entries below, all in service of it) after seeing it live: "the feature is supposed to be in the activity logs we can see all the users list and we can manually see all of the user's data by seeing on the I button in the details option." Confirmed via AskUserQuestion: replace the page's primary content with a plain list of every user; an "i" (circle-info) button per row opens that user's existing full profile page (`admin.users.show` - wallet, deposits, withdrawals, investments, referrals, recent admin actions all already live there). Not a chronological Admin+Action+Target+Reason+Date/Time table after all, despite that being the literal reading of the original client spec item 7 - this is what was actually wanted once seen in the browser.
+
+- `AdminController::logs()` no longer queries `AdminAuditLog` at all - it now returns the same user list `users()` does. Extracted the shared query into a new private `usersWithWalletBalances()` used by both methods (previously duplicated inline in `users()`).
+- `logs.blade.php` rewritten: table columns are User/Phone/Wallet/Joined/Details, mirroring `users.blade.php`'s row layout minus the Actions dropdown (that already lives on `/users`) - Details is just a circular "i" link to the profile page. All of the audit-table markup (filter tabs, meta chips, target links) is gone.
+- **Not deleted**: `AdminAuditLog` model, its `record()` call sites across every money/state-changing controller method, and the migration/table - still written on every action and still displayed on each user's own profile page under "Recent admin actions." Only this page's presentation of that data changed; the underlying trail is intact for whoever eventually wants a chronological view again.
+- Removed the now-stale `action`/`actions` query-string filtering and the `$targetUsers` N+1-avoidance eager-load that existed solely for the old table.
+- Full suite: **139 passed (486 assertions)**, Pint clean. Replaced the two audit-table tests with one asserting the logs page lists a user's name/phone and links to their profile.
+
 ## 2026-08-14 — Audit entry Details: inline in the table, not a separate page (dedicated page reverted)
 
 User rejected the dedicated `/logs/{id}` page from the previous entry: with a high volume of activity, clicking into every entry to see what happened isn't practical - asked for a "table like structure" showing everything at a glance. Confirmed via AskUserQuestion: full inline detail in the main table row, no click-through at all, remove the separate page entirely.
