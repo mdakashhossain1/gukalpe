@@ -1,5 +1,15 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Withdrawal methods: UPI Number, UPI QR, USDT QR fields were entirely missing
+
+User pointed at the client spec's withdrawal-methods field list again and asked why the options weren't editable in the admin panel. On closer check this wasn't an admin-panel editing bug - the fields themselves had never been built anywhere (not the migration, not the user-facing form, not the admin display). My original gap-analysis pass (2026-08-14, first entry) had verified Bank's full field set but only spot-checked UPI/USDT against their *required* fields (UPI ID, TRC20 address), missing that the spec also lists explicitly-"Optional" fields for both: UPI Number, UPI QR, and USDT QR Code. Bank was genuinely complete; UPI/USDT were not.
+
+- `withdraw_requests` gained 3 nullable columns: `upi_number`, `upi_qr`, `usdt_qr`.
+- User-facing Withdraw Money form (`Withdrawals::create`) gained the 3 optional inputs (UPI-linked mobile number, UPI QR upload, USDT wallet QR upload) - form needed `enctype="multipart/form-data"` added since it had no file inputs before.
+- `WithdrawRequestController` validates them as `nullable` (never blocks submission) and stores uploads via the same `public/assets/<dir>` convention as every other upload in this app (`storeUploadedQr()`, mirroring `DepositRequestController::storeUploadedScreenshot()`).
+- Admin Withdrawals list gained a "QR" column with the same click-to-preview modal pattern already used for deposit payment-proof screenshots; `WithdrawRequest::upiQrUrl()`/`usdtQrUrl()` added, `destinationLabel()` now appends the UPI number when present.
+- Full suite: **132 passed (447 assertions)**, Pint clean, 4 new tests covering: submission still works with none of the optional fields (backward compat), submission with all of them saves+displays correctly, and UPI number format validation.
+
 ## 2026-08-14 — User profile page: added a real Transactions section instead of a mixed feed
 
 Follow-up to the "where does it show" question: the profile page (`/users/{user}`) never had a dedicated Transactions section - only a merged "Recent activity" feed mixing wallet_transactions rows (just type + amount, no balance/reason/admin) with admin audit-log entries together, plus a button that navigated away to the full Transactions page.

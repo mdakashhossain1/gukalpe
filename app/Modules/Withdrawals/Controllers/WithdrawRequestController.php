@@ -9,6 +9,7 @@ use App\Models\WalletBalance;
 use App\Models\WithdrawRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class WithdrawRequestController extends Controller
@@ -149,11 +150,20 @@ class WithdrawRequestController extends Controller
     {
         $validated = $request->validate([
             'payout_upi_id' => ['required', 'string', 'max:100', 'regex:/^[\w.\-]{2,256}@[a-zA-Z]{2,64}$/'],
+            // Both optional (client spec: "UPI Number — Optional", "UPI QR — Optional").
+            'upi_number' => ['nullable', 'digits:10'],
+            'upi_qr' => ['nullable', 'image', 'max:4096'],
         ], [
             'payout_upi_id.regex' => 'Enter a valid UPI ID, e.g. name@bank.',
+            'upi_number.digits' => 'Enter a valid 10-digit mobile number.',
         ]);
 
-        return ['payout_upi_id' => $validated['payout_upi_id']];
+        $fields = ['payout_upi_id' => $validated['payout_upi_id'], 'upi_number' => $validated['upi_number'] ?? null];
+        if ($request->hasFile('upi_qr')) {
+            $fields['upi_qr'] = $this->storeUploadedQr($request, 'upi_qr');
+        }
+
+        return $fields;
     }
 
     private function extractBankFields(Request $request): array
@@ -181,10 +191,35 @@ class WithdrawRequestController extends Controller
     {
         $validated = $request->validate([
             'usdt_address' => ['required', 'string', 'regex:/^T[1-9A-HJ-NP-Za-km-z]{33}$/'],
+            // Client spec: "QR Code — Optional".
+            'usdt_qr' => ['nullable', 'image', 'max:4096'],
         ], [
             'usdt_address.regex' => 'Enter a valid TRC20 (Tron) wallet address - starts with T, 34 characters.',
         ]);
 
-        return $validated;
+        $fields = ['usdt_address' => $validated['usdt_address']];
+        if ($request->hasFile('usdt_qr')) {
+            $fields['usdt_qr'] = $this->storeUploadedQr($request, 'usdt_qr');
+        }
+
+        return $fields;
+    }
+
+    // Same public/assets convention as DepositRequestController::storeUploadedScreenshot()
+    // - this app is served directly out of public/ via a custom index.php, no
+    // storage:link symlink involved anywhere else either.
+    private function storeUploadedQr(Request $request, string $field): string
+    {
+        $file = $request->file($field);
+        $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
+        $directory = public_path('assets/withdrawal-proofs');
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $file->move($directory, $filename);
+
+        return 'assets/withdrawal-proofs/'.$filename;
     }
 }

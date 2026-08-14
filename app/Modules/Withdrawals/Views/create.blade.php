@@ -28,7 +28,7 @@
             No withdrawal method is currently available. Please try again later.
         </div>
     @else
-    <form method="POST" action="{{ route('withdrawals.store') }}" class="flex flex-col gap-5 pb-10">
+    <form method="POST" action="{{ route('withdrawals.store') }}" enctype="multipart/form-data" class="flex flex-col gap-5 pb-10">
         @csrf
         <input type="hidden" name="method" id="wd-method-input" value="{{ $currentMethod }}">
 
@@ -84,14 +84,33 @@
         </div>
 
         <!-- UPI panel -->
-        <div id="wd-panel-upi" class="flex flex-col gap-2">
-            <label for="payout_upi_id" class="block text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Your UPI ID to receive the payout</label>
-            <input type="text" id="payout_upi_id" name="payout_upi_id"
-                placeholder="e.g. name@okhdfcbank" value="{{ old('payout_upi_id') }}"
-                class="w-full h-12 rounded-[14px] border border-slate-200 px-4 text-[15px] font-bold text-slate-800 outline-none focus:border-[#0A5C66] focus:ring-1 focus:ring-[#0A5C66] transition-colors">
-            @error('payout_upi_id')
-                <p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>
-            @enderror
+        <div id="wd-panel-upi" class="flex flex-col gap-3">
+            <div>
+                <label for="payout_upi_id" class="block text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Your UPI ID to receive the payout</label>
+                <input type="text" id="payout_upi_id" name="payout_upi_id"
+                    placeholder="e.g. name@okhdfcbank" value="{{ old('payout_upi_id') }}"
+                    class="w-full h-12 rounded-[14px] border border-slate-200 px-4 text-[15px] font-bold text-slate-800 outline-none focus:border-[#0A5C66] focus:ring-1 focus:ring-[#0A5C66] transition-colors">
+                @error('payout_upi_id')
+                    <p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>
+                @enderror
+            </div>
+            <div>
+                <label for="upi_number" class="block text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">UPI-linked mobile number <span class="normal-case font-medium text-slate-400">(optional)</span></label>
+                <input type="tel" id="upi_number" name="upi_number" inputmode="numeric" maxlength="10"
+                    placeholder="10-digit mobile number" value="{{ old('upi_number') }}"
+                    class="w-full h-12 rounded-[14px] border border-slate-200 px-4 text-[15px] font-bold text-slate-800 outline-none focus:border-[#0A5C66] focus:ring-1 focus:ring-[#0A5C66] transition-colors">
+                @error('upi_number')
+                    <p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>
+                @enderror
+            </div>
+            <div>
+                <label for="upi_qr" class="block text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Your UPI QR code <span class="normal-case font-medium text-slate-400">(optional)</span></label>
+                <input type="file" id="upi_qr" name="upi_qr" accept="image/*"
+                    class="w-full text-[13px] text-slate-600 file:mr-3 file:h-10 file:px-4 file:rounded-[12px] file:border-0 file:bg-[#0A5C66]/10 file:text-[#0A5C66] file:font-bold file:text-[12.5px] rounded-[14px] border border-slate-200 px-3 py-2.5 outline-none focus:border-[#0A5C66] focus:ring-1 focus:ring-[#0A5C66] transition-colors">
+                @error('upi_qr')
+                    <p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>
+                @enderror
+            </div>
         </div>
 
         <!-- Bank Account panel -->
@@ -139,6 +158,13 @@
                 class="w-full h-12 rounded-[14px] border border-slate-200 px-4 text-[15px] font-bold text-slate-800 outline-none focus:border-[#0A5C66] focus:ring-1 focus:ring-[#0A5C66] transition-colors">
             <p class="text-[11.5px] text-slate-400 font-medium">Only the TRC20 network is supported. Double-check the address - transfers to a wrong address can't be reversed.</p>
             @error('usdt_address')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+
+            <div class="mt-1">
+                <label for="usdt_qr" class="block text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Wallet QR code <span class="normal-case font-medium text-slate-400">(optional)</span></label>
+                <input type="file" id="usdt_qr" name="usdt_qr" accept="image/*"
+                    class="w-full text-[13px] text-slate-600 file:mr-3 file:h-10 file:px-4 file:rounded-[12px] file:border-0 file:bg-[#0A5C66]/10 file:text-[#0A5C66] file:font-bold file:text-[12.5px] rounded-[14px] border border-slate-200 px-3 py-2.5 outline-none focus:border-[#0A5C66] focus:ring-1 focus:ring-[#0A5C66] transition-colors">
+                @error('usdt_qr')<p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+            </div>
         </div>
 
         <button type="submit" class="w-full h-[52px] rounded-[16px] bg-[#0A5C66] text-white font-bold text-[15px] hover:bg-[#0E7481] active:scale-[0.98] transition-all shadow-md shadow-[#0A5C66]/20">
