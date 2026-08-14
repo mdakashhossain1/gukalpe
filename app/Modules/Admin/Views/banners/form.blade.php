@@ -11,7 +11,7 @@
     <main class="flex-1 min-w-0 flex flex-col min-h-screen">
         <x-admin-topbar title="{{ $banner->exists ? 'Edit banner' : 'New banner' }}" />
 
-        <div class="px-6 md:px-10 py-8 md:py-10 max-w-2xl">
+        <div class="px-6 md:px-10 py-8 md:py-10">
 
             <a href="{{ route('admin.banners') }}" class="text-[13px] font-semibold text-[#64748B] hover:text-[#0F172A] mb-4 inline-flex items-center gap-1.5"><i class="fa-solid fa-arrow-left text-[11px]"></i> Back to banners</a>
             <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-6">{{ $banner->exists ? 'Edit banner' : 'New banner' }}</h1>

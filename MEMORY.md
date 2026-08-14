@@ -1,5 +1,12 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Banner create/edit page: removed the max-w-2xl cap ("in the create page I mean")
+
+Follow-up to the previous entry: user clarified "full width" meant the banner Create/Edit form (`/banners/create`, `/banners/{banner}/edit`), not the list page that was just changed.
+
+- `banners/form.blade.php`: dropped `max-w-2xl` from the page's content wrapper - the form now uses the full available content width instead of being capped at ~672px, matching the list page it links back to.
+- Full suite: **139 passed (486 assertions)**, Pint clean. No test/behavior changes - purely a layout width change.
+
 ## 2026-08-14 — Admin Banners page: full-width rows instead of a 1-3 column card grid
 
 User: "in the banner section make it full width." Confirmed via AskUserQuestion this meant the admin Banners management page (`/banners`), not the customer-facing Home page banner display.
