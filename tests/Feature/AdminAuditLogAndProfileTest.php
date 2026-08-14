@@ -144,6 +144,33 @@ class AdminAuditLogAndProfileTest extends TestCase
             ->assertSee('₹340.00', false);
     }
 
+    public function test_user_profile_recent_admin_actions_includes_deposit_and_withdrawal_audit_entries(): void
+    {
+        // Bug: "Recent admin actions" only ever pulled AdminAuditLog rows
+        // targeting the User row itself (bans, wallet adjustments) - deposit
+        // and withdrawal approve/reject entries target the DepositRequest/
+        // WithdrawRequest row instead, so they existed in the audit log but
+        // silently never appeared on this page.
+        $user = User::factory()->create(['phone' => '9990009997']);
+
+        $deposit = DepositRequest::create([
+            'phone' => '9990009997', 'amount' => 250, 'method' => 'upi', 'method_label' => 'UPI',
+            'utr' => 'AUDITTEST0001', 'status' => DepositRequest::STATUS_PENDING, 'submitted_at' => now(),
+        ]);
+
+        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
+            ->post(route('admin.deposits.approve', $deposit))
+            ->assertRedirect();
+
+        $entry = AdminAuditLog::where('action', 'deposit_approved')->where('target_id', $deposit->id)->first();
+        $this->assertNotNull($entry, 'Sanity check: the audit entry itself must exist.');
+
+        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
+            ->get(route('admin.users.show', $user))
+            ->assertOk()
+            ->assertSee('Deposit approved');
+    }
+
     public function test_user_profile_page_loads_for_authenticated_admin(): void
     {
         $user = User::factory()->create(['phone' => '9990009999']);

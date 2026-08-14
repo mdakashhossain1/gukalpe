@@ -1,5 +1,13 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — User profile's "Recent admin actions" silently missed deposit/withdrawal audit entries
+
+User asked to re-confirm the current per-user activity structure and make sure "we can see all the record" for each user. Walking through `showUser()`'s `recentAudit` query to answer that surfaced a real bug: it only ever matched `AdminAuditLog` rows where `target_type = 'User'` (bans, wallet adjustments), but deposit/withdrawal approve/reject audit entries target the `DepositRequest`/`WithdrawRequest` row instead - those entries existed in the database the whole time but never rendered on this page, even though the Audit Log page itself showed them fine.
+
+- `AdminController::showUser()`: `recentAudit` now OR-matches three cases - `target_type=User` + this user's id, `target_type=DepositRequest` + this user's own deposit request IDs, `target_type=WithdrawRequest` + this user's own withdrawal request IDs. Scoped tightly to this user's own records (via their phone), not a blanket "any deposit/withdrawal action."
+- Confirmed the rest of the per-user structure is already comprehensive: Investment summary (plan holdings), Referral details, a dedicated Transactions table (Type/Amount/Balance before+after/Reason/Admin/Date), Recent deposits, Recent withdrawals, and now a complete Recent admin actions feed - all scoped to one user on `/users/{user}`.
+- Full suite: **139 passed (484 assertions)**, Pint clean. New test approves a real deposit, confirms the resulting `deposit_approved` audit entry (which targets the DepositRequest, not the User) now actually appears on that user's profile page.
+
 ## 2026-08-14 — Scheduler: explicit IST timezone instead of pre-computed UTC clock times
 
 User asked to confirm the cron schedule runs on Indian time, not UTC, and that every notification-dependent scheduled job is actually present.

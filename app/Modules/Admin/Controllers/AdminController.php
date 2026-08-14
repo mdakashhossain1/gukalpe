@@ -275,8 +275,21 @@ class AdminController extends Controller
             ? WalletTransaction::where('phone', $phone)->latest('id')->limit(15)->get()
             : collect();
 
-        $recentAudit = AdminAuditLog::where('target_type', 'User')->where('target_id', $user->id)
-            ->latest('id')->limit(15)->get();
+        // Every admin action "about this user" - not just entries that
+        // target the User row itself (bans, wallet adjustments), but also
+        // deposit/withdrawal approve/reject entries, which target the
+        // DepositRequest/WithdrawRequest row instead. Missing those here
+        // silently hid real audit-log rows that do exist in the database -
+        // this user only ever had their own request IDs pulled in for the
+        // OR-matching, so it stays scoped to this user's own records.
+        $depositIds = $phone ? DepositRequest::where('phone', $phone)->pluck('id') : collect();
+        $withdrawIds = $phone ? WithdrawRequest::where('phone', $phone)->pluck('id') : collect();
+
+        $recentAudit = AdminAuditLog::where(function ($query) use ($user, $depositIds, $withdrawIds) {
+            $query->where(fn ($q) => $q->where('target_type', 'User')->where('target_id', $user->id))
+                ->orWhere(fn ($q) => $q->where('target_type', 'DepositRequest')->whereIn('target_id', $depositIds))
+                ->orWhere(fn ($q) => $q->where('target_type', 'WithdrawRequest')->whereIn('target_id', $withdrawIds));
+        })->latest('id')->limit(15)->get();
 
         $holdings = UserPlan::where('user_id', $user->id)->with('plan')->latest('purchased_at')->get();
 
