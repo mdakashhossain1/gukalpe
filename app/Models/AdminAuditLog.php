@@ -29,11 +29,6 @@ class AdminAuditLog extends Model
         'admin_user_id', 'admin_label', 'action', 'target_type', 'target_id', 'reason', 'meta', 'ip',
     ];
 
-    protected $casts = [
-        'meta' => 'array',
-        'created_at' => 'datetime',
-    ];
-
     public static function record(Request $request, string $action, ?Model $target = null, ?string $reason = null, array $meta = []): self
     {
         return self::create([
@@ -51,5 +46,13 @@ class AdminAuditLog extends Model
     public function actionLabel(): string
     {
         return ucfirst(str_replace('_', ' ', $this->action));
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'meta' => 'array',
+            'created_at' => 'datetime',
+        ];
     }
 }

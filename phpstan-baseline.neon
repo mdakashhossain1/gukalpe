@@ -1,0 +1,271 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/MaturePlanHoldings.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Console/Commands/MaturePlanHoldings.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/NotifyDailyProfit.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$total_return\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Console/Commands/NotifyDailyProfit.php
+
+		-
+			message: '#^Cannot call method diffInDays\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Console/Commands/NotifyDailyProfit.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>total_return" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Console/Commands/NotifyDailyProfit.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/SendDailyReturnsEmail.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$icon\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/SendDailyReturnsEmail.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/SendDailyReturnsEmail.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/SendDailyReturnsEmail.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$total_return\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Console/Commands/SendDailyReturnsEmail.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasRealEmail\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Console/Commands/SendDailyReturnsEmail.php
+
+		-
+			message: '#^Cannot call method diffInDays\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Console/Commands/SendDailyReturnsEmail.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>total_return" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Console/Commands/SendDailyReturnsEmail.php
+
+		-
+			message: '#^Cannot call method isPast\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/PhoneOtp.php
+
+		-
+			message: '#^Method App\\Models\\Plan\:\:defaultDuration\(\) should return App\\Models\\PlanDuration\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Plan.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$icon\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/UserPlan.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lock_duration\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/UserPlan.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$subtitle\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/UserPlan.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/UserPlan.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$total_return\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/UserPlan.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:iconImageUrl\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/UserPlan.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:imageUrl\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/UserPlan.php
+
+		-
+			message: '#^Cannot call method diffInDays\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/UserPlan.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>total_return" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Models/UserPlan.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$wallet_balance\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Admin/Controllers/AdminController.php
+
+		-
+			message: '#^Offset ''profit_amount'' on string\|null on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Modules/Admin/Controllers/AdminController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Modules/Admin/Controllers/PaymentGatewayController.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments ''active''\|''hidden'', array\{''active'', ''hidden''\} and true will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Modules/Admin/Controllers/PlanManagementController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>growth_rate" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Admin/Controllers/PlanManagementController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>icon" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Admin/Controllers/PlanManagementController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>term_days" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Modules/Admin/Controllers/PlanManagementController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Modules/Admin/Controllers/ReferralCommissionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Modules/Admin/Controllers/ReferralCommissionController.php
+
+		-
+			message: '#^Method App\\Modules\\Auth\\Controllers\\GoogleAuthController\:\:redirect\(\) should return Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Auth/Controllers/GoogleAuthController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$icon\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Explore/Controllers/ExploreController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Explore/Controllers/ExploreController.php
+
+		-
+			message: '#^Call to an undefined static method Carbon\\Carbon\:\:maxValue\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Modules/Explore/Controllers/ExploreController.php
+
+		-
+			message: '#^Cannot call method diffInMinutes\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Modules/Explore/Controllers/ExploreController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Plans/Controllers/PlanPurchaseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Modules/Plans/Controllers/PlanPurchaseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Plans/Controllers/PlanPurchaseController.php
+
+		-
+			message: '#^Cannot call method addDays\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Modules/Plans/Controllers/PlanPurchaseController.php
+
+		-
+			message: '#^Method App\\Modules\\Plans\\Controllers\\PlanPurchaseController\:\:resolveDuration\(\) should return App\\Models\\PlanDuration\|null but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Plans/Controllers/PlanPurchaseController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>label" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Plans/Controllers/PlanPurchaseController.php

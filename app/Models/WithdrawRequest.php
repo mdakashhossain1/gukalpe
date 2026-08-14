@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -29,12 +30,6 @@ class WithdrawRequest extends Model
         'status', 'admin_note', 'submitted_at', 'reviewed_at',
     ];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'submitted_at' => 'datetime',
-        'reviewed_at' => 'datetime',
-    ];
-
     protected static function booted(): void
     {
         static::creating(function (self $withdraw) {
@@ -49,7 +44,8 @@ class WithdrawRequest extends Model
         return 'uuid';
     }
 
-    public function scopeStatus(Builder $query, string $status): Builder
+    #[Scope]
+    protected function status(Builder $query, string $status): Builder
     {
         return $query->where('status', $status);
     }
@@ -86,5 +82,14 @@ class WithdrawRequest extends Model
         }
 
         return str_starts_with($path, 'http') ? $path : asset($path);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'submitted_at' => 'datetime',
+            'reviewed_at' => 'datetime',
+        ];
     }
 }

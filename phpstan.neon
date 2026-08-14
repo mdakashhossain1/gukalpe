@@ -1,0 +1,19 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    paths:
+        - app
+        - database
+        - routes
+
+    # Start conservative - this codebase predates static analysis, so a
+    # high level would surface hundreds of pre-existing findings at once.
+    # Raise gradually as findings get triaged/fixed rather than all at once.
+    level: 4
+
+    excludePaths:
+        - app/Modules/*/Views/*
+
+    tmpDir: storage/framework/phpstan

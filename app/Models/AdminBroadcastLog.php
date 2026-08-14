@@ -17,7 +17,10 @@ class AdminBroadcastLog extends Model
 
     protected $fillable = ['target_description', 'title', 'body', 'sent_by', 'status', 'recipient_count'];
 
-    protected $casts = [
-        'created_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+        ];
+    }
 }

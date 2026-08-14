@@ -11,13 +11,16 @@ class AdminUser extends Model
 
     protected $hidden = ['password'];
 
-    protected $casts = [
-        'password' => 'hashed',
-        'is_active' => 'boolean',
-    ];
-
     public function roleLabel(): string
     {
         return AdminRoles::label($this->role);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'password' => 'hashed',
+            'is_active' => 'boolean',
+        ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -16,12 +17,6 @@ class DepositRequest extends Model
 
     protected $fillable = [
         'phone', 'amount', 'method', 'method_label', 'utr', 'payment_screenshot', 'status', 'submitted_at', 'reviewed_at', 'admin_note',
-    ];
-
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'submitted_at' => 'datetime',
-        'reviewed_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -41,7 +36,8 @@ class DepositRequest extends Model
         return 'uuid';
     }
 
-    public function scopeStatus(Builder $query, string $status): Builder
+    #[Scope]
+    protected function status(Builder $query, string $status): Builder
     {
         return $query->where('status', $status);
     }
@@ -57,5 +53,14 @@ class DepositRequest extends Model
         }
 
         return str_starts_with($this->payment_screenshot, 'http') ? $this->payment_screenshot : asset($this->payment_screenshot);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'submitted_at' => 'datetime',
+            'reviewed_at' => 'datetime',
+        ];
     }
 }

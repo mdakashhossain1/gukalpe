@@ -5,6 +5,7 @@ namespace App\Rules;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Propaganistas\LaravelPhone\PhoneNumber;
+use Throwable;
 
 /**
  * Validates that a value is a genuinely valid Indian mobile number, using
@@ -25,7 +26,7 @@ class IndianMobile implements ValidationRule
             if (! $number->isValid() || ! $number->isOfCountry('IN') || ! $number->isOfType('mobile')) {
                 $fail('Enter a valid Indian mobile number.');
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $fail('Enter a valid Indian mobile number.');
         }
     }

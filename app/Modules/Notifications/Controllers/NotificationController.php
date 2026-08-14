@@ -5,8 +5,8 @@ namespace App\Modules\Notifications\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\UserNotification;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class NotificationController extends Controller
 {

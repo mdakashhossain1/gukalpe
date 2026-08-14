@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Admin-managed marketing banners (plan.md Section 34 — Banner Management).
      * Placement decides where a banner shows (home / offer / explore / popup);

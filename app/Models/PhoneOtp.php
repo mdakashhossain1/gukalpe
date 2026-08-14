@@ -8,13 +8,10 @@ use Illuminate\Support\Facades\Hash;
 class PhoneOtp extends Model
 {
     private const MAX_ATTEMPTS = 5;
+
     private const TTL_MINUTES = 5;
 
     protected $fillable = ['phone', 'otp_hash', 'attempts', 'expires_at'];
-
-    protected $casts = [
-        'expires_at' => 'datetime',
-    ];
 
     /**
      * Creates (or replaces) the pending OTP for a phone and returns the
@@ -69,5 +66,12 @@ class PhoneOtp extends Model
         $otp->delete();
 
         return 'ok';
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'datetime',
+        ];
     }
 }

@@ -81,7 +81,7 @@ class HomeController extends Controller
 
         try {
             $code = Crypt::decryptString($token);
-        } catch (DecryptException $e) {
+        } catch (DecryptException) {
             return;
         }
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,17 +20,6 @@ class UserPlan extends Model
         'user_id', 'plan_id', 'plan_duration_id', 'invested_amount', 'daily_profit_val',
         'total_return', 'duration_label', 'status', 'purchased_at', 'matures_at', 'withdrawn_at',
         'last_daily_return_email_sent_at', 'last_daily_profit_notified_at',
-    ];
-
-    protected $casts = [
-        'invested_amount' => 'decimal:2',
-        'daily_profit_val' => 'decimal:2',
-        'total_return' => 'decimal:2',
-        'purchased_at' => 'datetime',
-        'matures_at' => 'datetime',
-        'withdrawn_at' => 'datetime',
-        'last_daily_return_email_sent_at' => 'date',
-        'last_daily_profit_notified_at' => 'date',
     ];
 
     public function user(): BelongsTo
@@ -71,7 +61,8 @@ class UserPlan extends Model
             ->first();
     }
 
-    public function scopeActive(Builder $query): Builder
+    #[Scope]
+    protected function active(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIVE);
     }
@@ -79,7 +70,8 @@ class UserPlan extends Model
     // Holdings the maturity scheduler (plans:mature-holdings) should act on -
     // matures_at is only ever set on purchases made against a plan that has
     // real durations (Phase 0), so plans without durations simply never match.
-    public function scopeMatured(Builder $query): Builder
+    #[Scope]
+    protected function matured(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIVE)
             ->whereNotNull('matures_at')
@@ -100,7 +92,8 @@ class UserPlan extends Model
     // and not already emailed today - a date-only comparison so it's a
     // simple "not equal to today" check no matter what time the scheduled
     // command actually runs at.
-    public function scopeDueForDailyReturnEmail(Builder $query): Builder
+    #[Scope]
+    protected function dueForDailyReturnEmail(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIVE)
             ->where('purchased_at', '<=', now()->subDay())
@@ -114,7 +107,8 @@ class UserPlan extends Model
     // haven't yet had their in-app "profit updated" notification for today.
     // Same day-boundary guard as the email scope, but tracked independently
     // so the email and the in-app notification never suppress each other.
-    public function scopeDueForDailyProfitNotification(Builder $query): Builder
+    #[Scope]
+    protected function dueForDailyProfitNotification(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIVE)
             ->where('purchased_at', '<=', now()->subDay())
@@ -210,5 +204,19 @@ class UserPlan extends Model
         }
 
         return $points;
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'invested_amount' => 'decimal:2',
+            'daily_profit_val' => 'decimal:2',
+            'total_return' => 'decimal:2',
+            'purchased_at' => 'datetime',
+            'matures_at' => 'datetime',
+            'withdrawn_at' => 'datetime',
+            'last_daily_return_email_sent_at' => 'date',
+            'last_daily_profit_notified_at' => 'date',
+        ];
     }
 }

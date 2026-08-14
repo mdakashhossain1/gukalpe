@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DepositRequest;
 use App\Models\WithdrawRequest;
 use App\Support\ReportService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -52,7 +53,7 @@ class ReportController extends Controller
         return 'gullakpe-report-'.$report['period'].'-'.now()->format('Ymd').'.'.$ext;
     }
 
-    /** @param array{label:string,from:\Carbon\CarbonImmutable,to:\Carbon\CarbonImmutable,metrics:array} $report */
+    /** @param array{label: string, from: CarbonImmutable, to: CarbonImmutable, metrics: array} $report */
     private function rows(array $report): array
     {
         $rows = [];

@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     // Plan-details impression counter for Plan Analytics (plan.md Section 27).
     // Purchases are already counted in plans.total_purchases_count.
     public function up(): void

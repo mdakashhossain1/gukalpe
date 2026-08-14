@@ -261,14 +261,14 @@ class PlanManagementController extends Controller
         // explicit null in the insert overrides the column's ->default(0)
         // (defaults only apply when the column is omitted entirely), which
         // trips the NOT NULL constraint. Coalesce back to 0 here instead.
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['sort_order'] ??= 0;
 
         // The Bootstrap-class icon field was replaced on the form by an icon
         // image upload, so it no longer arrives in the POST body. Keep the
         // column (still NOT NULL, and a fallback wherever no icon image is set)
         // populated: preserve the plan's existing class on edit, default on
         // create.
-        $validated['icon'] = $validated['icon'] ?? $plan?->icon ?? 'bi-piggy-bank';
+        $validated['icon'] ??= $plan?->icon ?? 'bi-piggy-bank';
 
         // Checkboxes absent from the POST body simply mean false - not
         // something 'nullable'/'boolean' validation rules can express, so

@@ -9,13 +9,6 @@ class WalletTransaction extends Model
 {
     protected $fillable = ['phone', 'type', 'direction', 'amount', 'status', 'balance_before', 'balance_after', 'meta'];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'balance_before' => 'decimal:2',
-        'balance_after' => 'decimal:2',
-        'meta' => 'array',
-    ];
-
     // Human labels for the admin ledger, keyed by the stored type.
     public const TYPE_LABELS = [
         'add_money' => 'Add Money',
@@ -41,5 +34,15 @@ class WalletTransaction extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'phone', 'phone');
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'balance_before' => 'decimal:2',
+            'balance_after' => 'decimal:2',
+            'meta' => 'array',
+        ];
     }
 }

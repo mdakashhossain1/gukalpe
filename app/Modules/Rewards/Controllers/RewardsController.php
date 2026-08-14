@@ -55,15 +55,13 @@ class RewardsController extends Controller
         $commissions = ReferralCommission::where('referrer_id', $user->id)->get();
         $commissionsByReferred = $commissions->groupBy('referred_user_id');
 
-        $referralHistory = $referrals->map(function (User $referred) use ($investedUserIds, $commissionsByReferred) {
-            return [
-                'name' => $referred->name,
-                'maskedPhone' => $referred->phone ? '+91 ******'.substr($referred->phone, -4) : null,
-                'joinedAt' => $referred->created_at,
-                'hasInvested' => $investedUserIds->contains($referred->id),
-                'commissionEarned' => $commissionsByReferred->get($referred->id)?->sum('amount'),
-            ];
-        });
+        $referralHistory = $referrals->map(fn (User $referred) => [
+            'name' => $referred->name,
+            'maskedPhone' => $referred->phone ? '+91 ******'.substr($referred->phone, -4) : null,
+            'joinedAt' => $referred->created_at,
+            'hasInvested' => $investedUserIds->contains($referred->id),
+            'commissionEarned' => $commissionsByReferred->get($referred->id)?->sum('amount'),
+        ]);
 
         $totalInvites = $referrals->count();
         $totalInvested = $investedUserIds->count();

@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
 
 class ModuleServiceProvider extends ServiceProvider
 {
@@ -23,7 +23,7 @@ class ModuleServiceProvider extends ServiceProvider
     {
         $modulesPath = app_path('Modules');
 
-        if (!File::isDirectory($modulesPath)) {
+        if (! File::isDirectory($modulesPath)) {
             return;
         }
 
@@ -33,14 +33,14 @@ class ModuleServiceProvider extends ServiceProvider
             $moduleName = basename($module);
 
             // Register routes
-            $routesPath = $module . '/routes.php';
+            $routesPath = $module.'/routes.php';
             if (File::exists($routesPath)) {
                 Route::middleware('web')
                     ->group($routesPath);
             }
 
             // Register views
-            $viewsPath = $module . '/Views';
+            $viewsPath = $module.'/Views';
             if (File::isDirectory($viewsPath)) {
                 $this->loadViewsFrom($viewsPath, $moduleName);
             }

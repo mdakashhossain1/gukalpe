@@ -8,10 +8,6 @@ class WalletBalance extends Model
 {
     protected $fillable = ['phone', 'balance'];
 
-    protected $casts = [
-        'balance' => 'decimal:2',
-    ];
-
     public static function balanceFor(string $phone): float
     {
         return (float) (self::where('phone', $phone)->value('balance') ?? 0);
@@ -58,5 +54,12 @@ class WalletBalance extends Model
             'balance_after' => $balanceAfter,
             'meta' => $meta ?: null,
         ]);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'balance' => 'decimal:2',
+        ];
     }
 }

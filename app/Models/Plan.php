@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,27 +51,6 @@ class Plan extends Model
         'rose' => ['bg' => 'bg-rose-50', 'border' => 'border-rose-200', 'text' => 'text-rose-600'],
         'violet' => ['bg' => 'bg-violet-50', 'border' => 'border-violet-200', 'text' => 'text-violet-600'],
         'slate' => ['bg' => 'bg-slate-100', 'border' => 'border-slate-300', 'text' => 'text-slate-600'],
-    ];
-
-    protected $casts = [
-        'investment_amount' => 'decimal:2',
-        'min_investment_amount' => 'decimal:2',
-        'max_investment_amount' => 'decimal:2',
-        'slider_step' => 'decimal:2',
-        'allow_topups' => 'boolean',
-        'term_days' => 'integer',
-        'daily_profit' => 'decimal:2',
-        'total_return' => 'decimal:2',
-        'is_active' => 'boolean',
-        'unlock_enabled' => 'boolean',
-        'auto_mature' => 'boolean',
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
-        'faqs' => 'array',
-        'highlights' => 'array',
-        'max_purchases' => 'integer',
-        'total_purchases_count' => 'integer',
-        'views' => 'integer',
     ];
 
     protected static function booted(): void
@@ -210,7 +190,8 @@ class Plan extends Model
     // semantics, still just is_active. Active AND Hidden plans both keep
     // is_active = true (a Hidden plan is still purchasable via an existing
     // direct link - only Draft/Expired flip this to false).
-    public function scopeActive(Builder $query): Builder
+    #[Scope]
+    protected function active(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }
@@ -218,12 +199,14 @@ class Plan extends Model
     // Catalog-discoverability gate for Explore/Home listings - only Active
     // status plans show up here. Hidden plans are purchasable (see
     // scopeActive above) but deliberately excluded from discovery.
-    public function scopeListable(Builder $query): Builder
+    #[Scope]
+    protected function listable(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIVE);
     }
 
-    public function scopeOrdered(Builder $query): Builder
+    #[Scope]
+    protected function ordered(Builder $query): Builder
     {
         return $query->orderBy('sort_order')->orderBy('id');
     }
@@ -292,6 +275,30 @@ class Plan extends Model
             'expectedReturn' => '₹'.number_format($totalReturn, 0),
             'unlockDate' => $this->lock_duration,
             'timelineEnd' => $this->lock_duration === 'Flexible' ? 'Flexible Withdrawal' : 'Month '.preg_replace('/\D/', '', $this->lock_duration).' Unlock',
+        ];
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'investment_amount' => 'decimal:2',
+            'min_investment_amount' => 'decimal:2',
+            'max_investment_amount' => 'decimal:2',
+            'slider_step' => 'decimal:2',
+            'allow_topups' => 'boolean',
+            'term_days' => 'integer',
+            'daily_profit' => 'decimal:2',
+            'total_return' => 'decimal:2',
+            'is_active' => 'boolean',
+            'unlock_enabled' => 'boolean',
+            'auto_mature' => 'boolean',
+            'start_date' => 'datetime',
+            'end_date' => 'datetime',
+            'faqs' => 'array',
+            'highlights' => 'array',
+            'max_purchases' => 'integer',
+            'total_purchases_count' => 'integer',
+            'views' => 'integer',
         ];
     }
 }

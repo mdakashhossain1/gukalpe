@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -59,7 +60,8 @@ class ReferralCommission extends Model
         return 'uuid';
     }
 
-    public function scopeStatus(Builder $query, string $status): Builder
+    #[Scope]
+    protected function status(Builder $query, string $status): Builder
     {
         return $query->where('status', $status);
     }

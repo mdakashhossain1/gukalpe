@@ -9,12 +9,15 @@ class PlanTopup extends Model
 {
     protected $fillable = ['user_plan_id', 'amount'];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-    ];
-
     public function userPlan(): BelongsTo
     {
         return $this->belongsTo(UserPlan::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+        ];
     }
 }

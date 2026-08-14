@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -11,13 +12,6 @@ class Banner extends Model
     protected $fillable = [
         'placement', 'title', 'image', 'redirect_link',
         'is_active', 'priority', 'start_date', 'end_date',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
-        'priority' => 'integer',
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
     ];
 
     public const PLACEMENTS = [
@@ -34,7 +28,8 @@ class Banner extends Model
 
     // Same optional-window semantics as Plan::isWithinSchedule(): a banner with
     // neither bound is always in schedule.
-    public function scopeWithinSchedule(Builder $query): Builder
+    #[Scope]
+    protected function withinSchedule(Builder $query): Builder
     {
         $now = now();
 
@@ -59,5 +54,15 @@ class Banner extends Model
         // Uploaded straight into public/assets/... (see BannerController),
         // matching how plan images are stored; absolute URLs pass through.
         return str_starts_with($this->image, 'http') ? $this->image : asset($this->image);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'priority' => 'integer',
+            'start_date' => 'datetime',
+            'end_date' => 'datetime',
+        ];
     }
 }
