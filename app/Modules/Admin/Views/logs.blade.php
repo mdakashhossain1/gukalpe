@@ -50,9 +50,14 @@
             @endforeach
         </div>
 
+        {{-- Every detail visible directly in the table - no click-through
+             required. With a high volume of activity, having to open each
+             entry on its own page to see what actually happened isn't
+             practical, so the full meta renders as a wrapped list of chips
+             right in the row instead of behind a "View" link. --}}
         <div class="bg-white rounded-xl border border-[#E5E9EB] p-4 mb-8" id="audit-table-card">
             <div class="overflow-x-auto">
-                <table id="audit-table" class="w-full text-left border-collapse min-w-[980px]">
+                <table id="audit-table" class="w-full text-left border-collapse min-w-[1180px]">
                     <thead>
                         <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">When</th>
@@ -74,14 +79,31 @@
                                     <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-slate-50 text-slate-600 border-slate-200">{{ $entry->actionLabel() }}</span>
                                 </td>
                                 <td class="px-4 py-3 align-middle text-[12.5px] font-mono text-[#334155] whitespace-nowrap">
-                                    {{ $entry->target_type ? $entry->target_type.' #'.$entry->target_id : '—' }}
+                                    @if ($entry->target_type === 'User' && ($targetUser = $targetUsers[$entry->target_id] ?? null))
+                                        <a href="{{ route('admin.users.show', $targetUser) }}" class="text-[#0A5C66] hover:underline">User #{{ $entry->target_id }}</a>
+                                    @else
+                                        {{ $entry->target_type ? $entry->target_type.' #'.$entry->target_id : '—' }}
+                                    @endif
                                 </td>
-                                <td class="px-4 py-3 align-middle text-[12.5px] text-[#334155] max-w-[220px] truncate" title="{{ $entry->reason }}">{{ $entry->reason ?: '—' }}</td>
-                                <td class="px-4 py-3 align-middle whitespace-nowrap">
-                                    <a href="{{ route('admin.logs.show', $entry) }}"
-                                        class="h-8 px-3 rounded-lg border border-[#CBD5E1] text-[#334155] text-[11.5px] font-bold hover:bg-[#F1F5F9] transition-colors inline-flex items-center">
-                                        View
-                                    </a>
+                                <td class="px-4 py-3 align-middle text-[12.5px] text-[#334155] max-w-[240px]">{{ $entry->reason ?: '—' }}</td>
+                                <td class="px-4 py-3 align-middle max-w-[320px]">
+                                    @if ($entry->meta)
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @foreach ($entry->meta as $key => $value)
+                                                <span class="inline-flex items-baseline gap-1 text-[11px] px-2 py-1 rounded-md bg-[#F8FAFC] border border-[#F1F5F9] whitespace-nowrap">
+                                                    <span class="font-semibold text-[#94A3B8]">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span>
+                                                    <span class="font-mono font-semibold text-[#334155]">
+                                                        @if (is_bool($value)) {{ $value ? 'Yes' : 'No' }}
+                                                        @elseif ($value === null || $value === '') —
+                                                        @else {{ $value }}
+                                                        @endif
+                                                    </span>
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="text-[12px] text-[#CBD5E1]">—</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -154,7 +176,7 @@
                 perPage: 25,
                 perPageSelect: [25, 50, 100],
                 sortable: true,
-                // Details is a "View" button, not sortable text.
+                // Details is a set of meta chips, not a single sortable value.
                 columns: [{ select: 5, sortable: false }],
                 labels: {
                     placeholder: 'Search activity logs...',

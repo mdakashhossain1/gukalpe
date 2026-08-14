@@ -485,33 +485,22 @@ class AdminController extends Controller
             $query->where('action', $action);
         }
 
+        // Cap the rendered set; the client-side datatable paginates/searches
+        // it, same convention as transactions() above.
+        $entries = $query->limit(1000)->get();
+
+        // Every detail (including the target) renders inline in the table
+        // now rather than behind a per-entry page, so User targets are
+        // batch-loaded here to link out to the profile without an N+1.
+        $targetUsers = User::whereIn('id', $entries->where('target_type', 'User')->pluck('target_id')->unique())
+            ->get()
+            ->keyBy('id');
+
         return view('Admin::logs', [
             'action' => $action,
             'actions' => AdminAuditLog::query()->select('action')->distinct()->orderBy('action')->pluck('action'),
-            // Cap the rendered set; the client-side datatable paginates/searches
-            // it, same convention as transactions() above.
-            'entries' => $query->limit(1000)->get(),
-            'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
-            'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
-        ]);
-    }
-
-    /**
-     * One audit entry's full detail as its own page - was a modal (opened
-     * from a "View" button on the Activity Logs list) rendering the meta
-     * JSON as labeled rows; moved to a dedicated page at the same URL shape
-     * as every other admin "show" route in this app (users, deposits, etc.)
-     * per explicit request rather than a popup.
-     */
-    public function showLog(AdminAuditLog $auditLog): View
-    {
-        $targetUser = $auditLog->target_type === 'User'
-            ? User::find($auditLog->target_id)
-            : null;
-
-        return view('Admin::log-details', [
-            'entry' => $auditLog,
-            'targetUser' => $targetUser,
+            'entries' => $entries,
+            'targetUsers' => $targetUsers,
             'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
             'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
         ]);

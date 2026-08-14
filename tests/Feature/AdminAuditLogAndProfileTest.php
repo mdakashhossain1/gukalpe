@@ -199,49 +199,33 @@ class AdminAuditLogAndProfileTest extends TestCase
             ->assertSee('Test reason');
     }
 
-    public function test_activity_logs_list_links_to_a_dedicated_details_page(): void
+    public function test_activity_logs_table_shows_full_meta_details_inline(): void
     {
-        // Previously the "Details" column rendered json_encode($entry->meta)
-        // directly into the cell, truncated with only a hover tooltip - then
-        // briefly a modal - before landing on its own page per explicit
-        // request (not a popup). The list itself just needs a working link.
-        User::factory()->create(['phone' => '9990009996']);
-        WalletBalance::credit('9990009996', 100, 'add_money');
-
-        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
-            ->post(route('admin.wallet-tools.adjust'), [
-                'phone' => '9990009996', 'direction' => 'increase', 'amount' => 25, 'reason' => 'Details page test',
-            ])
-            ->assertRedirect();
-
-        $entry = AdminAuditLog::where('action', 'wallet_adjustment')->where('reason', 'Details page test')->firstOrFail();
-
-        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
-            ->get(route('admin.logs'))
-            ->assertOk()
-            ->assertSee(route('admin.logs.show', $entry), false);
-    }
-
-    public function test_activity_log_details_page_shows_admin_target_reason_and_meta(): void
-    {
+        // Detail rendering went through several iterations - truncated JSON,
+        // then a modal, then a separate per-entry page - before landing here:
+        // with high activity volume, clicking into each entry to see what
+        // happened isn't practical, so every meta field must be readable
+        // directly in the row without navigating anywhere else.
         $user = User::factory()->create(['phone' => '9990009995']);
         WalletBalance::credit('9990009995', 100, 'add_money');
 
         $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
             ->post(route('admin.wallet-tools.adjust'), [
-                'phone' => '9990009995', 'direction' => 'increase', 'amount' => 25, 'reason' => 'Full details page test',
+                'phone' => '9990009995', 'direction' => 'increase', 'amount' => 25, 'reason' => 'Full details inline test',
             ])
             ->assertRedirect();
 
-        $entry = AdminAuditLog::where('action', 'wallet_adjustment')->where('reason', 'Full details page test')->firstOrFail();
+        AdminAuditLog::where('action', 'wallet_adjustment')->where('reason', 'Full details inline test')->firstOrFail();
 
         $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
-            ->get(route('admin.logs.show', $entry))
+            ->get(route('admin.logs'))
             ->assertOk()
             ->assertSee('Master Admin')
-            ->assertSee('Full details page test')
+            ->assertSee('Full details inline test')
             ->assertSee('Balance before')
             ->assertSee('Balance after')
+            ->assertSee('100', false)
+            ->assertSee('125', false)
             ->assertSee(route('admin.users.show', $user), false);
     }
 }

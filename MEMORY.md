@@ -1,5 +1,15 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Audit entry Details: inline in the table, not a separate page (dedicated page reverted)
+
+User rejected the dedicated `/logs/{id}` page from the previous entry: with a high volume of activity, clicking into every entry to see what happened isn't practical - asked for a "table like structure" showing everything at a glance. Confirmed via AskUserQuestion: full inline detail in the main table row, no click-through at all, remove the separate page entirely.
+
+- `logs.blade.php`'s Details column no longer links anywhere - it renders every `meta` key:value pair directly as small wrapped chips in the cell (snake_case keys humanized, booleans as Yes/No, blanks as `—`), so amount/balance-before/balance-after/direction/etc. are all readable without navigating away.
+- Target column now links straight to the user's profile when `target_type=User` and that user still exists (previously this link only existed on the now-removed details page) - `AdminController::logs()` batch-loads those users via `whereIn` to avoid an N+1.
+- Removed as dead code now that nothing links to it: route `GET /logs/{auditLog}` (`admin.logs.show`), `AdminController::showLog()`, and `log-details.blade.php`.
+- Reason column no longer truncates with a hover tooltip either - same "don't hide detail behind an interaction" reasoning, now wraps within a `max-w`.
+- Full suite: **140 passed (493 assertions)**, Pint clean. Replaced the two tests that asserted a link to/content of the dedicated page with one asserting the meta fields (balance before/after, target link) render directly on the `admin.logs` listing itself.
+
 ## 2026-08-14 — Audit entry Details: dedicated page instead of a modal
 
 User asked for a separate page rather than the popup modal I'd just built for the "View" button on Activity Logs.
