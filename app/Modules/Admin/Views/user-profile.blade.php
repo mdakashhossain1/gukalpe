@@ -143,6 +143,50 @@
             </div>
         </div>
 
+        {{-- Transactions: the full wallet ledger for this user (client item 1's
+             "Transactions" action, shown inline here rather than only as a
+             deep-link out) - same Balance Before/After/Reason/Admin fields
+             the Transactions page itself shows, so this view alone answers
+             "what happened to this user's wallet and why". --}}
+        <div id="transactions" class="bg-white rounded-xl border border-[#E5E9EB] p-5 mb-6 scroll-mt-6">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A]">Transactions</h2>
+                <a href="{{ route('admin.transactions', ['phone' => $user->phone]) }}" class="text-[11.5px] font-bold text-[#0A5C66] hover:underline">All transactions</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[640px]">
+                    <thead>
+                        <tr class="border-b border-[#F1F5F9]">
+                            <th class="py-2 pr-3 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Type</th>
+                            <th class="py-2 pr-3 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8] text-right">Amount</th>
+                            <th class="py-2 pr-3 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8] text-right">Balance after</th>
+                            <th class="py-2 pr-3 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Reason</th>
+                            <th class="py-2 pr-3 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Admin</th>
+                            <th class="py-2 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($recentTransactions as $t)
+                            <tr class="border-b border-[#F1F5F9] last:border-0">
+                                <td class="py-2 pr-3 text-[12.5px] font-semibold text-[#334155] whitespace-nowrap">{{ $t->typeLabel() }}</td>
+                                <td class="py-2 pr-3 text-[13px] font-mono font-bold text-right whitespace-nowrap {{ $t->direction === 'credit' ? 'text-emerald-600' : 'text-red-600' }}">
+                                    {{ $t->direction === 'credit' ? '+' : '−' }}₹{{ number_format($t->amount, 2) }}
+                                </td>
+                                <td class="py-2 pr-3 text-[12.5px] text-[#334155] text-right whitespace-nowrap">{{ $t->balance_after !== null ? '₹'.number_format($t->balance_after, 2) : '—' }}</td>
+                                <td class="py-2 pr-3 text-[12px] text-[#64748B] max-w-[180px] truncate" title="{{ $t->meta['reason'] ?? '' }}">{{ $t->meta['reason'] ?? '—' }}</td>
+                                <td class="py-2 pr-3 text-[12px] text-[#64748B] whitespace-nowrap">{{ $t->meta['admin_label'] ?? '—' }}</td>
+                                <td class="py-2 text-[11.5px] text-[#94A3B8] whitespace-nowrap">{{ $t->created_at?->format('d M Y, h:i A') }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="py-6 text-center text-[13px] text-[#94A3B8] italic">No wallet activity yet.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {{-- Recent deposits/withdrawals --}}
             <div class="bg-white rounded-xl border border-[#E5E9EB] p-5">
@@ -180,26 +224,20 @@
             </div>
         </div>
 
-        {{-- Recent activity: wallet ledger + admin audit trail on this user --}}
+        {{-- Recent admin actions on this user (ban/unban, wallet adjustments,
+             etc.) - separate from the Transactions section above now that
+             the ledger has its own dedicated table, so this is purely the
+             audit trail, not a mix of both. --}}
         <div class="bg-white rounded-xl border border-[#E5E9EB] p-5">
-            <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A] mb-3">Recent activity</h2>
+            <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A] mb-3">Recent admin actions</h2>
             <div class="flex flex-col gap-2">
-                @forelse ($recentTransactions as $t)
-                    <div class="flex items-center justify-between gap-2 border-b border-[#F1F5F9] last:border-0 pb-2 last:pb-0">
-                        <p class="text-[12.5px] text-[#334155]">{{ $t->created_at?->format('d M Y, h:i A') }} · {{ $t->typeLabel() }}</p>
-                        <span class="text-[13px] font-mono font-bold {{ $t->direction === 'credit' ? 'text-emerald-600' : 'text-red-600' }}">
-                            {{ $t->direction === 'credit' ? '+' : '-' }}₹{{ number_format($t->amount, 2) }}
-                        </span>
-                    </div>
-                @empty
-                    <p class="text-[13px] text-[#94A3B8] italic">No wallet activity yet.</p>
-                @endforelse
-
-                @foreach ($recentAudit as $a)
+                @forelse ($recentAudit as $a)
                     <div class="flex items-center justify-between gap-2 border-b border-[#F1F5F9] last:border-0 pb-2 last:pb-0">
                         <p class="text-[12.5px] text-[#334155]">{{ $a->created_at?->format('d M Y, h:i A') }} · {{ $a->actionLabel() }} by {{ $a->admin_label }}{{ $a->reason ? ' — '.$a->reason : '' }}</p>
                     </div>
-                @endforeach
+                @empty
+                    <p class="text-[13px] text-[#94A3B8] italic">No admin actions recorded yet.</p>
+                @endforelse
             </div>
         </div>
 

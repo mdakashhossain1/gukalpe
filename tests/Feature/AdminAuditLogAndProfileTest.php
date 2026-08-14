@@ -121,6 +121,29 @@ class AdminAuditLogAndProfileTest extends TestCase
         $this->assertEquals('Amount mismatch', $entry->reason);
     }
 
+    public function test_user_profile_page_shows_a_dedicated_transactions_section(): void
+    {
+        $user = User::factory()->create(['phone' => '9990009998']);
+        WalletBalance::credit('9990009998', 300, 'add_money');
+
+        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
+            ->post(route('admin.wallet-tools.adjust'), [
+                'phone' => '9990009998',
+                'direction' => 'increase',
+                'amount' => 40,
+                'reason' => 'Profile transactions section test',
+            ])
+            ->assertRedirect();
+
+        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
+            ->get(route('admin.users.show', $user))
+            ->assertOk()
+            ->assertSee('id="transactions"', false)
+            ->assertSee('Profile transactions section test')
+            ->assertSee('Master Admin')
+            ->assertSee('₹340.00', false);
+    }
+
     public function test_user_profile_page_loads_for_authenticated_admin(): void
     {
         $user = User::factory()->create(['phone' => '9990009999']);

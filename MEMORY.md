@@ -1,5 +1,14 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — User profile page: added a real Transactions section instead of a mixed feed
+
+Follow-up to the "where does it show" question: the profile page (`/users/{user}`) never had a dedicated Transactions section - only a merged "Recent activity" feed mixing wallet_transactions rows (just type + amount, no balance/reason/admin) with admin audit-log entries together, plus a button that navigated away to the full Transactions page.
+
+- Added a proper Transactions table (`#transactions` section, `user-profile.blade.php`) matching what the Transactions page itself now shows: Type, Amount, Balance after, Reason, Admin, Date - using the same `$recentTransactions` data the controller already fetched, just rendered as its own section instead of folded into "Recent activity".
+- De-duplicated: "Recent activity" no longer repeats the wallet_transactions rows - renamed to "Recent admin actions" and now shows only the `AdminAuditLog` entries for this user (ban/unban, wallet adjustments as audit entries, etc.), so there's no overlap between the two sections.
+- Verified via a real HTTP test that posts a wallet adjustment then loads the profile page and asserts the reason text, "Master Admin", and the resulting balance actually render inside the new section.
+- Full suite: **128 passed (429 assertions)**, Pint clean.
+
 ## 2026-08-14 — Wallet adjustment's Reason/Balance Before/Admin weren't visible anywhere in one place
 
 User asked where the wallet-adjustment Reason/Balance Before/Balance After/Admin Name/Date-Time actually show up. Checked the real rendered pages rather than assuming: `/transactions` only showed Balance After + Date; `/audit-log` had Reason + Admin + Date but Balance Before/After were buried inside a truncated raw-JSON "Details" column. Nothing was lost (it was all in the DB) but there was no single clean view of it, which doesn't satisfy the client's "must create a proper transaction + audit log" ask in spirit even though it's technically captured.
