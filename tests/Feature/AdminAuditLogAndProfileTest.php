@@ -183,14 +183,18 @@ class AdminAuditLogAndProfileTest extends TestCase
             ->assertSee('₹500.00', false);
     }
 
-    public function test_audit_log_page_lists_recorded_entries(): void
+    public function test_activity_logs_page_lists_recorded_audit_entries(): void
     {
+        // The client's "Activity Logs" page - not a separate "Audit Log"
+        // page - is the real database-backed record now (item 7: "current
+        // browser/local activity log should be changed to..."), so this
+        // asserts against admin.logs directly.
         $user = User::factory()->create(['phone' => '9990001111']);
         $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
             ->post(route('admin.users.toggle-ban', $user), ['reason' => 'Test reason']);
 
         $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
-            ->get(route('admin.audit-log'))
+            ->get(route('admin.logs'))
             ->assertOk()
             ->assertSee('Test reason');
     }

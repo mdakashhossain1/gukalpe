@@ -464,23 +464,19 @@ class AdminController extends Controller
         ]);
     }
 
-    public function logs(): View
-    {
-        return view('Admin::logs', [
-            'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
-            'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
-        ]);
-    }
-
     /**
-     * Real, database-backed admin audit trail (client "Activity Logs — Major
-     * Modification" request). Separate from the localStorage-only
-     * referral/commission debug console at admin.logs (Simulations-paired
-     * demo tooling, left as-is) and from the admin_security file log (kept
-     * everywhere as defense in depth). Every AdminAuditLog::record() call
-     * site is listed at the top of AdminAuditLog for reference.
+     * Real, database-backed admin audit trail (client item 7: "Current
+     * browser/local activity log should be changed to: Database-based
+     * permanent Admin Audit Log"). This IS the Activity Logs page the client
+     * meant - not a separate new page alongside it. Every
+     * AdminAuditLog::record() call site is listed at the top of
+     * AdminAuditLog for reference. The old localStorage-only referral/
+     * commission simulation debug panel (Simulations-paired, pre-existing
+     * before this feature) stays on this same page below the real log,
+     * clearly separated - it tests different math (commission calculation),
+     * not admin actions, so it wasn't part of what needed to move to the DB.
      */
-    public function auditLog(Request $request): View
+    public function logs(Request $request): View
     {
         $action = $request->query('action', 'all');
 
@@ -489,7 +485,7 @@ class AdminController extends Controller
             $query->where('action', $action);
         }
 
-        return view('Admin::audit-log', [
+        return view('Admin::logs', [
             'action' => $action,
             'actions' => AdminAuditLog::query()->select('action')->distinct()->orderBy('action')->pluck('action'),
             // Cap the rendered set; the client-side datatable paginates/searches

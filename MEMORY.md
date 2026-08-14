@@ -1,5 +1,16 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Merged "Audit Log" back into "Activity Logs" - it was never supposed to be a separate page
+
+User pushback: item 7 literally says "current browser/local activity log should be CHANGED TO: Database-based permanent Admin Audit Log" - one page, converted in place. Earlier this session I instead left the pre-existing "Activity Logs" nav item untouched (it turned out to be a referral/commission simulation debug console, not a general admin log) and built a brand new separate "Audit Log" page for the real data - a reasonable-sounding call at the time, but not what was actually asked for, and it left two similarly-named nav items that were genuinely confusing (confirmed by the user landing on the wrong one and seeing "No log entries yet.").
+
+- `AdminController::logs()` now IS the real audit-log query (merged in `auditLog()`'s logic) - `auditLog()` method removed entirely.
+- Route `admin.audit-log` removed; `/logs` (`admin.logs`) is the only URL now, serving the real database data.
+- `audit-log.blade.php` deleted. `logs.blade.php` rewritten: the real audit table (Admin + Action + Target + Reason + Date/Time, with an action-type filter) is now the primary content at the top of the page.
+- **Kept, not deleted**: the pre-existing referral/commission simulation debug console (localStorage-based, paired with the Simulations page) - moved to a clearly-separated, clearly-labeled section below the real log rather than removed outright, since it tests different math (commission calculation) for a different audience and wasn't something this session created. Flagged to the user in case they want it gone too.
+- Sidebar: single "Activity logs" entry now (shield icon), gated to `view_reports` (previously ungated - the old demo page needed no permission, but real audit data should).
+- Full suite: **139 passed (484 assertions)**, Pint clean. Renamed the test that hit `admin.audit-log` to assert against `admin.logs` instead - same coverage, correct route.
+
 ## 2026-08-14 — User profile's "Recent admin actions" silently missed deposit/withdrawal audit entries
 
 User asked to re-confirm the current per-user activity structure and make sure "we can see all the record" for each user. Walking through `showUser()`'s `recentAudit` query to answer that surfaced a real bug: it only ever matched `AdminAuditLog` rows where `target_type = 'User'` (bans, wallet adjustments), but deposit/withdrawal approve/reject audit entries target the `DepositRequest`/`WithdrawRequest` row instead - those entries existed in the database the whole time but never rendered on this page, even though the Audit Log page itself showed them fine.

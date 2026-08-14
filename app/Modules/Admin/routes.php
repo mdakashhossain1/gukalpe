@@ -69,7 +69,6 @@ Route::prefix($slug)->group(function () {
         Route::get('/withdrawal-settings', [WithdrawalSettingsController::class, 'index'])->name('admin.withdrawal-settings');
         Route::post('/withdrawal-settings', [WithdrawalSettingsController::class, 'update'])->name('admin.withdrawal-settings.update');
         Route::get('/logs', [AdminController::class, 'logs'])->name('admin.logs');
-        Route::get('/audit-log', [AdminController::class, 'auditLog'])->name('admin.audit-log');
         Route::get('/push-notification', [AdminController::class, 'pushNotificationForm'])->name('admin.push-notification');
         Route::post('/push-notification', [AdminController::class, 'sendPushNotification'])->name('admin.push-notification.send');
         Route::get('/plans', [PlanManagementController::class, 'index'])->name('admin.plans');
