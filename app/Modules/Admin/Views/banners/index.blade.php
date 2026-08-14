@@ -30,7 +30,7 @@
             @if ($banners->isEmpty())
                 <div class="bg-white rounded-xl border border-[#E5E9EB] p-10 text-center text-[13.5px] text-[#94A3B8] italic">No banners yet. Create your first one.</div>
             @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-4">
                     @foreach ($banners as $banner)
                         @php
                             $now = now();
@@ -44,16 +44,19 @@
                                 : (! $started ? ['Scheduled', 'bg-amber-100 text-amber-700']
                                 : ['Active', 'bg-emerald-100 text-emerald-700']));
                         @endphp
-                        <div class="bg-white rounded-xl border border-[#E5E9EB] overflow-hidden flex flex-col">
+                        {{-- Full-width row instead of a grid card: thumbnail on the
+                             left (fixed width on sm+, full-width on mobile),
+                             details and actions filling the rest of the row. --}}
+                        <div class="bg-white rounded-xl border border-[#E5E9EB] overflow-hidden flex flex-col sm:flex-row">
                             <button type="button" data-banner-preview data-image="{{ $banner->imageUrl() }}" data-title="{{ $banner->title ?: '(untitled)' }}"
-                                class="relative bg-[#F1F5F9] aspect-[16/7] overflow-hidden block w-full cursor-zoom-in">
+                                class="relative bg-[#F1F5F9] aspect-[16/7] sm:aspect-auto sm:w-72 md:w-96 shrink-0 overflow-hidden block w-full cursor-zoom-in">
                                 <img src="{{ $banner->imageUrl() }}" alt="{{ $banner->title }}" class="w-full h-full object-cover">
                                 <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-white/90 text-[#334155] shadow-sm">{{ $banner->placementLabel() }}</span>
                                 <span class="absolute top-2 right-2 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full shadow-sm {{ $autoStatus[1] }}">{{ $autoStatus[0] }}</span>
                             </button>
-                            <div class="p-4 flex flex-col gap-2 flex-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <p class="text-[13.5px] font-bold text-[#0F172A] truncate">{{ $banner->title ?: '(untitled)' }}</p>
+                            <div class="p-4 flex flex-col gap-2 flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2 flex-wrap">
+                                    <p class="text-[14px] font-bold text-[#0F172A]">{{ $banner->title ?: '(untitled)' }}</p>
                                     <span class="text-[11px] font-semibold text-[#94A3B8] shrink-0">Priority {{ $banner->priority }}</span>
                                 </div>
                                 @if ($banner->redirect_link)

@@ -1,5 +1,13 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Admin Banners page: full-width rows instead of a 1-3 column card grid
+
+User: "in the banner section make it full width." Confirmed via AskUserQuestion this meant the admin Banners management page (`/banners`), not the customer-facing Home page banner display.
+
+- `banners/index.blade.php`: `grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3` card grid replaced with `flex flex-col` - one banner per row, each spanning the full content width.
+- Each card's internal layout switched from vertical (image on top) to horizontal on sm+ screens (`flex-col sm:flex-row`) - a fixed-width thumbnail (`sm:w-72 md:w-96`) on the left, details/actions filling the rest of the row, since a full-width row with a small thumbnail and a wide empty details area would look worse than reflowing to use the space.
+- No controller/route/test changes needed - `BannerTest` only asserts on data/behavior, not grid markup. Full suite: **139 passed (486 assertions)**, Pint clean.
+
 ## 2026-08-14 — User profile page: every data section now a real datatable (search/sort/paging)
 
 User pointed at the live profile page (`/users/{id}`) and asked for the same datatable treatment used elsewhere in the admin panel (Users, Deposits, Withdrawals, Plans, Activity Logs) to be applied to every data-listing section here too - previously most sections were plain scrollable `<div>` lists with a fixed max-height, not tables at all.
