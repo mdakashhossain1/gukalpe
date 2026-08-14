@@ -99,6 +99,14 @@ Route::prefix($slug)->group(function () {
         Route::post('/payment-gateway/bank-accounts/{bankAccount}/move', [PaymentGatewayController::class, 'moveBank'])->name('admin.payment-gateway.bank-accounts.move');
         Route::post('/payment-gateway/bank-accounts/{bankAccount}/delete', [PaymentGatewayController::class, 'deleteBank'])->name('admin.payment-gateway.bank-accounts.delete');
 
+        Route::get('/payment-gateway/usdt-accounts/create', [PaymentGatewayController::class, 'createUsdt'])->name('admin.payment-gateway.usdt-accounts.create');
+        Route::post('/payment-gateway/usdt-accounts', [PaymentGatewayController::class, 'storeUsdt'])->name('admin.payment-gateway.usdt-accounts.store');
+        Route::get('/payment-gateway/usdt-accounts/{usdtAccount}/edit', [PaymentGatewayController::class, 'editUsdt'])->name('admin.payment-gateway.usdt-accounts.edit');
+        Route::post('/payment-gateway/usdt-accounts/{usdtAccount}', [PaymentGatewayController::class, 'updateUsdt'])->name('admin.payment-gateway.usdt-accounts.update');
+        Route::post('/payment-gateway/usdt-accounts/{usdtAccount}/toggle-active', [PaymentGatewayController::class, 'toggleUsdtActive'])->name('admin.payment-gateway.usdt-accounts.toggle-active');
+        Route::post('/payment-gateway/usdt-accounts/{usdtAccount}/move', [PaymentGatewayController::class, 'moveUsdt'])->name('admin.payment-gateway.usdt-accounts.move');
+        Route::post('/payment-gateway/usdt-accounts/{usdtAccount}/delete', [PaymentGatewayController::class, 'deleteUsdt'])->name('admin.payment-gateway.usdt-accounts.delete');
+
         Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
     });
 });

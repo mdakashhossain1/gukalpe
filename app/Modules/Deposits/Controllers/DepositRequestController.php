@@ -10,6 +10,7 @@ use App\Models\AppSetting;
 use App\Models\DepositRequest;
 use App\Models\PaymentBankAccount;
 use App\Models\PaymentUpiAccount;
+use App\Models\PaymentUsdtAccount;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -75,25 +76,27 @@ class DepositRequestController extends Controller
             return redirect()->route('home')->with('error', 'Maximum deposit is ₹'.number_format($maxDeposit, 0).' per transaction.');
         }
 
-        // Method-level amount routing: the admin sets ONE amount range for UPI
-        // and ONE for Bank (app_settings). The deposit amount decides which
+        // Method-level amount routing: the admin sets ONE amount range each for
+        // UPI/Bank/USDT (app_settings). The deposit amount decides which
         // METHOD is eligible; the specific account is then a random pick among
-        // ALL active accounts of that method. When both methods' ranges cover
-        // the amount, one method is chosen at random.
+        // ALL active accounts of that method. When more than one method's
+        // range covers the amount, one method is chosen at random.
         $settings = AppSetting::many([
             'upi_min_amount' => AppSetting::DEFAULTS['upi_min_amount'],
             'upi_max_amount' => AppSetting::DEFAULTS['upi_max_amount'],
             'bank_min_amount' => AppSetting::DEFAULTS['bank_min_amount'],
             'bank_max_amount' => AppSetting::DEFAULTS['bank_max_amount'],
+            'usdt_min_amount' => AppSetting::DEFAULTS['usdt_min_amount'],
+            'usdt_max_amount' => AppSetting::DEFAULTS['usdt_max_amount'],
         ]);
 
         // Least-recently-used rotation (client item 9.2/9.3: "each retry
-        // should show the next UPI/bank, not the same one"). NULLs (never
-        // shown yet) sort first in SQLite's default ASC ordering, so a
-        // freshly added account is picked before any reused one; picking
-        // touches last_used_at so the next request naturally rotates to a
-        // different account without a separate mutable pointer/counter that
-        // would race under concurrent requests.
+        // should show the next UPI/bank, not the same one" - extended to
+        // USDT for parity). NULLs (never shown yet) sort first in SQLite's
+        // default ASC ordering, so a freshly added account is picked before
+        // any reused one; picking touches last_used_at so the next request
+        // naturally rotates to a different account without a separate
+        // mutable pointer/counter that would race under concurrent requests.
         $candidates = [];
         if ($this->rangeCoversAmount($settings['upi_min_amount'], $settings['upi_max_amount'], $amountValue)
             && ($upiAccount = PaymentUpiAccount::active()->orderBy('last_used_at', 'asc')->first())) {
@@ -104,6 +107,11 @@ class DepositRequestController extends Controller
             && ($bankAccount = PaymentBankAccount::active()->orderBy('last_used_at', 'asc')->first())) {
             $bankAccount->update(['last_used_at' => now()]);
             $candidates['bank'] = $bankAccount;
+        }
+        if ($this->rangeCoversAmount($settings['usdt_min_amount'], $settings['usdt_max_amount'], $amountValue)
+            && ($usdtAccount = PaymentUsdtAccount::active()->orderBy('last_used_at', 'asc')->first())) {
+            $usdtAccount->update(['last_used_at' => now()]);
+            $candidates['usdt'] = $usdtAccount;
         }
 
         if ($candidates === []) {
@@ -120,6 +128,7 @@ class DepositRequestController extends Controller
             'activeMethod' => $activeMethod,
             'upiAccount' => $activeMethod === 'upi' ? $candidates['upi'] : null,
             'bankAccount' => $activeMethod === 'bank' ? $candidates['bank'] : null,
+            'usdtAccount' => $activeMethod === 'usdt' ? $candidates['usdt'] : null,
         ]);
     }
 
@@ -157,18 +166,21 @@ class DepositRequestController extends Controller
             return redirect()->route('login')->with('error', 'Please log in to add money to your wallet.');
         }
 
-        // Routing is now per-account by amount (see create()), so either method
-        // can legitimately reach this submit depending on which account the user
-        // was shown - both are accepted here and the real check stays manual UTR
-        // verification by an admin.
-        $allowedMethods = ['upi', 'bank'];
+        // Routing is now per-account by amount (see create()), so any of the
+        // three methods can legitimately reach this submit depending on
+        // which account the user was shown - all are accepted here and the
+        // real check stays manual verification by an admin.
+        $allowedMethods = ['upi', 'bank', 'usdt'];
 
-        // Bank transfer references (NEFT/RTGS UTRs, IMPS ref numbers) aren't
-        // reliably 12 digits the way a UPI UTR is, so the format rule
-        // branches by method instead of forcing the UPI shape on both.
-        $utrRules = $request->input('method') === 'bank'
-            ? ['required', 'string', 'min:4', 'max:30']
-            : ['required', 'digits:12'];
+        // Reference-number shape differs per method: a UPI UTR is always 12
+        // digits; bank transfer references (NEFT/RTGS UTRs, IMPS ref
+        // numbers) aren't reliably numeric or a fixed length; a USDT (TRC20)
+        // transaction hash is a 64-character hex string, longer than either.
+        $utrRules = match ($request->input('method')) {
+            'bank' => ['required', 'string', 'min:4', 'max:30'],
+            'usdt' => ['required', 'string', 'regex:/^[0-9a-fA-F]{16,80}$/'],
+            default => ['required', 'digits:12'],
+        };
 
         $utrRules[] = Rule::unique('deposit_requests', 'utr')->where(
             fn ($query) => $query->where('status', '!=', DepositRequest::STATUS_REJECTED)
@@ -193,6 +205,7 @@ class DepositRequestController extends Controller
             'utr.unique' => 'This UTR/reference number has already been used for another deposit.',
             'utr.digits' => 'Enter the 12-digit UTR/reference number exactly as shown in your UPI app.',
             'utr.min' => 'Enter the transaction reference number exactly as shown in your bank statement.',
+            'utr.regex' => 'Enter the full transaction hash (TXID) from the USDT transfer.',
         ]);
 
         // Enforce the global deposit cap again at submission — the amount here
@@ -202,7 +215,11 @@ class DepositRequestController extends Controller
             return back()->withErrors(['amount' => 'Maximum deposit is ₹'.number_format($maxDeposit, 0).' per transaction.']);
         }
 
-        $methodLabel = $validated['method'] === 'upi' ? 'UPI' : 'Bank Transfer';
+        $methodLabel = match ($validated['method']) {
+            'bank' => 'Bank Transfer',
+            'usdt' => 'USDT (TRC20)',
+            default => 'UPI',
+        };
         if (! empty($validated['pay_to_label'])) {
             $methodLabel .= ' · '.$validated['pay_to_label'];
         }

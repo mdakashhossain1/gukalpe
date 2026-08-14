@@ -1,5 +1,16 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Added USDT as a full third deposit-collection method in Payment Gateway
+
+User asked "where is the USDT" on the Payment Gateway page - that page only ever managed UPI and Bank collection accounts (the client's own item 9.7 literally says "For UPI & Bank"), USDT only existed as a withdrawal *destination*, never as something a user could deposit *to*. Confirmed via AskUserQuestion the user wants full parity with UPI/Bank (multi-account CRUD + rotation), not a single shared address.
+
+- New `payment_usdt_accounts` table + `PaymentUsdtAccount` model - same shape as `PaymentUpiAccount`/`PaymentBankAccount` (uuid, is_active, sort_order, last_used_at), except `qr_image` is nullable here (client spec explicitly marks USDT's QR Code "Optional", unlike UPI's required one).
+- `PaymentGatewayController` gained the full USDT CRUD set (create/store/edit/update/toggle/move/delete), all audit-logged the same way UPI/Bank already were. New `usdt-form.blade.php` mirrors `upi-form.blade.php`.
+- `AppSetting` gained `usdt_min_amount`/`usdt_max_amount` (off by default, matching Bank's pattern) - Payment Gateway's Amount ranges card is now 3-wide (UPI/Bank/USDT) and the USDT accounts list sits below UPI/Bank with the same up/down priority controls.
+- `DepositRequestController` now includes USDT in the LRU-rotation candidate selection (same least-recently-used logic as UPI/Bank) and accepts `usdt` as a submission method - reference-number validation branches to a 16-80 char hex regex (TRC20 tx hash) instead of UPI's 12-digit UTR or Bank's free-text rule.
+- `Deposits::create.blade.php` gained a third payment panel (USDT address + optional QR + copy button + share) alongside the existing UPI/Bank panels, and the UTR field's label/placeholder/hint now branch three ways instead of two.
+- Full suite: **138 passed (480 assertions)**, Pint clean. New `PaymentGatewayUsdtAccountTest` covers: admin CRUD + audit log, TRC20 address format validation, USDT staying off by default even with an active account configured (matches Bank), the deposit page actually showing the USDT panel when in range, and full deposit submission with tx-hash validation.
+
 ## 2026-08-14 — Withdrawal methods: UPI Number, UPI QR, USDT QR fields were entirely missing
 
 User pointed at the client spec's withdrawal-methods field list again and asked why the options weren't editable in the admin panel. On closer check this wasn't an admin-panel editing bug - the fields themselves had never been built anywhere (not the migration, not the user-facing form, not the admin display). My original gap-analysis pass (2026-08-14, first entry) had verified Bank's full field set but only spot-checked UPI/USDT against their *required* fields (UPI ID, TRC20 address), missing that the spec also lists explicitly-"Optional" fields for both: UPI Number, UPI QR, and USDT QR Code. Bank was genuinely complete; UPI/USDT were not.

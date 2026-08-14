@@ -8,6 +8,7 @@ use App\Models\AppSetting;
 use App\Models\DepositRequest;
 use App\Models\PaymentBankAccount;
 use App\Models\PaymentUpiAccount;
+use App\Models\PaymentUsdtAccount;
 use App\Models\WithdrawRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,22 +40,26 @@ class PaymentGatewayController extends Controller
             'settings' => AppSetting::many(AppSetting::DEFAULTS),
             'upiAccounts' => PaymentUpiAccount::ordered()->get(),
             'bankAccounts' => PaymentBankAccount::ordered()->get(),
+            'usdtAccounts' => PaymentUsdtAccount::ordered()->get(),
         ]);
     }
 
     public function updateSettings(Request $request): RedirectResponse
     {
-        // Method-level amount ranges: one [min, max] for UPI, one for Bank. Both
-        // bounds optional - a blank max means "no upper limit", and leaving BOTH
-        // blank disables that method (it's never shown). max must be >= min.
+        // Method-level amount ranges: one [min, max] each for UPI/Bank/USDT.
+        // Both bounds optional - a blank max means "no upper limit", and
+        // leaving BOTH blank disables that method (it's never shown). max
+        // must be >= min.
         $validated = $request->validate([
             'upi_min_amount' => ['nullable', 'numeric', 'min:0'],
             'upi_max_amount' => ['nullable', 'numeric', 'min:0', 'gte:upi_min_amount'],
             'bank_min_amount' => ['nullable', 'numeric', 'min:0'],
             'bank_max_amount' => ['nullable', 'numeric', 'min:0', 'gte:bank_min_amount'],
+            'usdt_min_amount' => ['nullable', 'numeric', 'min:0'],
+            'usdt_max_amount' => ['nullable', 'numeric', 'min:0', 'gte:usdt_min_amount'],
         ]);
 
-        foreach (['upi_min_amount', 'upi_max_amount', 'bank_min_amount', 'bank_max_amount'] as $key) {
+        foreach (['upi_min_amount', 'upi_max_amount', 'bank_min_amount', 'bank_max_amount', 'usdt_min_amount', 'usdt_max_amount'] as $key) {
             // Store '' for a blank field so the deposit-side range logic reads it
             // as "no bound" rather than 0.
             AppSetting::set($key, isset($validated[$key]) && $validated[$key] !== null ? (string) $validated[$key] : '');
@@ -144,6 +149,14 @@ class PaymentGatewayController extends Controller
     {
         $this->moveInOrder(PaymentBankAccount::ordered()->get(), $bankAccount, (string) $request->input('direction'));
         AdminAuditLog::record($request, 'bank_account_reordered', $bankAccount);
+
+        return redirect()->route('admin.payment-gateway');
+    }
+
+    public function moveUsdt(Request $request, PaymentUsdtAccount $usdtAccount): RedirectResponse
+    {
+        $this->moveInOrder(PaymentUsdtAccount::ordered()->get(), $usdtAccount, (string) $request->input('direction'));
+        AdminAuditLog::record($request, 'usdt_account_reordered', $usdtAccount);
 
         return redirect()->route('admin.payment-gateway');
     }
@@ -244,6 +257,79 @@ class PaymentGatewayController extends Controller
         return redirect()->route('admin.payment-gateway')->with('success', $bankName.' account deleted.');
     }
 
+    // --- USDT (TRC20) accounts -----------------------------------------
+
+    public function createUsdt(): View
+    {
+        return view('Admin::payment-gateway.usdt-form', [
+            ...$this->sidebarCounts(),
+            'account' => new PaymentUsdtAccount(['is_active' => true]),
+        ]);
+    }
+
+    public function storeUsdt(Request $request): RedirectResponse
+    {
+        $data = $this->validatedUsdt($request);
+        if ($request->hasFile('qr_image')) {
+            $data['qr_image'] = $this->storeUploadedImage($request, 'qr_image');
+        }
+
+        $usdtAccount = PaymentUsdtAccount::create($data);
+
+        Log::channel('admin_security')->info('USDT payment account created', ['usdt_address' => $data['usdt_address']]);
+        AdminAuditLog::record($request, 'usdt_account_created', $usdtAccount);
+
+        return redirect()->route('admin.payment-gateway')->with('success', 'USDT account added.');
+    }
+
+    public function editUsdt(PaymentUsdtAccount $usdtAccount): View
+    {
+        return view('Admin::payment-gateway.usdt-form', [
+            ...$this->sidebarCounts(),
+            'account' => $usdtAccount,
+        ]);
+    }
+
+    public function updateUsdt(Request $request, PaymentUsdtAccount $usdtAccount): RedirectResponse
+    {
+        $data = $this->validatedUsdt($request);
+        if ($request->hasFile('qr_image')) {
+            $data['qr_image'] = $this->storeUploadedImage($request, 'qr_image');
+        }
+
+        $usdtAccount->update($data);
+
+        Log::channel('admin_security')->info('USDT payment account updated', ['id' => $usdtAccount->id]);
+        AdminAuditLog::record($request, 'usdt_account_updated', $usdtAccount);
+
+        return redirect()->route('admin.payment-gateway')->with('success', 'USDT account updated.');
+    }
+
+    public function toggleUsdtActive(Request $request, PaymentUsdtAccount $usdtAccount): RedirectResponse
+    {
+        $usdtAccount->update(['is_active' => ! $usdtAccount->is_active]);
+
+        Log::channel('admin_security')->info('USDT payment account toggled', [
+            'id' => $usdtAccount->id,
+            'is_active' => $usdtAccount->is_active,
+        ]);
+        AdminAuditLog::record($request, 'usdt_account_toggled', $usdtAccount, null, ['is_active' => $usdtAccount->is_active]);
+
+        return redirect()->route('admin.payment-gateway')
+            ->with('success', $usdtAccount->usdt_address.' is now '.($usdtAccount->is_active ? 'active' : 'disabled').'.');
+    }
+
+    public function deleteUsdt(Request $request, PaymentUsdtAccount $usdtAccount): RedirectResponse
+    {
+        $address = $usdtAccount->usdt_address;
+        AdminAuditLog::record($request, 'usdt_account_deleted', $usdtAccount, null, ['usdt_address' => $address]);
+        $usdtAccount->delete();
+
+        Log::channel('admin_security')->info('USDT payment account deleted', ['usdt_address' => $address]);
+
+        return redirect()->route('admin.payment-gateway')->with('success', 'USDT account deleted.');
+    }
+
     // --- Shared helpers -------------------------------------------------
 
     private function validatedUpi(Request $request): array
@@ -276,6 +362,26 @@ class PaymentGatewayController extends Controller
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
+        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['is_active'] = $request->boolean('is_active');
+
+        return $validated;
+    }
+
+    private function validatedUsdt(Request $request): array
+    {
+        $validated = $request->validate([
+            // Same TRC20 shape check as the withdrawal-side usdt_address
+            // rule (WithdrawRequestController) - T + 33 base58 characters.
+            'usdt_address' => ['required', 'string', 'regex:/^T[1-9A-HJ-NP-Za-km-z]{33}$/'],
+            'display_name' => ['nullable', 'string', 'max:100'],
+            'qr_image' => ['nullable', 'image', 'max:4096'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ], [
+            'usdt_address.regex' => 'Enter a valid TRC20 (Tron) wallet address - starts with T, 34 characters.',
+        ]);
+
+        unset($validated['qr_image']);
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['is_active'] = $request->boolean('is_active');
 

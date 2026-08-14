@@ -7,28 +7,40 @@
 @section('content')
 
     @php
-        $payToLabel = $activeMethod === 'upi'
-            ? ($upiAccount->display_name ?: $upiAccount->upi_id)
-            : ($bankAccount->bank_name.' '.substr($bankAccount->account_number, -4));
-        $shareText = $activeMethod === 'upi'
-            ? "Pay via UPI to {$upiAccount->upi_id} for your GullakPe deposit."
-            : "Pay via Bank Transfer to {$bankAccount->account_holder_name}, {$bankAccount->bank_name} (A/C {$bankAccount->account_number}, IFSC {$bankAccount->ifsc_code}) for your GullakPe deposit.";
+        $payToLabel = match ($activeMethod) {
+            'upi' => $upiAccount->display_name ?: $upiAccount->upi_id,
+            'usdt' => $usdtAccount->display_name ?: 'USDT (TRC20)',
+            default => $bankAccount->bank_name.' '.substr($bankAccount->account_number, -4),
+        };
+        $shareText = match ($activeMethod) {
+            'upi' => "Pay via UPI to {$upiAccount->upi_id} for your GullakPe deposit.",
+            'usdt' => "Pay via USDT (TRC20) to {$usdtAccount->usdt_address} for your GullakPe deposit.",
+            default => "Pay via Bank Transfer to {$bankAccount->account_holder_name}, {$bankAccount->bank_name} (A/C {$bankAccount->account_number}, IFSC {$bankAccount->ifsc_code}) for your GullakPe deposit.",
+        };
 
-        $howItWorksSteps = $activeMethod === 'upi'
-            ? [
+        $howItWorksSteps = match ($activeMethod) {
+            'upi' => [
                 ['title' => 'Scan & Pay', 'description' => 'Scan the QR code above using any UPI app'],
                 ['title' => 'Make Payment', 'description' => 'Pay the exact amount shown above'],
                 ['title' => 'Get UTR Number', 'description' => 'After payment, note the UTR / reference number from your UPI app'],
                 ['title' => 'Submit Details', 'description' => 'Enter the UTR below and submit this form'],
                 ['title' => 'Verification', 'description' => 'We\'ll verify and credit your wallet, usually within a few hours'],
-            ]
-            : [
+            ],
+            'usdt' => [
+                ['title' => 'Copy Wallet Address', 'description' => 'Copy the TRC20 address shown above, or scan the QR if provided'],
+                ['title' => 'Send USDT', 'description' => 'Send the equivalent USDT amount on the TRC20 network only'],
+                ['title' => 'Get Transaction Hash', 'description' => 'After sending, copy the transaction hash (TXID) from your wallet app'],
+                ['title' => 'Submit Details', 'description' => 'Enter the transaction hash below and submit this form'],
+                ['title' => 'Verification', 'description' => 'We\'ll verify and credit your wallet, usually within a few hours'],
+            ],
+            default => [
                 ['title' => 'Copy Bank Details', 'description' => 'Copy the account number and IFSC code shown above'],
                 ['title' => 'Make Payment', 'description' => 'Transfer the exact amount via NEFT, IMPS, or RTGS'],
                 ['title' => 'Get Reference Number', 'description' => 'After payment, note the UTR / reference number from your bank'],
                 ['title' => 'Submit Details', 'description' => 'Enter the reference number below and submit this form'],
                 ['title' => 'Verification', 'description' => 'We\'ll verify and credit your wallet, usually within a few hours'],
-            ];
+            ],
+        };
 
         // "upi://pay" is the NPCI-standard intent every compliant UPI app
         // registers as a handler for, used for the generic "Any UPI App"
@@ -153,7 +165,7 @@
                     </button>
                 </div>
             </div>
-        @else
+        @elseif ($activeMethod === 'bank')
             <!-- Bank transfer details card -->
             <div class="premium-card overflow-hidden">
                 <div class="flex items-center justify-between gap-3 bg-gradient-to-br from-[#0A5C66] via-[#0A5C66] to-[#04242F] px-5 py-3.5">
@@ -229,18 +241,86 @@
                     </button>
                 </div>
             </div>
+        @else
+            <!-- USDT (TRC20) details card -->
+            <div class="premium-card overflow-hidden">
+                <div class="flex items-center justify-between gap-3 bg-gradient-to-br from-[#0A5C66] via-[#0A5C66] to-[#04242F] px-5 py-3.5">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <i class="bi bi-clock text-amber-400 text-[15px] shrink-0"></i>
+                        <span class="text-[12.5px] font-semibold text-white/95 truncate">Complete your payment within</span>
+                    </div>
+                    <div class="flex items-baseline gap-1 shrink-0">
+                        <span id="payment-countdown" class="text-[19px] font-black text-amber-400 font-poppins tracking-tight">15:00</span>
+                        <span class="text-[11.5px] font-semibold text-white/80">min</span>
+                    </div>
+                </div>
+
+                <div class="p-6 flex flex-col items-center text-center gap-1">
+                    @if ($usdtAccount->qrImageUrl())
+                        <div class="p-3 rounded-[18px] border-2 border-slate-100 bg-white mb-3">
+                            <img src="{{ $usdtAccount->qrImageUrl() }}" alt="{{ $usdtAccount->usdt_address }}" class="w-[180px] h-[180px] object-contain">
+                        </div>
+                    @else
+                        <div class="w-14 h-14 rounded-full bg-[#0A5C66]/10 flex items-center justify-center mb-2">
+                            <i class="bi bi-currency-bitcoin text-[22px] text-[#0A5C66]"></i>
+                        </div>
+                    @endif
+                    <h2 class="text-[16px] font-black text-[#1a153a] font-poppins">Send USDT (TRC20)</h2>
+                    <p class="text-[12.5px] text-slate-500 font-medium mb-4">Only the TRC20 (Tron) network is supported</p>
+
+                    <div class="w-full bg-slate-50 border border-slate-100 rounded-[14px] p-4">
+                        <span class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1">Amount to Pay (₹ equivalent)</span>
+                        <span class="text-[26px] font-black text-[#1a153a] font-poppins tracking-tight">₹{{ number_format($amount) }}</span>
+                        <p class="text-[12px] text-slate-500 font-medium mt-0.5">Meri Gullak Deposit</p>
+                    </div>
+                </div>
+
+                <div class="px-5 pb-5 flex flex-col gap-3">
+                    <div class="bg-white border border-slate-100 rounded-[14px] px-4 py-3 flex items-center justify-between gap-3">
+                        <div class="flex flex-col text-left min-w-0">
+                            <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wide">TRC20 Wallet Address</span>
+                            <span class="text-[13px] font-bold text-[#1a153a] break-all">{{ $usdtAccount->usdt_address }}</span>
+                        </div>
+                        <button type="button" data-copy="{{ $usdtAccount->usdt_address }}" class="copy-btn shrink-0 h-9 px-3 rounded-[10px] border border-slate-200 text-[12px] font-bold text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A5C66]/40 transition-colors flex items-center gap-1.5">
+                            <i class="bi bi-copy text-[11px]"></i> Copy
+                        </button>
+                    </div>
+                    <p class="text-[11.5px] text-slate-500 font-medium">Double-check the address before sending - transfers to a wrong address or wrong network can't be reversed.</p>
+                </div>
+
+                <div class="px-5 pb-5">
+                    <button type="button" id="share-payment-btn" data-share-text="{{ $shareText }}" class="w-full h-11 rounded-[12px] border border-slate-200 text-[13px] font-bold text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A5C66]/40 transition-colors flex items-center justify-center gap-2">
+                        <i class="bi bi-share-fill text-[12px]"></i> Share Payment Details
+                    </button>
+                </div>
+            </div>
         @endif
 
         <!-- UTR / Reference -->
+        @php
+            $utrLabel = match ($activeMethod) {
+                'upi' => 'UTR / UPI Reference Number',
+                'usdt' => 'Transaction Hash (TXID)',
+                default => 'Bank Transaction Reference Number (UTR)',
+            };
+            $utrPlaceholder = match ($activeMethod) {
+                'upi' => 'e.g. 402819473625',
+                'usdt' => 'e.g. 9f3a2b1c...64 hex characters',
+                default => 'e.g. N123240718123456',
+            };
+            $utrHint = match ($activeMethod) {
+                'upi' => 'UPI app\'s',
+                'usdt' => 'wallet app\'s',
+                default => 'bank\'s',
+            };
+        @endphp
         <div>
-            <label for="utr" class="block text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                {{ $activeMethod === 'upi' ? 'UTR / UPI Reference Number' : 'Bank Transaction Reference Number (UTR)' }}
-            </label>
-            <input type="text" id="utr" name="utr" maxlength="{{ $activeMethod === 'upi' ? 12 : 30 }}" required
+            <label for="utr" class="block text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">{{ $utrLabel }}</label>
+            <input type="text" id="utr" name="utr" maxlength="{{ $activeMethod === 'upi' ? 12 : ($activeMethod === 'usdt' ? 80 : 30) }}" required
                 inputmode="{{ $activeMethod === 'upi' ? 'numeric' : 'text' }}"
-                placeholder="{{ $activeMethod === 'upi' ? 'e.g. 402819473625' : 'e.g. N123240718123456' }}" value="{{ old('utr') }}"
+                placeholder="{{ $utrPlaceholder }}" value="{{ old('utr') }}"
                 class="w-full h-12 rounded-[14px] border border-slate-200 px-4 text-[15px] font-bold tracking-wider text-slate-800 outline-none focus:border-[#0A5C66] focus:ring-1 focus:ring-[#0A5C66] transition-colors">
-            <p class="text-[11.5px] text-slate-500 font-medium mt-1.5">Copy this from your {{ $activeMethod === 'upi' ? 'UPI app\'s' : 'bank\'s' }} payment confirmation, once you've paid the amount above.</p>
+            <p class="text-[11.5px] text-slate-500 font-medium mt-1.5">Copy this from your {{ $utrHint }} payment confirmation, once you've paid the amount above.</p>
             @error('utr')
                 <p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>
             @enderror

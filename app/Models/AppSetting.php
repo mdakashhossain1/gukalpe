@@ -34,6 +34,10 @@ class AppSetting extends Model
         'upi_max_amount' => '',
         'bank_min_amount' => '',
         'bank_max_amount' => '',
+        // USDT deposit collection, same [min, max] shape as UPI/Bank above -
+        // off by default (admin opts in explicitly), matching Bank's default.
+        'usdt_min_amount' => '',
+        'usdt_max_amount' => '',
         // Withdrawal policy limits — enforced on every withdrawal request submission
         'withdrawal_min_amount' => '300',
         'withdrawal_daily_limit' => '5000',
