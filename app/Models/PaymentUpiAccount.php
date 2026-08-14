@@ -9,11 +9,12 @@ use Illuminate\Support\Str;
 class PaymentUpiAccount extends Model
 {
     protected $fillable = [
-        'upi_id', 'display_name', 'mobile_number', 'qr_image', 'is_active', 'sort_order',
+        'upi_id', 'display_name', 'mobile_number', 'qr_image', 'is_active', 'sort_order', 'last_used_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'last_used_at' => 'datetime',
     ];
 
     protected static function booted(): void

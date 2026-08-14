@@ -4,6 +4,8 @@ namespace App\Modules\Admin\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\AdminAuthenticate;
+use App\Models\AdminAuditLog;
+use App\Models\AdminBroadcastLog;
 use App\Models\AdminNotification;
 use App\Models\AdminUser;
 use App\Models\AppSetting;
@@ -19,9 +21,11 @@ use App\Support\AdminRoles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
@@ -82,12 +86,15 @@ class AdminController extends Controller
         // unchanged when no username is supplied.
         $role = 'super_admin';
         $username = trim((string) $request->input('username', ''));
+        $adminUser = null;
 
         if ($username !== '') {
             $adminUser = AdminUser::where('username', $username)->where('is_active', true)->first();
-            $correct = $adminUser && \Illuminate\Support\Facades\Hash::check((string) $request->input('password'), $adminUser->password);
+            $correct = $adminUser && Hash::check((string) $request->input('password'), $adminUser->password);
             if ($correct) {
                 $role = $adminUser->role;
+            } else {
+                $adminUser = null;
             }
         } else {
             $configured = (string) config('admin.password');
@@ -131,6 +138,8 @@ class AdminController extends Controller
         $request->session()->regenerate();
         $request->session()->put('admin_authenticated', true);
         $request->session()->put('admin_role', $role);
+        $request->session()->put('admin_user_id', $adminUser?->id);
+        $request->session()->put('admin_label', $adminUser?->name ?: 'Master Admin');
 
         // Keep the admin logged in for 30 days via a long-lived remember cookie
         // (see AdminAuthenticate). The session alone expires far sooner.
@@ -251,22 +260,88 @@ class AdminController extends Controller
     }
 
     /**
+     * Users -> View Profile (client item 1). Financial summary + investment
+     * summary + recent activity for one user, plus the expanded Actions menu
+     * (Wallet Management, Ban/Unban, Send Notification here; Transactions
+     * deep-links to admin.transactions?phone=; Deposits/Withdrawals/Referral
+     * Details are shown inline below rather than as separate pages, since no
+     * per-user filter exists on those list pages).
+     */
+    public function showUser(User $user): View
+    {
+        $phone = $user->phone;
+
+        $recentTransactions = $phone
+            ? WalletTransaction::where('phone', $phone)->latest('id')->limit(15)->get()
+            : collect();
+
+        $recentAudit = AdminAuditLog::where('target_type', 'User')->where('target_id', $user->id)
+            ->latest('id')->limit(15)->get();
+
+        $holdings = UserPlan::where('user_id', $user->id)->with('plan')->latest('purchased_at')->get();
+
+        return view('Admin::user-profile', [
+            'user' => $user,
+            'walletBalance' => $phone ? WalletBalance::balanceFor($phone) : 0.0,
+            'totalDeposited' => $phone ? (float) DepositRequest::where('phone', $phone)->status(DepositRequest::STATUS_APPROVED)->sum('amount') : 0.0,
+            'totalWithdrawn' => $phone ? (float) WithdrawRequest::where('phone', $phone)->status(WithdrawRequest::STATUS_APPROVED)->sum('amount') : 0.0,
+            'totalInvested' => (float) $holdings->where('status', UserPlan::STATUS_ACTIVE)->sum('invested_amount'),
+            'holdings' => $holdings,
+            'recentTransactions' => $recentTransactions,
+            'recentAudit' => $recentAudit,
+            'referrals' => $user->referrals()->latest()->limit(20)->get(),
+            'recentDeposits' => $phone ? DepositRequest::where('phone', $phone)->latest('submitted_at')->limit(10)->get() : collect(),
+            'recentWithdrawals' => $phone ? WithdrawRequest::where('phone', $phone)->latest('submitted_at')->limit(10)->get() : collect(),
+            'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
+            'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
+        ]);
+    }
+
+    /**
      * Ban or unban a user (toggle). A ban sets banned_at=now(); the user is
      * refused at every login path and force-logged-out on their next request
-     * (EnsureUserNotBanned). Unban clears it.
+     * (EnsureUserNotBanned). Unban clears it. Banning requires a reason
+     * (client requirement: "Ban -> Reason -> Confirm"); unbanning does not,
+     * since there's nothing to justify about restoring access.
      */
-    public function toggleBanUser(User $user): RedirectResponse
+    public function toggleBanUser(Request $request, User $user): RedirectResponse
     {
         $nowBanned = ! $user->isBanned();
+
+        $reason = null;
+        if ($nowBanned) {
+            $validated = $request->validate([
+                'reason' => ['required', 'string', 'max:255'],
+            ], [
+                'reason.required' => 'Enter a reason for banning this user.',
+            ]);
+            $reason = trim($validated['reason']);
+        }
+
         $user->banned_at = $nowBanned ? now() : null;
+        $user->ban_reason = $nowBanned ? $reason : null;
         $user->save();
 
         Log::channel('admin_security')->info($nowBanned ? 'User banned' : 'User unbanned', [
             'user_id' => $user->id,
             'phone' => $user->phone,
+            'reason' => $reason,
         ]);
 
+        AdminAuditLog::record($request, $nowBanned ? 'user_banned' : 'user_unbanned', $user, $reason);
+
         $label = $user->name ?: ($user->phone ?: '#'.$user->id);
+
+        if ($user->phone) {
+            UserNotification::notify(
+                $user,
+                $nowBanned ? 'account_banned' : 'account_unbanned',
+                $nowBanned ? 'Account restricted' : 'Account restored',
+                $nowBanned
+                    ? 'Your account has been banned.'.($reason ? " Reason: {$reason}" : '')
+                    : 'Your account has been unbanned. You can log in again.'
+            );
+        }
 
         return back()->with('success', $nowBanned
             ? "Banned {$label}. They can no longer log in."
@@ -312,12 +387,20 @@ class AdminController extends Controller
         }
 
         $reason = trim($validated['reason']);
+        $balanceBefore = WalletBalance::balanceFor($phone);
 
         $wallet = $increase
             ? WalletBalance::credit($phone, $amount, 'manual_credit', ['source' => 'admin_adjustment', 'reason' => $reason])
             : WalletBalance::debit($phone, $amount, 'manual_debit', ['source' => 'admin_adjustment', 'reason' => $reason]);
 
         $newBalance = (float) $wallet->balance;
+
+        AdminAuditLog::record($request, 'wallet_adjustment', $user, $reason, [
+            'direction' => $validated['direction'],
+            'amount' => $amount,
+            'balance_before' => $balanceBefore,
+            'balance_after' => $newBalance,
+        ]);
 
         UserNotification::notify(
             $user,
@@ -371,12 +454,44 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Real, database-backed admin audit trail (client "Activity Logs — Major
+     * Modification" request). Separate from the localStorage-only
+     * referral/commission debug console at admin.logs (Simulations-paired
+     * demo tooling, left as-is) and from the admin_security file log (kept
+     * everywhere as defense in depth). Every AdminAuditLog::record() call
+     * site is listed at the top of AdminAuditLog for reference.
+     */
+    public function auditLog(Request $request): View
+    {
+        $action = $request->query('action', 'all');
+
+        $query = AdminAuditLog::query()->latest('id');
+        if ($action !== 'all') {
+            $query->where('action', $action);
+        }
+
+        return view('Admin::audit-log', [
+            'action' => $action,
+            'actions' => AdminAuditLog::query()->select('action')->distinct()->orderBy('action')->pluck('action'),
+            // Cap the rendered set; the client-side datatable paginates/searches
+            // it, same convention as transactions() above.
+            'entries' => $query->limit(1000)->get(),
+            'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
+            'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
+        ]);
+    }
+
     public function pushNotificationForm(): View
     {
         return view('Admin::push-notification', [
             'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
             'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
             'totalUsers' => User::count(),
+            // History of admin-sent broadcasts (client item 8) - not the
+            // per-recipient UserNotification inbox rows, one summary row
+            // per send action here.
+            'history' => AdminBroadcastLog::latest('id')->limit(50)->get(),
         ]);
     }
 
@@ -401,6 +516,15 @@ class AdminController extends Controller
                 'recipient_count' => $sent,
             ]);
 
+            AdminBroadcastLog::create([
+                'target_description' => 'All users',
+                'title' => $validated['title'],
+                'body' => $validated['body'] ?? null,
+                'sent_by' => session('admin_label', 'Master Admin'),
+                'status' => 'sent',
+                'recipient_count' => $sent,
+            ]);
+
             return redirect()->route('admin.push-notification')
                 ->with('success', "Sent to all {$sent} users.");
         }
@@ -418,6 +542,15 @@ class AdminController extends Controller
             'phone' => $validated['phone'],
         ]);
 
+        AdminBroadcastLog::create([
+            'target_description' => $validated['phone'],
+            'title' => $validated['title'],
+            'body' => $validated['body'] ?? null,
+            'sent_by' => session('admin_label', 'Master Admin'),
+            'status' => 'sent',
+            'recipient_count' => 1,
+        ]);
+
         return redirect()->route('admin.push-notification')
             ->with('success', "Sent to {$user->name} ({$validated['phone']}).");
     }
@@ -432,6 +565,8 @@ class AdminController extends Controller
             'enabled' => $enabled,
         ]);
 
+        AdminAuditLog::record($request, 'referral_program_toggled', null, null, ['enabled' => $enabled]);
+
         return redirect()->route('admin.settings')
             ->with('success', 'Referral program '.($enabled ? 'enabled' : 'disabled').'.');
     }
@@ -443,31 +578,19 @@ class AdminController extends Controller
         $validated = $request->validate([
             'commission_percent' => ['required', 'numeric', 'min:0', 'max:100'],
             'max_deposit_limit' => ['required', 'numeric', 'min:0'],
-            'withdrawal_min_amount' => ['nullable', 'numeric', 'min:0'],
-            'withdrawal_daily_limit' => ['nullable', 'numeric', 'min:0'],
-            'withdrawal_max_per_day' => ['nullable', 'integer', 'min:1'],
-            'withdrawal_max_per_transaction' => ['nullable', 'numeric', 'min:0'],
-            'withdrawal_processing_mode' => ['nullable', 'in:manual'],
         ]);
 
         AppSetting::set('commission_percent', (string) $validated['commission_percent']);
         AppSetting::set('max_deposit_limit', (string) $validated['max_deposit_limit']);
-
-        foreach (['withdrawal_min_amount', 'withdrawal_daily_limit', 'withdrawal_max_per_day', 'withdrawal_max_per_transaction'] as $key) {
-            if (isset($validated[$key])) {
-                AppSetting::set($key, (string) $validated[$key]);
-            }
-        }
         // Only 'manual' exists (no payment gateway in this app - see AppSetting::DEFAULTS
         // comment); still write it explicitly so the setting round-trips through the form.
         AppSetting::set('withdrawal_processing_mode', 'manual');
 
-        // System kill-switches (plan.md Section 41) + withdrawal-method
-        // toggles. Checkboxes: absent = off.
-        foreach ([
-            'maintenance_mode', 'allow_registration', 'allow_investment', 'allow_withdrawals',
-            'withdrawal_method_bank_enabled', 'withdrawal_method_upi_enabled', 'withdrawal_method_usdt_enabled',
-        ] as $switch) {
+        // System kill-switches (plan.md Section 41). Withdrawal limits/method
+        // toggles moved to their own page - see WithdrawalSettingsController
+        // (client item 6: "Do not keep these mixed inside Referral Program").
+        // Checkboxes: absent = off.
+        foreach (['maintenance_mode', 'allow_registration', 'allow_investment', 'allow_withdrawals'] as $switch) {
             AppSetting::set($switch, $request->boolean($switch) ? 'true' : 'false');
         }
 
@@ -475,6 +598,8 @@ class AdminController extends Controller
             'ip' => $request->ip(),
             'settings' => $validated,
         ]);
+
+        AdminAuditLog::record($request, 'settings_updated', null, null, $validated);
 
         return redirect()->route('admin.settings')
             ->with('success', 'Settings saved.');
@@ -495,7 +620,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function approveDeposit(DepositRequest $deposit): RedirectResponse
+    public function approveDeposit(Request $request, DepositRequest $deposit): RedirectResponse
     {
         abort_unless(AdminRoles::currentCan('approve_deposits'), 403);
 
@@ -527,10 +652,17 @@ class AdminController extends Controller
             'new_balance' => (float) $wallet->balance,
         ]);
 
+        AdminAuditLog::record($request, 'deposit_approved', $deposit, null, [
+            'phone' => $deposit->phone,
+            'amount' => (float) $deposit->amount,
+            'utr' => $deposit->utr,
+            'new_balance' => (float) $wallet->balance,
+        ]);
+
         return back()->with('success', "Approved. ₹{$deposit->amount} credited to {$deposit->phone}.");
     }
 
-    public function rejectDeposit(DepositRequest $deposit): RedirectResponse
+    public function rejectDeposit(Request $request, DepositRequest $deposit): RedirectResponse
     {
         abort_unless(AdminRoles::currentCan('approve_deposits'), 403);
 
@@ -538,9 +670,15 @@ class AdminController extends Controller
             return back()->with('error', 'This request has already been reviewed.');
         }
 
+        $validated = $request->validate([
+            'admin_note' => ['nullable', 'string', 'max:500'],
+        ]);
+        $note = trim((string) ($validated['admin_note'] ?? ''));
+
         $deposit->update([
             'status' => DepositRequest::STATUS_REJECTED,
             'reviewed_at' => now(),
+            'admin_note' => $note !== '' ? $note : null,
         ]);
 
         if ($user = User::where('phone', $deposit->phone)->first()) {
@@ -549,11 +687,19 @@ class AdminController extends Controller
                 'deposit_rejected',
                 'Deposit request rejected',
                 "Your ₹{$deposit->amount} deposit (UTR {$deposit->utr}) couldn't be verified. You can submit it again if the details were wrong."
+                    .($note !== '' ? " Reason: {$note}" : '')
             );
         }
 
         Log::channel('admin_security')->info('Deposit request rejected', [
             'deposit_id' => $deposit->id,
+            'phone' => $deposit->phone,
+            'amount' => (float) $deposit->amount,
+            'utr' => $deposit->utr,
+            'admin_note' => $note,
+        ]);
+
+        AdminAuditLog::record($request, 'deposit_rejected', $deposit, $note !== '' ? $note : null, [
             'phone' => $deposit->phone,
             'amount' => (float) $deposit->amount,
             'utr' => $deposit->utr,
@@ -584,12 +730,16 @@ class AdminController extends Controller
     public function transactions(Request $request): View
     {
         $type = $request->query('type', 'all');
+        $phone = trim((string) $request->query('phone', ''));
 
         $query = WalletTransaction::query()->latest('id');
         if ($type !== 'all' && array_key_exists($type, WalletTransaction::TYPE_LABELS)) {
             $query->where('type', $type);
         } else {
             $type = 'all';
+        }
+        if ($phone !== '') {
+            $query->where('phone', $phone);
         }
 
         // Cap the rendered set; the client-side datatable paginates/searches it.
@@ -598,6 +748,7 @@ class AdminController extends Controller
 
         return view('Admin::transactions', [
             'type' => $type,
+            'phone' => $phone,
             'transactions' => $transactions,
             'names' => $names,
             'typeLabels' => WalletTransaction::TYPE_LABELS,
@@ -611,11 +762,27 @@ class AdminController extends Controller
     /**
      * Per-plan analytics (plan.md Section 27): views + purchases + conversion,
      * plus investment/running/completed derived from user_plans in one grouped
-     * query (no N+1).
+     * query (no N+1). Extended per client item 11 with a custom date range
+     * (scoping purchases by purchased_at and profit/maturity by
+     * wallet_transactions.created_at) plus Total Profit / Total Maturity /
+     * Average Investment KPI tiles.
      */
-    public function planAnalytics(): View
+    public function planAnalytics(Request $request): View
     {
-        $agg = UserPlan::selectRaw(
+        $from = $request->query('from');
+        $to = $request->query('to');
+        $fromDate = $from ? Carbon::parse($from)->startOfDay() : null;
+        $toDate = $to ? Carbon::parse($to)->endOfDay() : null;
+
+        $holdingsQuery = UserPlan::query();
+        if ($fromDate) {
+            $holdingsQuery->where('purchased_at', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $holdingsQuery->where('purchased_at', '<=', $toDate);
+        }
+
+        $agg = (clone $holdingsQuery)->selectRaw(
             'plan_id,
              count(*) as holdings,
              coalesce(sum(invested_amount), 0) as invested,
@@ -640,19 +807,43 @@ class AdminController extends Controller
             ];
         });
 
+        // Total Profit / Total Maturity (client item 11). Only
+        // plan_maturity_credit exists going forward (principal + profit
+        // bundled in one credit, with the profit portion in meta); the
+        // legacy profit_credit type predates that and stored the profit
+        // amount directly as the transaction amount - see WalletTransaction
+        // TYPE_LABELS comment.
+        $ledgerQuery = fn () => WalletTransaction::query()
+            ->when($fromDate, fn ($q) => $q->where('created_at', '>=', $fromDate))
+            ->when($toDate, fn ($q) => $q->where('created_at', '<=', $toDate));
+
+        $maturityRows = $ledgerQuery()->where('type', 'plan_maturity_credit')->get();
+        $totalMaturity = (float) $maturityRows->sum('amount');
+        $totalProfit = $maturityRows->sum(fn (WalletTransaction $t) => (float) ($t->meta['profit_amount'] ?? 0))
+            + (float) $ledgerQuery()->where('type', 'profit_credit')->sum('amount');
+
+        $totals = [
+            'views' => $rows->sum('views'),
+            'purchases' => $rows->sum('purchases'),
+            'invested' => $rows->sum('invested'),
+            'active_investors' => $rows->sum('running'),
+            'completed_investors' => $rows->sum('completed'),
+            'profit' => $totalProfit,
+            'maturity' => $totalMaturity,
+        ];
+        $totals['average_investment'] = $totals['purchases'] > 0 ? $totals['invested'] / $totals['purchases'] : 0.0;
+
         return view('Admin::plan-analytics', [
             'rows' => $rows,
-            'totals' => [
-                'views' => $rows->sum('views'),
-                'purchases' => $rows->sum('purchases'),
-                'invested' => $rows->sum('invested'),
-            ],
+            'totals' => $totals,
+            'from' => $from,
+            'to' => $to,
             'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
             'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
         ]);
     }
 
-    public function approveWithdrawal(WithdrawRequest $withdraw): RedirectResponse
+    public function approveWithdrawal(Request $request, WithdrawRequest $withdraw): RedirectResponse
     {
         abort_unless(AdminRoles::currentCan('approve_withdrawals'), 403);
 
@@ -686,6 +877,14 @@ class AdminController extends Controller
 
         Log::channel('admin_security')->info('Withdrawal request approved', [
             'withdraw_id' => $withdraw->id,
+            'phone' => $withdraw->phone,
+            'amount' => (float) $withdraw->amount,
+            'method' => $withdraw->method,
+            'destination' => $withdraw->destinationLabel(),
+            'new_balance' => (float) $wallet->balance,
+        ]);
+
+        AdminAuditLog::record($request, 'withdrawal_approved', $withdraw, null, [
             'phone' => $withdraw->phone,
             'amount' => (float) $withdraw->amount,
             'method' => $withdraw->method,
@@ -732,6 +931,13 @@ class AdminController extends Controller
             'method' => $withdraw->method,
             'destination' => $withdraw->destinationLabel(),
             'admin_note' => $note,
+        ]);
+
+        AdminAuditLog::record($request, 'withdrawal_rejected', $withdraw, $note !== '' ? $note : null, [
+            'phone' => $withdraw->phone,
+            'amount' => (float) $withdraw->amount,
+            'method' => $withdraw->method,
+            'destination' => $withdraw->destinationLabel(),
         ]);
 
         return back()->with('success', "Rejected withdrawal request for {$withdraw->phone}.");

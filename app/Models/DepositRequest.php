@@ -9,11 +9,13 @@ use Illuminate\Support\Str;
 class DepositRequest extends Model
 {
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
-        'phone', 'amount', 'method', 'method_label', 'utr', 'status', 'submitted_at', 'reviewed_at',
+        'phone', 'amount', 'method', 'method_label', 'utr', 'status', 'submitted_at', 'reviewed_at', 'admin_note',
     ];
 
     protected $casts = [

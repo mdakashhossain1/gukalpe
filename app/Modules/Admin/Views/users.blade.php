@@ -115,6 +115,10 @@
                                 </td>
                                 <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
                                     <div class="inline-flex items-center gap-2 justify-end">
+                                        <a href="{{ route('admin.users.show', $user) }}"
+                                            class="h-9 px-3.5 rounded-lg border border-[#E5E9EB] text-[#334155] text-[12.5px] font-bold hover:bg-[#F8FAFC] transition-colors active:scale-95 inline-flex items-center gap-1.5">
+                                            <i class="fa-solid fa-user text-[11px]"></i> Profile
+                                        </a>
                                         @if ($user->phone)
                                             <button type="button"
                                                 data-adjust-wallet
@@ -125,14 +129,24 @@
                                                 <i class="fa-solid fa-wallet text-[11px]"></i> Adjust
                                             </button>
                                         @endif
-                                        <form method="POST" action="{{ route('admin.users.toggle-ban', $user) }}"
-                                            onsubmit="return confirm('{{ $user->isBanned() ? 'Unban this user? They will be able to log in again.' : 'Ban this user? They will be logged out and blocked from logging in.' }}');">
-                                            @csrf
-                                            <button type="submit"
-                                                class="h-9 px-3.5 rounded-lg border text-[12.5px] font-bold transition-colors active:scale-95 inline-flex items-center gap-1.5 {{ $user->isBanned() ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-red-200 text-red-600 hover:bg-red-50' }}">
-                                                <i class="fa-solid {{ $user->isBanned() ? 'fa-unlock' : 'fa-ban' }} text-[11px]"></i> {{ $user->isBanned() ? 'Unban' : 'Ban' }}
+                                        @if ($user->isBanned())
+                                            <form method="POST" action="{{ route('admin.users.toggle-ban', $user) }}"
+                                                onsubmit="return confirm('Unban this user? They will be able to log in again.');">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="h-9 px-3.5 rounded-lg border border-emerald-200 text-emerald-700 text-[12.5px] font-bold hover:bg-emerald-50 transition-colors active:scale-95 inline-flex items-center gap-1.5">
+                                                    <i class="fa-solid fa-unlock text-[11px]"></i> Unban
+                                                </button>
+                                            </form>
+                                        @else
+                                            <button type="button"
+                                                data-ban-user
+                                                data-name="{{ $user->name ?: $user->phone }}"
+                                                data-action="{{ route('admin.users.toggle-ban', $user) }}"
+                                                class="h-9 px-3.5 rounded-lg border border-red-200 text-red-600 text-[12.5px] font-bold hover:bg-red-50 transition-colors active:scale-95 inline-flex items-center gap-1.5">
+                                                <i class="fa-solid fa-ban text-[11px]"></i> Ban
                                             </button>
-                                        </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -204,6 +218,41 @@
             <div class="flex items-center justify-end gap-2 pt-1">
                 <button type="button" data-wallet-close class="h-10 px-4 rounded-lg border border-slate-200 text-slate-600 font-semibold text-[13.5px] hover:bg-slate-50 transition-colors">Cancel</button>
                 <button type="submit" class="h-10 px-5 rounded-lg bg-brand text-white font-semibold text-[13.5px] hover:bg-brand-light transition-colors active:scale-[0.99]">Apply adjustment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Ban modal - required Reason field replaces the old plain JS confirm().
+     Unban has no modal since there's nothing to justify about restoring
+     access (handled inline above). --}}
+<div id="ban-modal" class="hidden fixed inset-0 z-[600] items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/50" data-ban-close></div>
+    <div class="relative w-full max-w-md bg-white rounded-2xl border border-[#E5E9EB] shadow-xl p-6">
+        <div class="flex items-start justify-between gap-3 mb-4">
+            <div>
+                <h2 class="font-poppins font-bold text-[16px] text-[#0F172A]">Ban user</h2>
+                <p class="text-[12.5px] text-[#64748B] mt-0.5">
+                    <span id="ban-modal-name" class="font-semibold text-[#334155]">—</span> will be logged out and blocked from logging in.
+                </p>
+            </div>
+            <button type="button" data-ban-close class="w-9 h-9 -mr-1 -mt-1 shrink-0 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#F1F5F9] transition-colors" aria-label="Close">
+                <i class="fa-solid fa-xmark text-[15px]"></i>
+            </button>
+        </div>
+
+        <form id="ban-modal-form" method="POST" action="" class="flex flex-col gap-4">
+            @csrf
+            <div>
+                <label for="ban-modal-reason" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Reason (required)</label>
+                <textarea id="ban-modal-reason" name="reason" maxlength="255" required rows="3" placeholder="e.g. Fraudulent deposit claims, abusive behavior"
+                    class="w-full rounded-lg border border-[#CBD5E1] px-3 py-2 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15"></textarea>
+                <p class="text-[11.5px] text-[#94A3B8] mt-1.5">Recorded in the audit log and shown to the user in their ban notification.</p>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-1">
+                <button type="button" data-ban-close class="h-10 px-4 rounded-lg border border-slate-200 text-slate-600 font-semibold text-[13.5px] hover:bg-slate-50 transition-colors">Cancel</button>
+                <button type="submit" class="h-10 px-5 rounded-lg bg-red-600 text-white font-semibold text-[13.5px] hover:bg-red-700 transition-colors active:scale-[0.99]">Ban user</button>
             </div>
         </form>
     </div>
@@ -283,6 +332,38 @@
         });
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+        });
+
+        // Ban modal - same open/close pattern as the wallet modal above.
+        var banModal = document.getElementById('ban-modal');
+        if (!banModal) return;
+        var banNameEl = document.getElementById('ban-modal-name');
+        var banForm = document.getElementById('ban-modal-form');
+        var banReasonInput = document.getElementById('ban-modal-reason');
+
+        function openBanModal(btn) {
+            banForm.action = btn.getAttribute('data-action') || '';
+            banNameEl.textContent = btn.getAttribute('data-name') || '—';
+            banReasonInput.value = '';
+            banModal.classList.remove('hidden');
+            banModal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+            setTimeout(function () { banReasonInput.focus(); }, 30);
+        }
+
+        function closeBanModal() {
+            banModal.classList.add('hidden');
+            banModal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        document.addEventListener('click', function (e) {
+            var banBtn = e.target.closest('[data-ban-user]');
+            if (banBtn) { openBanModal(banBtn); return; }
+            if (e.target.closest('[data-ban-close]')) closeBanModal();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !banModal.classList.contains('hidden')) closeBanModal();
         });
     });
 </script>

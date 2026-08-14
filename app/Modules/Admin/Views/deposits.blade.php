@@ -82,11 +82,15 @@
                                                 @csrf
                                                 <button type="submit" class="h-9 px-3.5 rounded-lg bg-emerald-600 text-white text-[12.5px] font-bold hover:bg-emerald-700 transition-colors active:scale-95">Approve</button>
                                             </form>
-                                            <form method="POST" action="{{ route('admin.deposits.reject', $deposit) }}">
+                                            <form method="POST" action="{{ route('admin.deposits.reject', $deposit) }}" class="inline-flex items-center gap-1.5">
                                                 @csrf
+                                                <input type="text" name="admin_note" maxlength="500" placeholder="Reason (optional)"
+                                                    class="h-9 w-40 rounded-lg border border-[#CBD5E1] px-2.5 text-[12px] text-[#0F172A] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
                                                 <button type="submit" class="h-9 px-3.5 rounded-lg border border-red-200 text-red-600 text-[12.5px] font-bold hover:bg-red-50 transition-colors active:scale-95">Reject</button>
                                             </form>
                                         </div>
+                                    @elseif ($deposit->status === 'rejected' && $deposit->admin_note)
+                                        <span class="text-[11.5px] text-[#64748B] italic">{{ $deposit->admin_note }}</span>
                                     @else
                                         <span class="text-[12px] text-[#CBD5E1]">—</span>
                                     @endif

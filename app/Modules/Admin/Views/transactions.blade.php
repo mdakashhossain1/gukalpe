@@ -31,6 +31,13 @@
         <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-1">Transactions</h1>
         <p class="text-[13.5px] text-[#64748B] mb-6">Unified wallet ledger — every completed money movement (Add Money, Plan Purchase, Profit Credit, Referral, Cashback, Withdrawal, Manual adjustments). Pending requests live on the Deposit / Withdrawal pages.</p>
 
+        @if ($phone)
+            <div class="mb-4 flex items-center justify-between gap-3 bg-[#0A5C66]/[0.06] border border-[#0A5C66]/20 rounded-lg px-4 py-2.5">
+                <p class="text-[12.5px] font-semibold text-[#0A5C66]">Filtered to phone <span class="font-mono">{{ $phone }}</span></p>
+                <a href="{{ route('admin.transactions', ['type' => $type]) }}" class="text-[12px] font-bold text-[#0A5C66] hover:underline">Clear filter</a>
+            </div>
+        @endif
+
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
             <div class="bg-white rounded-xl border border-[#E5E9EB] p-4">
                 <p class="text-[11px] font-bold uppercase tracking-wide text-[#94A3B8] mb-1">Total credited</p>
@@ -47,10 +54,10 @@
         </div>
 
         <div class="flex gap-1.5 mb-4 overflow-x-auto hide-scrollbar bg-[#F1F5F9] rounded-lg p-1 w-fit max-w-full">
-            <a href="{{ route('admin.transactions') }}"
+            <a href="{{ route('admin.transactions', $phone ? ['phone' => $phone] : []) }}"
                 class="h-8 px-4 rounded-md text-[12.5px] transition-colors flex items-center whitespace-nowrap {{ $type === 'all' ? 'font-bold bg-white text-[#0F172A] shadow-sm' : 'font-semibold text-[#64748B]' }}">All</a>
             @foreach ($typeLabels as $key => $label)
-                <a href="{{ route('admin.transactions', ['type' => $key]) }}"
+                <a href="{{ route('admin.transactions', ['type' => $key] + ($phone ? ['phone' => $phone] : [])) }}"
                     class="h-8 px-4 rounded-md text-[12.5px] transition-colors flex items-center whitespace-nowrap {{ $type === $key ? 'font-bold bg-white text-[#0F172A] shadow-sm' : 'font-semibold text-[#64748B]' }}">{{ $label }}</a>
             @endforeach
         </div>

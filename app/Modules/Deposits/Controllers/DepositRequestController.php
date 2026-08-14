@@ -86,13 +86,22 @@ class DepositRequestController extends Controller
             'bank_max_amount' => AppSetting::DEFAULTS['bank_max_amount'],
         ]);
 
+        // Least-recently-used rotation (client item 9.2/9.3: "each retry
+        // should show the next UPI/bank, not the same one"). NULLs (never
+        // shown yet) sort first in SQLite's default ASC ordering, so a
+        // freshly added account is picked before any reused one; picking
+        // touches last_used_at so the next request naturally rotates to a
+        // different account without a separate mutable pointer/counter that
+        // would race under concurrent requests.
         $candidates = [];
         if ($this->rangeCoversAmount($settings['upi_min_amount'], $settings['upi_max_amount'], $amountValue)
-            && ($upiAccount = PaymentUpiAccount::active()->inRandomOrder()->first())) {
+            && ($upiAccount = PaymentUpiAccount::active()->orderBy('last_used_at', 'asc')->first())) {
+            $upiAccount->update(['last_used_at' => now()]);
             $candidates['upi'] = $upiAccount;
         }
         if ($this->rangeCoversAmount($settings['bank_min_amount'], $settings['bank_max_amount'], $amountValue)
-            && ($bankAccount = PaymentBankAccount::active()->inRandomOrder()->first())) {
+            && ($bankAccount = PaymentBankAccount::active()->orderBy('last_used_at', 'asc')->first())) {
+            $bankAccount->update(['last_used_at' => now()]);
             $candidates['bank'] = $bankAccount;
         }
 

@@ -9,11 +9,12 @@ use Illuminate\Support\Str;
 class PaymentBankAccount extends Model
 {
     protected $fillable = [
-        'account_holder_name', 'account_number', 'ifsc_code', 'bank_name', 'branch_name', 'is_active', 'sort_order',
+        'account_holder_name', 'account_number', 'ifsc_code', 'bank_name', 'branch_name', 'is_active', 'sort_order', 'last_used_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'last_used_at' => 'datetime',
     ];
 
     protected static function booted(): void

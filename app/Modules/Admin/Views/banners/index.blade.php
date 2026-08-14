@@ -32,12 +32,25 @@
             @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                     @foreach ($banners as $banner)
+                        @php
+                            $now = now();
+                            $started = ! $banner->start_date || $banner->start_date <= $now;
+                            $ended = $banner->end_date && $banner->end_date < $now;
+                            // Auto Status (client item 10.4): purely informational badge
+                            // derived from is_active + the schedule window - does not
+                            // change is_active itself, admins still control that toggle.
+                            $autoStatus = ! $banner->is_active ? ['Hidden', 'bg-slate-200 text-slate-500']
+                                : ($ended ? ['Expired', 'bg-red-100 text-red-700']
+                                : (! $started ? ['Scheduled', 'bg-amber-100 text-amber-700']
+                                : ['Active', 'bg-emerald-100 text-emerald-700']));
+                        @endphp
                         <div class="bg-white rounded-xl border border-[#E5E9EB] overflow-hidden flex flex-col">
-                            <div class="relative bg-[#F1F5F9] aspect-[16/7] overflow-hidden">
+                            <button type="button" data-banner-preview data-image="{{ $banner->imageUrl() }}" data-title="{{ $banner->title ?: '(untitled)' }}"
+                                class="relative bg-[#F1F5F9] aspect-[16/7] overflow-hidden block w-full cursor-zoom-in">
                                 <img src="{{ $banner->imageUrl() }}" alt="{{ $banner->title }}" class="w-full h-full object-cover">
                                 <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-white/90 text-[#334155] shadow-sm">{{ $banner->placementLabel() }}</span>
-                                <span class="absolute top-2 right-2 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full shadow-sm {{ $banner->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500' }}">{{ $banner->is_active ? 'Active' : 'Hidden' }}</span>
-                            </div>
+                                <span class="absolute top-2 right-2 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full shadow-sm {{ $autoStatus[1] }}">{{ $autoStatus[0] }}</span>
+                            </button>
                             <div class="p-4 flex flex-col gap-2 flex-1">
                                 <div class="flex items-center justify-between gap-2">
                                     <p class="text-[13.5px] font-bold text-[#0F172A] truncate">{{ $banner->title ?: '(untitled)' }}</p>
@@ -49,11 +62,15 @@
                                 @if ($banner->start_date || $banner->end_date)
                                     <p class="text-[11px] text-[#94A3B8]">{{ optional($banner->start_date)->format('d M Y') ?: 'Always' }} → {{ optional($banner->end_date)->format('d M Y') ?: 'No end' }}</p>
                                 @endif
-                                <div class="mt-auto pt-2 flex items-center gap-2">
+                                <div class="mt-auto pt-2 flex items-center gap-2 flex-wrap">
                                     <a href="{{ route('admin.banners.edit', $banner) }}" class="h-9 px-3.5 rounded-lg border border-[#CBD5E1] text-[#334155] text-[12.5px] font-bold hover:bg-[#F1F5F9] transition-colors">Edit</a>
                                     <form method="POST" action="{{ route('admin.banners.toggle-active', $banner) }}">
                                         @csrf
                                         <button type="submit" class="h-9 px-3.5 rounded-lg border border-[#CBD5E1] text-[#334155] text-[12.5px] font-bold hover:bg-[#F1F5F9] transition-colors">{{ $banner->is_active ? 'Hide' : 'Activate' }}</button>
+                                    </form>
+                                    <form method="POST" action="{{ route('admin.banners.duplicate', $banner) }}">
+                                        @csrf
+                                        <button type="submit" class="h-9 px-3.5 rounded-lg border border-[#CBD5E1] text-[#334155] text-[12.5px] font-bold hover:bg-[#F1F5F9] transition-colors">Duplicate</button>
                                     </form>
                                     <form method="POST" action="{{ route('admin.banners.delete', $banner) }}" class="ml-auto" onsubmit="return confirm('Delete this banner?');">
                                         @csrf
@@ -69,5 +86,50 @@
         </div>
     </main>
 </div>
+
+{{-- Preview modal (client item 10 "Banner Actions -> Preview") - purely a
+     bigger look at the same image already on the card, no server round-trip
+     needed since a banner is just an image + redirect link. --}}
+<div id="banner-preview-modal" class="hidden fixed inset-0 z-[600] items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/70" data-banner-preview-close></div>
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl border border-[#E5E9EB] shadow-xl overflow-hidden">
+        <button type="button" data-banner-preview-close class="absolute top-3 right-3 z-10 w-9 h-9 rounded-lg bg-white/90 flex items-center justify-center text-[#64748B] hover:bg-white transition-colors" aria-label="Close">
+            <i class="fa-solid fa-xmark text-[15px]"></i>
+        </button>
+        <img id="banner-preview-image" src="" alt="" class="w-full h-auto">
+        <div class="p-4">
+            <p id="banner-preview-title" class="text-[14px] font-bold text-[#0F172A]"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('banner-preview-modal');
+        if (!modal) return;
+        var imgEl = document.getElementById('banner-preview-image');
+        var titleEl = document.getElementById('banner-preview-title');
+
+        function open(btn) {
+            imgEl.src = btn.getAttribute('data-image') || '';
+            titleEl.textContent = btn.getAttribute('data-title') || '';
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        }
+        function close() {
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-banner-preview]');
+            if (btn) { open(btn); return; }
+            if (e.target.closest('[data-banner-preview-close]')) close();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) close();
+        });
+    });
+</script>
 
 @endsection

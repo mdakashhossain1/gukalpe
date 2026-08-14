@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminAuditLog;
 use App\Models\Banner;
 use App\Models\DepositRequest;
 use App\Models\WithdrawRequest;
@@ -49,6 +50,7 @@ class BannerController extends Controller
         $banner = Banner::create($data);
 
         Log::channel('admin_security')->info('Banner created', ['ip' => $request->ip(), 'banner_id' => $banner->id]);
+        AdminAuditLog::record($request, 'banner_created', $banner);
 
         return redirect()->route('admin.banners')->with('success', 'Banner created.');
     }
@@ -73,19 +75,40 @@ class BannerController extends Controller
         $banner->update($data);
 
         Log::channel('admin_security')->info('Banner updated', ['ip' => $request->ip(), 'banner_id' => $banner->id]);
+        AdminAuditLog::record($request, 'banner_updated', $banner);
 
         return redirect()->route('admin.banners')->with('success', 'Banner updated.');
     }
 
-    public function toggleActive(Banner $banner): RedirectResponse
+    public function toggleActive(Request $request, Banner $banner): RedirectResponse
     {
         $banner->update(['is_active' => ! $banner->is_active]);
+
+        AdminAuditLog::record($request, 'banner_toggled', $banner, null, ['is_active' => $banner->is_active]);
 
         return back()->with('success', $banner->is_active ? 'Banner activated.' : 'Banner hidden.');
     }
 
-    public function destroy(Banner $banner): RedirectResponse
+    // Clones every field except id/timestamps; starts inactive with a
+    // "(copy)" suffix so it never silently goes live and never collides with
+    // the original in the placement list (client request: Banner Actions ->
+    // Duplicate).
+    public function duplicate(Request $request, Banner $banner): RedirectResponse
     {
+        $copy = $banner->replicate();
+        $copy->title = trim(($banner->title ?: 'Untitled banner').' (copy)');
+        $copy->is_active = false;
+        $copy->save();
+
+        AdminAuditLog::record($request, 'banner_duplicated', $copy, null, ['source_banner_id' => $banner->id]);
+
+        return redirect()->route('admin.banners.edit', $copy)->with('success', 'Banner duplicated - edit and activate it when ready.');
+    }
+
+    public function destroy(Request $request, Banner $banner): RedirectResponse
+    {
+        AdminAuditLog::record($request, 'banner_deleted', $banner, null, ['title' => $banner->title, 'placement' => $banner->placement]);
+
         $banner->delete();
 
         return redirect()->route('admin.banners')->with('success', 'Banner deleted.');

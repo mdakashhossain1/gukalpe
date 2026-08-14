@@ -65,6 +65,49 @@
             </button>
         </form>
 
+        {{-- History (client item 8: "After sending notifications, maintain:
+             User/Target, Title, Message, Sent By, Date/Time, Status") --}}
+        <div class="mt-8">
+            <h2 class="font-poppins font-bold text-[16px] text-[#0F172A] mb-3">Send history</h2>
+            <div class="bg-white rounded-2xl border border-[#E5E9EB] p-4 overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[720px]">
+                    <thead>
+                        <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Sent</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Target</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Title</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Message</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Sent by</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($history as $entry)
+                            <tr class="border-b border-[#F1F5F9] last:border-0">
+                                <td class="px-4 py-3 align-middle text-[12px] text-[#64748B] whitespace-nowrap">{{ $entry->created_at?->format('d M Y, h:i A') }}</td>
+                                <td class="px-4 py-3 align-middle text-[12.5px] font-mono text-[#334155] whitespace-nowrap">
+                                    {{ $entry->target_description }}
+                                    @if ($entry->recipient_count > 1)
+                                        <span class="text-[10.5px] text-[#94A3B8]">({{ $entry->recipient_count }})</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 align-middle text-[13px] font-semibold text-[#0F172A]">{{ $entry->title }}</td>
+                                <td class="px-4 py-3 align-middle text-[12.5px] text-[#64748B] max-w-[240px] truncate" title="{{ $entry->body }}">{{ $entry->body ?: '—' }}</td>
+                                <td class="px-4 py-3 align-middle text-[12.5px] text-[#334155] whitespace-nowrap">{{ $entry->sent_by }}</td>
+                                <td class="px-4 py-3 align-middle whitespace-nowrap">
+                                    <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">{{ $entry->status }}</span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-8 text-center text-[13.5px] text-[#94A3B8] italic">No notifications sent yet.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         </div>
     </main>
 </div>

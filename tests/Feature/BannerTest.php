@@ -24,6 +24,25 @@ class BannerTest extends TestCase
         $this->assertEquals([$high->id, $low->id], $result->pluck('id')->all());
     }
 
+    public function test_admin_can_duplicate_a_banner(): void
+    {
+        $original = Banner::create([
+            'placement' => 'home', 'image' => 'assets/banners/orig.png', 'title' => 'Diwali sale',
+            'is_active' => true, 'priority' => 7,
+        ]);
+
+        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
+            ->post(route('admin.banners.duplicate', $original))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('banners', [
+            'placement' => 'home', 'image' => 'assets/banners/orig.png', 'title' => 'Diwali sale (copy)',
+            'is_active' => false, 'priority' => 7,
+        ]);
+        // Original is untouched.
+        $this->assertTrue($original->fresh()->is_active);
+    }
+
     public function test_home_page_renders_active_home_banner(): void
     {
         Banner::create(['placement' => 'home', 'image' => 'assets/banners/live-banner.png', 'is_active' => true, 'priority' => 5, 'redirect_link' => '/explore']);

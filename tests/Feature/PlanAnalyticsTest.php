@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Plan;
 use App\Models\User;
 use App\Models\UserPlan;
+use App\Models\WalletBalance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -52,5 +53,36 @@ class PlanAnalyticsTest extends TestCase
             ->assertSee('Analytics Plan')
             ->assertSee('3.0%')            // conversion: 3 purchases / 100 views
             ->assertSee('1,000.00');       // total invested
+    }
+
+    public function test_analytics_shows_total_profit_and_maturity_from_wallet_ledger(): void
+    {
+        $user = User::factory()->create(['phone' => '9990000002']);
+        WalletBalance::credit($user->phone, 550, 'plan_maturity_credit', [
+            'invested_amount' => 500, 'profit_amount' => 50,
+        ]);
+
+        $this->withSession(['admin_authenticated' => true])
+            ->get(route('admin.plan-analytics'))
+            ->assertOk()
+            ->assertSee('50.00')   // total profit
+            ->assertSee('550.00'); // total maturity
+    }
+
+    public function test_analytics_date_range_excludes_purchases_outside_the_window(): void
+    {
+        $plan = $this->makePlan(['views' => 10]);
+        $user = User::factory()->create(['phone' => '9990000003']);
+
+        UserPlan::create([
+            'user_id' => $user->id, 'plan_id' => $plan->id, 'invested_amount' => 999,
+            'daily_profit_val' => 5, 'duration_label' => '1 Day', 'status' => 'active',
+            'purchased_at' => now()->subDays(30), 'matures_at' => now(),
+        ]);
+
+        $this->withSession(['admin_authenticated' => true])
+            ->get(route('admin.plan-analytics', ['from' => now()->subDays(2)->toDateString(), 'to' => now()->toDateString()]))
+            ->assertOk()
+            ->assertDontSee('999.00');
     }
 }

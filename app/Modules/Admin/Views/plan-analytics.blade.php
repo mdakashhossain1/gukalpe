@@ -16,7 +16,27 @@
             <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-1">Plan analytics</h1>
             <p class="text-[13.5px] text-[#64748B] mb-6">Per-plan performance — detail-page views, purchases, conversion, and money mobilised. View tracking begins from this release onward.</p>
 
-            <div class="grid grid-cols-3 gap-3 mb-6">
+            {{-- Custom date range (client item 11). Scopes purchases by
+                 purchased_at and profit/maturity by wallet_transactions.created_at;
+                 views/conversion stay lifetime (there's no per-day view log). --}}
+            <form method="GET" action="{{ route('admin.plan-analytics') }}" class="flex flex-wrap items-end gap-3 mb-6 bg-white rounded-xl border border-[#E5E9EB] p-4">
+                <div>
+                    <label for="analytics-from" class="block text-[11.5px] font-semibold text-[#334155] mb-1.5">From</label>
+                    <input type="date" name="from" id="analytics-from" value="{{ $from }}"
+                        class="h-10 rounded-lg border border-[#CBD5E1] px-3 text-[13.5px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                </div>
+                <div>
+                    <label for="analytics-to" class="block text-[11.5px] font-semibold text-[#334155] mb-1.5">To</label>
+                    <input type="date" name="to" id="analytics-to" value="{{ $to }}"
+                        class="h-10 rounded-lg border border-[#CBD5E1] px-3 text-[13.5px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+                </div>
+                <button type="submit" class="h-10 px-4 rounded-lg bg-[#0F172A] text-white font-semibold text-[12.5px] hover:bg-[#1E293B] transition-colors active:scale-[0.99]">Apply</button>
+                @if ($from || $to)
+                    <a href="{{ route('admin.plan-analytics') }}" class="h-10 px-4 rounded-lg border border-[#E5E9EB] text-[#64748B] font-semibold text-[12.5px] hover:bg-[#F8FAFC] transition-colors flex items-center">Clear</a>
+                @endif
+            </form>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                 <div class="bg-white rounded-xl border border-[#E5E9EB] p-4">
                     <p class="text-[11px] font-bold uppercase tracking-wide text-[#94A3B8] mb-1">Total views</p>
                     <p class="text-[19px] font-black text-[#0F172A] font-poppins">{{ number_format($totals['views']) }}</p>
@@ -29,6 +49,29 @@
                     <p class="text-[11px] font-bold uppercase tracking-wide text-[#94A3B8] mb-1">Total invested</p>
                     <p class="text-[19px] font-black text-emerald-600 font-poppins">₹{{ number_format($totals['invested'], 2) }}</p>
                 </div>
+                <div class="bg-white rounded-xl border border-[#E5E9EB] p-4">
+                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#94A3B8] mb-1">Average investment</p>
+                    <p class="text-[19px] font-black text-[#0F172A] font-poppins">₹{{ number_format($totals['average_investment'], 2) }}</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                <div class="bg-white rounded-xl border border-[#E5E9EB] p-4">
+                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#94A3B8] mb-1">Active investors</p>
+                    <p class="text-[19px] font-black text-[#0A5C66] font-poppins">{{ number_format($totals['active_investors']) }}</p>
+                </div>
+                <div class="bg-white rounded-xl border border-[#E5E9EB] p-4">
+                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#94A3B8] mb-1">Completed investors</p>
+                    <p class="text-[19px] font-black text-[#334155] font-poppins">{{ number_format($totals['completed_investors']) }}</p>
+                </div>
+                <div class="bg-white rounded-xl border border-[#E5E9EB] p-4">
+                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#94A3B8] mb-1">Total profit</p>
+                    <p class="text-[19px] font-black text-emerald-600 font-poppins">₹{{ number_format($totals['profit'], 2) }}</p>
+                </div>
+                <div class="bg-white rounded-xl border border-[#E5E9EB] p-4">
+                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#94A3B8] mb-1">Total maturity</p>
+                    <p class="text-[19px] font-black text-[#0F172A] font-poppins">₹{{ number_format($totals['maturity'], 2) }}</p>
+                </div>
             </div>
 
             <div class="bg-white rounded-xl border border-[#E5E9EB] overflow-hidden">
@@ -40,8 +83,8 @@
                                 <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Views</th>
                                 <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Purchases</th>
                                 <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Conversion</th>
-                                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Running</th>
-                                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Completed</th>
+                                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Active Investors</th>
+                                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Completed Investors</th>
                                 <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Total invested</th>
                             </tr>
                         </thead>

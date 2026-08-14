@@ -15,7 +15,7 @@
 
         <div>
             <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-1">Payment gateway</h1>
-            <p class="text-[13.5px] text-[#64748B]">Controls what every user sees on the Add Money page. The deposit <strong>amount</strong> decides which <strong>method</strong> is shown; the specific account is then a random pick among all active accounts of that method.</p>
+            <p class="text-[13.5px] text-[#64748B]">Controls what every user sees on the Add Money page. The deposit <strong>amount</strong> decides which <strong>method</strong> is shown; the specific account then rotates least-recently-used first among all active accounts of that method - use the priority order below to influence which account comes up first.</p>
         </div>
 
         {{-- Method-level amount ranges. The amount picks the method (UPI vs
@@ -102,6 +102,20 @@
                         </div>
 
                         <div class="flex gap-2 shrink-0">
+                            <form method="POST" action="{{ route('admin.payment-gateway.upi-accounts.move', $account) }}">
+                                @csrf
+                                <input type="hidden" name="direction" value="up">
+                                <button type="submit" {{ $loop->first ? 'disabled' : '' }} class="h-9 w-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors active:scale-95 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none" title="Move up (higher priority)">
+                                    <i class="fa-solid fa-arrow-up text-[12px]"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('admin.payment-gateway.upi-accounts.move', $account) }}">
+                                @csrf
+                                <input type="hidden" name="direction" value="down">
+                                <button type="submit" {{ $loop->last ? 'disabled' : '' }} class="h-9 w-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors active:scale-95 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none" title="Move down (lower priority)">
+                                    <i class="fa-solid fa-arrow-down text-[12px]"></i>
+                                </button>
+                            </form>
                             <a href="{{ route('admin.payment-gateway.upi-accounts.edit', $account) }}" class="h-9 px-3.5 rounded-lg border border-slate-200 text-slate-600 text-[12.5px] font-bold hover:bg-slate-50 transition-colors active:scale-95 flex items-center">Edit</a>
                             <form method="POST" action="{{ route('admin.payment-gateway.upi-accounts.toggle-active', $account) }}">
                                 @csrf
@@ -147,6 +161,20 @@
                         </div>
 
                         <div class="flex gap-2 shrink-0">
+                            <form method="POST" action="{{ route('admin.payment-gateway.bank-accounts.move', $account) }}">
+                                @csrf
+                                <input type="hidden" name="direction" value="up">
+                                <button type="submit" {{ $loop->first ? 'disabled' : '' }} class="h-9 w-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors active:scale-95 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none" title="Move up (higher priority)">
+                                    <i class="fa-solid fa-arrow-up text-[12px]"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('admin.payment-gateway.bank-accounts.move', $account) }}">
+                                @csrf
+                                <input type="hidden" name="direction" value="down">
+                                <button type="submit" {{ $loop->last ? 'disabled' : '' }} class="h-9 w-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors active:scale-95 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none" title="Move down (lower priority)">
+                                    <i class="fa-solid fa-arrow-down text-[12px]"></i>
+                                </button>
+                            </form>
                             <a href="{{ route('admin.payment-gateway.bank-accounts.edit', $account) }}" class="h-9 px-3.5 rounded-lg border border-slate-200 text-slate-600 text-[12.5px] font-bold hover:bg-slate-50 transition-colors active:scale-95 flex items-center">Edit</a>
                             <form method="POST" action="{{ route('admin.payment-gateway.bank-accounts.toggle-active', $account) }}">
                                 @csrf
