@@ -1,5 +1,15 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Wallet adjustment's Reason/Balance Before/Admin weren't visible anywhere in one place
+
+User asked where the wallet-adjustment Reason/Balance Before/Balance After/Admin Name/Date-Time actually show up. Checked the real rendered pages rather than assuming: `/transactions` only showed Balance After + Date; `/audit-log` had Reason + Admin + Date but Balance Before/After were buried inside a truncated raw-JSON "Details" column. Nothing was lost (it was all in the DB) but there was no single clean view of it, which doesn't satisfy the client's "must create a proper transaction + audit log" ask in spirit even though it's technically captured.
+
+- `AdminController::adjustWallet()` now also writes `admin_label` (session identity) into the `wallet_transactions.meta` JSON alongside the existing `reason` - avoids needing a join to `admin_audit_logs` to show who made a manual adjustment.
+- `/transactions` (`transactions.blade.php`) gained 3 real columns: **Balance before** (already a DB column, just never rendered), **Reason**, **Admin** - populated from `$txn->meta['reason']`/`$txn->meta['admin_label']` for manual-adjustment rows, blank dash for every other transaction type (add_money, plan_purchase, etc. genuinely don't have a reason/admin - that's correct, not a bug).
+- Historical rows created before this fix won't have `admin_label` in their meta and will show "—" for Admin - not backfillable (the identity was never captured at the time), acceptable since this only affects data from before the audit-log system existed.
+- Verified via a real HTTP round-trip test (`AdminAuditLogAndProfileTest::test_wallet_adjustment_reason_balance_before_and_admin_are_visible_on_transactions_page`): submits a real wallet adjustment, then asserts the reason text, "Master Admin", and both balance figures actually appear in the rendered Transactions page HTML - not just that the DB row has the right columns.
+- Full suite: **127 passed (423 assertions)**, Pint clean.
+
 ## 2026-08-14 — Users list: rebuilt row actions as a real 9-item Actions dropdown
 
 User pushback: the client spec's item 1 explicitly asks for an "Actions ▾" dropdown on each Users row with 9 separate entries (View Profile, Wallet Management, Transactions, Investments, Deposits, Withdrawals, Referral Details, Send Notification, Ban/Unban) - the earlier implementation instead put a "Profile" link + a couple of buttons on the row and folded everything else into sections on the profile page. Rebuilt to match the literal spec.

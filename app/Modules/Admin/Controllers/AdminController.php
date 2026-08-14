@@ -389,9 +389,14 @@ class AdminController extends Controller
         $reason = trim($validated['reason']);
         $balanceBefore = WalletBalance::balanceFor($phone);
 
+        // admin_label lives in the ledger row's own meta (not just the audit
+        // log) so the Transactions page can show Reason/Balance
+        // Before/Admin directly, without joining to admin_audit_logs.
+        $adjustmentMeta = ['source' => 'admin_adjustment', 'reason' => $reason, 'admin_label' => session('admin_label', 'Master Admin')];
+
         $wallet = $increase
-            ? WalletBalance::credit($phone, $amount, 'manual_credit', ['source' => 'admin_adjustment', 'reason' => $reason])
-            : WalletBalance::debit($phone, $amount, 'manual_debit', ['source' => 'admin_adjustment', 'reason' => $reason]);
+            ? WalletBalance::credit($phone, $amount, 'manual_credit', $adjustmentMeta)
+            : WalletBalance::debit($phone, $amount, 'manual_debit', $adjustmentMeta);
 
         $newBalance = (float) $wallet->balance;
 

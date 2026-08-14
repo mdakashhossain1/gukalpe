@@ -13,7 +13,7 @@
     #transactions-table-card .datatable-selector { height: 38px; border: 1px solid #E5E9EB; border-radius: 8px; padding: 0 8px; font-size: 13px; color: #334155; }
     #transactions-table-card .datatable-info { font-size: 12.5px; color: #64748B; }
     #transactions-table-card .datatable-container { overflow-x: auto; border: 0; }
-    #transactions-table-card table.datatable-table { min-width: 860px; }
+    #transactions-table-card table.datatable-table { min-width: 1220px; }
     #transactions-table-card .datatable-pagination a { border-radius: 8px; padding: 6px 11px; font-size: 12.5px; font-weight: 600; color: #334155; }
     #transactions-table-card .datatable-pagination a:hover { background: #F1F5F9; }
     #transactions-table-card .datatable-pagination .datatable-active a { background: #0A5C66; color: #fff; }
@@ -64,21 +64,28 @@
 
         <div class="bg-white rounded-xl border border-[#E5E9EB] p-4" id="transactions-table-card">
             <div class="overflow-x-auto">
-                <table id="transactions-table" class="w-full text-left border-collapse min-w-[860px]">
+                <table id="transactions-table" class="w-full text-left border-collapse min-w-[1220px]">
                     <thead>
                         <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Txn ID</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">User</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Type</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Amount</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Balance before</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Balance after</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Reason</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Admin</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Status</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Date</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($transactions as $txn)
-                            @php $isCredit = $txn->direction === 'credit'; @endphp
+                            @php
+                                $isCredit = $txn->direction === 'credit';
+                                $reason = $txn->meta['reason'] ?? null;
+                                $adminLabel = $txn->meta['admin_label'] ?? null;
+                            @endphp
                             <tr class="border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FAFC] transition-colors">
                                 <td class="px-4 py-3 align-middle text-[12px] font-mono text-[#64748B] whitespace-nowrap">TXN-{{ str_pad($txn->id, 6, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-4 py-3 align-middle whitespace-nowrap">
@@ -89,7 +96,10 @@
                                 <td class="px-4 py-3 align-middle text-right text-[13.5px] font-bold whitespace-nowrap {{ $isCredit ? 'text-emerald-600' : 'text-red-600' }}">
                                     {{ $isCredit ? '+' : '−' }}₹{{ number_format($txn->amount, 2) }}
                                 </td>
+                                <td class="px-4 py-3 align-middle text-right text-[13px] text-[#64748B] whitespace-nowrap">{{ $txn->balance_before !== null ? '₹'.number_format($txn->balance_before, 2) : '—' }}</td>
                                 <td class="px-4 py-3 align-middle text-right text-[13px] text-[#334155] whitespace-nowrap">{{ $txn->balance_after !== null ? '₹'.number_format($txn->balance_after, 2) : '—' }}</td>
+                                <td class="px-4 py-3 align-middle text-[12.5px] text-[#334155] max-w-[200px] truncate" title="{{ $reason }}">{{ $reason ?: '—' }}</td>
+                                <td class="px-4 py-3 align-middle text-[12.5px] font-semibold text-[#334155] whitespace-nowrap">{{ $adminLabel ?: '—' }}</td>
                                 <td class="px-4 py-3 align-middle whitespace-nowrap">
                                     <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">{{ $txn->status }}</span>
                                 </td>
@@ -97,7 +107,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-[13.5px] text-[#94A3B8] italic">No transactions{{ $type !== 'all' ? ' of this type' : '' }} yet.</td>
+                                <td colspan="10" class="px-4 py-8 text-center text-[13.5px] text-[#94A3B8] italic">No transactions{{ $type !== 'all' ? ' of this type' : '' }} yet.</td>
                             </tr>
                         @endforelse
                     </tbody>

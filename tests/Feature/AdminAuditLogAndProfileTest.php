@@ -78,6 +78,29 @@ class AdminAuditLogAndProfileTest extends TestCase
         $this->assertEquals(250.0, $entry->meta['balance_after']);
     }
 
+    public function test_wallet_adjustment_reason_balance_before_and_admin_are_visible_on_transactions_page(): void
+    {
+        User::factory()->create(['phone' => '9990007778']);
+        WalletBalance::credit('9990007778', 100, 'add_money');
+
+        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
+            ->post(route('admin.wallet-tools.adjust'), [
+                'phone' => '9990007778',
+                'direction' => 'increase',
+                'amount' => 25,
+                'reason' => 'Visible on transactions page test',
+            ])
+            ->assertRedirect();
+
+        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
+            ->get(route('admin.transactions'))
+            ->assertOk()
+            ->assertSee('Visible on transactions page test')
+            ->assertSee('Master Admin')
+            ->assertSee('₹100.00', false)
+            ->assertSee('₹125.00', false);
+    }
+
     public function test_deposit_can_be_rejected_with_an_optional_reason(): void
     {
         $deposit = DepositRequest::create([
