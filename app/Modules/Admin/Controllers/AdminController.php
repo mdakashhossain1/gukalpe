@@ -496,6 +496,27 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * One audit entry's full detail as its own page - was a modal (opened
+     * from a "View" button on the Activity Logs list) rendering the meta
+     * JSON as labeled rows; moved to a dedicated page at the same URL shape
+     * as every other admin "show" route in this app (users, deposits, etc.)
+     * per explicit request rather than a popup.
+     */
+    public function showLog(AdminAuditLog $auditLog): View
+    {
+        $targetUser = $auditLog->target_type === 'User'
+            ? User::find($auditLog->target_id)
+            : null;
+
+        return view('Admin::log-details', [
+            'entry' => $auditLog,
+            'targetUser' => $targetUser,
+            'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
+            'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
+        ]);
+    }
+
     public function pushNotificationForm(): View
     {
         return view('Admin::push-notification', [

@@ -78,16 +78,10 @@
                                 </td>
                                 <td class="px-4 py-3 align-middle text-[12.5px] text-[#334155] max-w-[220px] truncate" title="{{ $entry->reason }}">{{ $entry->reason ?: '—' }}</td>
                                 <td class="px-4 py-3 align-middle whitespace-nowrap">
-                                    @if ($entry->meta)
-                                        <button type="button" data-details-view
-                                            data-title="{{ $entry->actionLabel() }} · {{ $entry->created_at?->format('d M Y, h:i A') }}"
-                                            data-meta="{{ json_encode($entry->meta) }}"
-                                            class="h-8 px-3 rounded-lg border border-[#CBD5E1] text-[#334155] text-[11.5px] font-bold hover:bg-[#F1F5F9] transition-colors">
-                                            View
-                                        </button>
-                                    @else
-                                        <span class="text-[12px] text-[#CBD5E1]">—</span>
-                                    @endif
+                                    <a href="{{ route('admin.logs.show', $entry) }}"
+                                        class="h-8 px-3 rounded-lg border border-[#CBD5E1] text-[#334155] text-[11.5px] font-bold hover:bg-[#F1F5F9] transition-colors inline-flex items-center">
+                                        View
+                                    </a>
                                 </td>
                             </tr>
                         @empty
@@ -275,94 +269,6 @@
     }
 
     renderLogs();
-})();
-</script>
-
-{{-- Audit-entry details modal - renders the meta JSON as readable key:
-     value rows instead of a truncated raw-JSON string with only a hover
-     tooltip (the previous approach, which was unreadable for anything past
-     a couple of short fields). --}}
-<div id="details-modal" class="hidden fixed inset-0 z-[600] items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/50" data-details-close></div>
-    <div class="relative w-full max-w-md bg-white rounded-2xl border border-[#E5E9EB] shadow-xl p-6">
-        <div class="flex items-start justify-between gap-3 mb-4">
-            <h2 id="details-modal-title" class="font-poppins font-bold text-[15px] text-[#0F172A]">—</h2>
-            <button type="button" data-details-close class="w-9 h-9 -mr-1 -mt-1 shrink-0 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#F1F5F9] transition-colors" aria-label="Close">
-                <i class="fa-solid fa-xmark text-[15px]"></i>
-            </button>
-        </div>
-        <div id="details-modal-body" class="flex flex-col gap-2.5 max-h-[60vh] overflow-y-auto"></div>
-    </div>
-</div>
-
-<script>
-(function () {
-    var modal = document.getElementById('details-modal');
-    if (!modal) return;
-    var titleEl = document.getElementById('details-modal-title');
-    var bodyEl = document.getElementById('details-modal-body');
-
-    function humanizeKey(key) {
-        return key.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
-    }
-
-    function formatValue(value) {
-        if (value === null || value === undefined || value === '') return '—';
-        if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-        return String(value);
-    }
-
-    function openDetailsModal(btn) {
-        titleEl.textContent = btn.getAttribute('data-title') || 'Details';
-        bodyEl.innerHTML = '';
-
-        var meta = {};
-        try { meta = JSON.parse(btn.getAttribute('data-meta') || '{}'); } catch (e) { meta = {}; }
-
-        var keys = Object.keys(meta);
-        if (keys.length === 0) {
-            var empty = document.createElement('p');
-            empty.className = 'text-[13px] text-[#94A3B8] italic';
-            empty.textContent = 'No extra details.';
-            bodyEl.appendChild(empty);
-        } else {
-            keys.forEach(function (key) {
-                var row = document.createElement('div');
-                row.className = 'flex items-start justify-between gap-4 border-b border-[#F1F5F9] last:border-0 pb-2 last:pb-0';
-
-                var keyEl = document.createElement('span');
-                keyEl.className = 'text-[12px] font-semibold text-[#64748B] shrink-0';
-                keyEl.textContent = humanizeKey(key);
-
-                var valEl = document.createElement('span');
-                valEl.className = 'text-[13px] font-mono font-semibold text-[#0F172A] text-right break-all';
-                valEl.textContent = formatValue(meta[key]);
-
-                row.appendChild(keyEl);
-                row.appendChild(valEl);
-                bodyEl.appendChild(row);
-            });
-        }
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.classList.add('overflow-hidden');
-    }
-
-    function closeDetailsModal() {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    document.addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-details-view]');
-        if (btn) { openDetailsModal(btn); return; }
-        if (e.target.closest('[data-details-close]')) closeDetailsModal();
-    });
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeDetailsModal();
-    });
 })();
 </script>
 

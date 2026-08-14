@@ -13,9 +13,11 @@ use Illuminate\Http\Request;
  * updated_at, entries are never edited after the fact.
  *
  * This is deliberately separate from the existing Log::channel('admin_security')
- * file log (kept as-is everywhere it's already called) and from the
- * Simulations-paired "Activity logs" page (resources/views .../logs.blade.php,
- * a client-side referral/commission debug console unrelated to this trail).
+ * file log (kept as-is everywhere it's already called). It IS what the
+ * "Activity Logs" nav item shows (AdminController::logs()/logs.blade.php) -
+ * the pre-existing localStorage referral/commission simulation debug
+ * console lives on that same page in its own section below, unrelated to
+ * this trail.
  */
 class AdminAuditLog extends Model
 {

@@ -1,5 +1,14 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Audit entry Details: dedicated page instead of a modal
+
+User asked for a separate page rather than the popup modal I'd just built for the "View" button on Activity Logs.
+
+- New route `GET /logs/{auditLog}` → `AdminController::showLog()` → `log-details.blade.php` - shows Admin, Date/Time, Target (a real link to the user's profile when `target_type=User` and that user still exists, plain text otherwise), IP, Reason, and every `meta` key as a labeled row - same content the modal had, just on its own page instead of a popup.
+- Removed the modal markup and its ~70 lines of JS from `logs.blade.php` entirely - the "View" button is now a plain link to the new page. Simpler than the modal version (no client-side JSON parsing/DOM building, no XSS-shaped surface to worry about at all since Blade already escapes everything server-side).
+- `AdminAuditLog`'s doc comment updated - still described the pre-merge "separate Audit Log page" state from a few commits ago.
+- Full suite: **141 passed (494 assertions)**, Pint clean. Tests updated to follow the link to the dedicated page and assert content there, rather than asserting on modal data-attributes that no longer exist.
+
 ## 2026-08-14 — Activity Logs "Details" column: readable modal instead of truncated raw JSON
 
 User caught that the Details column was showing raw `json_encode($entry->meta)` truncated at `max-w-[280px]` with only a hover tooltip for the full value - unreadable for any entry with more than a couple of short keys (e.g. wallet_adjustment's `direction`/`amount`/`balance_before`/`balance_after`).
