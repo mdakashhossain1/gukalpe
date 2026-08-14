@@ -1,5 +1,14 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Activity Logs "Details" column: readable modal instead of truncated raw JSON
+
+User caught that the Details column was showing raw `json_encode($entry->meta)` truncated at `max-w-[280px]` with only a hover tooltip for the full value - unreadable for any entry with more than a couple of short keys (e.g. wallet_adjustment's `direction`/`amount`/`balance_before`/`balance_after`).
+
+- Replaced the truncated JSON cell with a "View" button (only rendered when `meta` exists) carrying the full JSON in a `data-meta` attribute plus the action+timestamp as a title.
+- New shared modal renders each key as a labeled row (`Balance Before: ₹200.00` style - snake_case keys humanized, booleans shown as Yes/No) instead of a JSON blob - same shared-modal pattern already used elsewhere on this page (wallet/ban/notif modals) and across the admin panel.
+- Built with `document.createElement`/`textContent` rather than `innerHTML` string concatenation - meta values can contain admin-typed free text (e.g. a reason echoed into `settings_updated`'s dumped request array), so avoided a stored-XSS-shaped pattern even though current call sites only ever put numeric/short validated values into meta.
+- Full suite: **140 passed (489 assertions)**, Pint clean. New test posts a real wallet adjustment then asserts the rendered page contains the `data-details-view` button and the raw `balance_before`/`balance_after` keys.
+
 ## 2026-08-14 — Merged "Audit Log" back into "Activity Logs" - it was never supposed to be a separate page
 
 User pushback: item 7 literally says "current browser/local activity log should be CHANGED TO: Database-based permanent Admin Audit Log" - one page, converted in place. Earlier this session I instead left the pre-existing "Activity Logs" nav item untouched (it turned out to be a referral/commission simulation debug console, not a general admin log) and built a brand new separate "Audit Log" page for the real data - a reasonable-sounding call at the time, but not what was actually asked for, and it left two similarly-named nav items that were genuinely confusing (confirmed by the user landing on the wrong one and seeing "No log entries yet.").

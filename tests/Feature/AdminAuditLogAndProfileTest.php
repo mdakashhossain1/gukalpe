@@ -198,4 +198,29 @@ class AdminAuditLogAndProfileTest extends TestCase
             ->assertOk()
             ->assertSee('Test reason');
     }
+
+    public function test_activity_logs_details_column_carries_readable_meta_not_a_raw_truncated_string(): void
+    {
+        // Previously the "Details" column rendered json_encode($entry->meta)
+        // directly into the cell, truncated with only a hover tooltip for
+        // the full value - unreadable for anything with more than a couple
+        // of short fields. Now it's a "View" button carrying the full JSON
+        // in a data attribute, expanded into labeled rows by JS on click.
+        User::factory()->create(['phone' => '9990009996']);
+        WalletBalance::credit('9990009996', 100, 'add_money');
+
+        $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
+            ->post(route('admin.wallet-tools.adjust'), [
+                'phone' => '9990009996', 'direction' => 'increase', 'amount' => 25, 'reason' => 'Details modal test',
+            ])
+            ->assertRedirect();
+
+        $response = $this->withSession(['admin_authenticated' => true, 'admin_role' => 'super_admin'])
+            ->get(route('admin.logs'));
+
+        $response->assertOk()
+            ->assertSee('data-details-view', false)
+            ->assertSee('balance_before', false)
+            ->assertSee('balance_after', false);
+    }
 }
