@@ -14,6 +14,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -182,6 +183,12 @@ class DepositRequestController extends Controller
             // statement before approving), so it's optional/free text.
             'pay_to_label' => ['nullable', 'string', 'max:150'],
             'utr' => $utrRules,
+            // Optional (client's "Payment Proof" ask lists UTR + Screenshot,
+            // but only marks adjacent fields like QR Code explicitly
+            // Optional) - kept non-mandatory so submission never blocks a
+            // user who can't attach one right now; the admin still verifies
+            // the UTR against a real bank/UPI statement either way.
+            'payment_screenshot' => ['nullable', 'image', 'max:4096'],
         ], [
             'utr.unique' => 'This UTR/reference number has already been used for another deposit.',
             'utr.digits' => 'Enter the 12-digit UTR/reference number exactly as shown in your UPI app.',
@@ -211,6 +218,9 @@ class DepositRequestController extends Controller
                 'method' => $validated['method'],
                 'method_label' => $methodLabel,
                 'utr' => $validated['utr'],
+                'payment_screenshot' => $request->hasFile('payment_screenshot')
+                    ? $this->storeUploadedScreenshot($request)
+                    : null,
                 'status' => DepositRequest::STATUS_PENDING,
                 'submitted_at' => now(),
             ]);
@@ -253,5 +263,23 @@ class DepositRequestController extends Controller
             'utr' => $validated['utr'],
             'submittedAt' => now(),
         ]);
+    }
+
+    // Same public/assets convention as PlanManagementController/BannerController's
+    // storeUploadedImage() - this app is served directly out of public/ via
+    // a custom index.php, no storage:link symlink involved anywhere else.
+    private function storeUploadedScreenshot(Request $request): string
+    {
+        $file = $request->file('payment_screenshot');
+        $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
+        $directory = public_path('assets/deposit-proofs');
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $file->move($directory, $filename);
+
+        return 'assets/deposit-proofs/'.$filename;
     }
 }

@@ -15,7 +15,7 @@ class DepositRequest extends Model
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
-        'phone', 'amount', 'method', 'method_label', 'utr', 'status', 'submitted_at', 'reviewed_at', 'admin_note',
+        'phone', 'amount', 'method', 'method_label', 'utr', 'payment_screenshot', 'status', 'submitted_at', 'reviewed_at', 'admin_note',
     ];
 
     protected $casts = [
@@ -44,5 +44,18 @@ class DepositRequest extends Model
     public function scopeStatus(Builder $query, string $status): Builder
     {
         return $query->where('status', $status);
+    }
+
+    // Uploaded straight into public/assets/deposit-proofs (see
+    // DepositRequestController::store()) - same no-storage-symlink
+    // convention as Plan/Banner images, this app is served directly out of
+    // public/ via a custom index.php.
+    public function paymentScreenshotUrl(): ?string
+    {
+        if (! $this->payment_screenshot) {
+            return null;
+        }
+
+        return str_starts_with($this->payment_screenshot, 'http') ? $this->payment_screenshot : asset($this->payment_screenshot);
     }
 }

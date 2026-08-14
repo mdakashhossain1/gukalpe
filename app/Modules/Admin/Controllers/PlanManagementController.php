@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminAuditLog;
 use App\Models\DepositRequest;
 use App\Models\Plan;
 use App\Models\PlanCategory;
@@ -73,6 +74,7 @@ class PlanManagementController extends Controller
         $this->syncDurations($plan, $request);
 
         Log::channel('admin_security')->info('Plan created', ['title' => $request->input('title')]);
+        AdminAuditLog::record($request, 'plan_created', $plan);
 
         return redirect()->route('admin.plans')->with('success', 'Plan created.');
     }
@@ -114,6 +116,7 @@ class PlanManagementController extends Controller
         $this->syncDurations($plan, $request);
 
         Log::channel('admin_security')->info('Plan updated', ['plan_id' => $plan->id, 'title' => $plan->title]);
+        AdminAuditLog::record($request, 'plan_updated', $plan);
 
         return redirect()->route('admin.plans')->with('success', 'Plan updated.');
     }
@@ -121,7 +124,7 @@ class PlanManagementController extends Controller
     // Quick active <-> hidden flip for the common case (both are purchasable,
     // so this never blocks anyone with an existing direct link) - Draft and
     // Expired are set from the full edit form only, not this one-click toggle.
-    public function toggleActive(Plan $plan): RedirectResponse
+    public function toggleActive(Request $request, Plan $plan): RedirectResponse
     {
         $newStatus = $plan->status === Plan::STATUS_ACTIVE ? Plan::STATUS_HIDDEN : Plan::STATUS_ACTIVE;
         $plan->update([
@@ -134,6 +137,7 @@ class PlanManagementController extends Controller
             'title' => $plan->title,
             'status' => $plan->status,
         ]);
+        AdminAuditLog::record($request, 'plan_toggled', $plan, null, ['status' => $plan->status]);
 
         return redirect()->route('admin.plans')
             ->with('success', "{$plan->title} is now {$plan->status}.");
@@ -145,7 +149,7 @@ class PlanManagementController extends Controller
     // orphan a real user's holding history or cascade-destroy it. Every
     // other case (draft, misconfigured, leftover test data) goes through
     // toggleActive() -> Hidden instead.
-    public function destroy(Plan $plan): RedirectResponse
+    public function destroy(Request $request, Plan $plan): RedirectResponse
     {
         if ($plan->userPlans()->exists()) {
             return redirect()->route('admin.plans')
@@ -153,6 +157,7 @@ class PlanManagementController extends Controller
         }
 
         $title = $plan->title;
+        AdminAuditLog::record($request, 'plan_deleted', $plan, null, ['title' => $title]);
         $plan->durations()->delete();
         $plan->delete();
 
