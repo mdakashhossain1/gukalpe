@@ -49,6 +49,11 @@ class PlanAndRoleAuditLogTest extends TestCase
 
         $this->withSession($this->adminSession)->post(route('admin.plans.delete', $plan))->assertRedirect();
         $this->assertNotNull(AdminAuditLog::where('action', 'plan_deleted')->first());
+
+        // store() writes the fake upload straight into public/assets/plans
+        // (no storage:link involved in this app) - clean it up, same as
+        // DepositPaymentScreenshotTest does for its own upload.
+        @unlink(public_path($plan->image));
     }
 
     public function test_admin_user_create_and_toggle_are_audit_logged(): void
