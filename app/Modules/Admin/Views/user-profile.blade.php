@@ -110,7 +110,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {{-- Investment summary --}}
-            <div class="bg-white rounded-xl border border-[#E5E9EB] p-5">
+            <div id="investments" class="bg-white rounded-xl border border-[#E5E9EB] p-5 scroll-mt-6">
                 <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A] mb-3">Investment summary</h2>
                 <div class="flex flex-col gap-2 max-h-[360px] overflow-y-auto">
                     @forelse ($holdings as $holding)
@@ -128,7 +128,7 @@
             </div>
 
             {{-- Referral details --}}
-            <div class="bg-white rounded-xl border border-[#E5E9EB] p-5">
+            <div id="referrals" class="bg-white rounded-xl border border-[#E5E9EB] p-5 scroll-mt-6">
                 <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A] mb-3">Referral details ({{ $referrals->count() }})</h2>
                 <div class="flex flex-col gap-2 max-h-[360px] overflow-y-auto">
                     @forelse ($referrals as $ref)

@@ -35,6 +35,24 @@
     .wallet-dir-btn:hover { background: #F8FAFC; }
     .wallet-dir-btn.is-active[data-dir="increase"] { border-color: #10B981; background: #ECFDF5; color: #047857; }
     .wallet-dir-btn.is-active[data-dir="decrease"] { border-color: #EF4444; background: #FEF2F2; color: #B91C1C; }
+
+    /* Actions dropdown menu - one shared floating panel (fixed positioning,
+       not per-row) so it can never get clipped by the table's own
+       overflow-x-auto scroll container, the way an absolutely-positioned
+       per-row menu would be. */
+    .ad-item {
+        display: flex; align-items: center; gap: 10px; width: 100%;
+        padding: 9px 14px; font-size: 13px; font-weight: 600; color: #334155;
+        text-align: left; background: none; border: 0; cursor: pointer;
+        transition: background-color .1s;
+    }
+    .ad-item:hover { background: #F8FAFC; }
+    .ad-item i { width: 16px; text-align: center; font-size: 12px; color: #64748B; }
+    .ad-item.is-disabled { opacity: .4; pointer-events: none; }
+    .ad-item.is-danger { color: #DC2626; }
+    .ad-item.is-danger i { color: #DC2626; }
+    .ad-item.is-success { color: #047857; }
+    .ad-item.is-success i { color: #047857; }
 </style>
 
 <div class="flex flex-col md:flex-row min-h-screen">
@@ -114,40 +132,20 @@
                                     {{ $user->created_at?->format('d M Y') ?? '—' }}
                                 </td>
                                 <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
-                                    <div class="inline-flex items-center gap-2 justify-end">
-                                        <a href="{{ route('admin.users.show', $user) }}"
-                                            class="h-9 px-3.5 rounded-lg border border-[#E5E9EB] text-[#334155] text-[12.5px] font-bold hover:bg-[#F8FAFC] transition-colors active:scale-95 inline-flex items-center gap-1.5">
-                                            <i class="fa-solid fa-user text-[11px]"></i> Profile
-                                        </a>
-                                        @if ($user->phone)
-                                            <button type="button"
-                                                data-adjust-wallet
-                                                data-phone="{{ $user->phone }}"
-                                                data-name="{{ $user->name ?: $user->phone }}"
-                                                data-balance="{{ number_format($user->wallet_balance, 2) }}"
-                                                class="h-9 px-3.5 rounded-lg border border-[#0A5C66]/30 text-[#0A5C66] text-[12.5px] font-bold hover:bg-[#0A5C66]/[0.06] transition-colors active:scale-95 inline-flex items-center gap-1.5">
-                                                <i class="fa-solid fa-wallet text-[11px]"></i> Adjust
-                                            </button>
-                                        @endif
-                                        @if ($user->isBanned())
-                                            <form method="POST" action="{{ route('admin.users.toggle-ban', $user) }}"
-                                                onsubmit="return confirm('Unban this user? They will be able to log in again.');">
-                                                @csrf
-                                                <button type="submit"
-                                                    class="h-9 px-3.5 rounded-lg border border-emerald-200 text-emerald-700 text-[12.5px] font-bold hover:bg-emerald-50 transition-colors active:scale-95 inline-flex items-center gap-1.5">
-                                                    <i class="fa-solid fa-unlock text-[11px]"></i> Unban
-                                                </button>
-                                            </form>
-                                        @else
-                                            <button type="button"
-                                                data-ban-user
-                                                data-name="{{ $user->name ?: $user->phone }}"
-                                                data-action="{{ route('admin.users.toggle-ban', $user) }}"
-                                                class="h-9 px-3.5 rounded-lg border border-red-200 text-red-600 text-[12.5px] font-bold hover:bg-red-50 transition-colors active:scale-95 inline-flex items-center gap-1.5">
-                                                <i class="fa-solid fa-ban text-[11px]"></i> Ban
-                                            </button>
-                                        @endif
-                                    </div>
+                                    <button type="button"
+                                        data-actions-toggle
+                                        data-name="{{ $user->name ?: $user->phone ?: ('#'.$user->id) }}"
+                                        data-phone="{{ $user->phone }}"
+                                        data-balance="{{ number_format($user->wallet_balance, 2) }}"
+                                        data-banned="{{ $user->isBanned() ? '1' : '0' }}"
+                                        data-profile-url="{{ route('admin.users.show', $user) }}"
+                                        data-transactions-url="{{ $user->phone ? route('admin.transactions', ['phone' => $user->phone]) : '' }}"
+                                        data-deposits-url="{{ $user->phone ? route('admin.deposits', ['phone' => $user->phone]) : '' }}"
+                                        data-withdrawals-url="{{ $user->phone ? route('admin.withdrawals', ['phone' => $user->phone]) : '' }}"
+                                        data-toggle-ban-url="{{ route('admin.users.toggle-ban', $user) }}"
+                                        class="h-9 px-3.5 rounded-lg border border-[#E5E9EB] text-[#334155] text-[12.5px] font-bold hover:bg-[#F8FAFC] transition-colors active:scale-95 inline-flex items-center gap-1.5">
+                                        Actions <i class="fa-solid fa-chevron-down text-[9px]"></i>
+                                    </button>
                                 </td>
                             </tr>
                         @empty
@@ -258,6 +256,73 @@
     </div>
 </div>
 
+{{-- Send notification modal - posts to the existing admin push-notification
+     endpoint with target=specific and the clicked row's phone prefilled. --}}
+<div id="notif-modal" class="hidden fixed inset-0 z-[600] items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/50" data-notif-close></div>
+    <div class="relative w-full max-w-md bg-white rounded-2xl border border-[#E5E9EB] shadow-xl p-6">
+        <div class="flex items-start justify-between gap-3 mb-4">
+            <div>
+                <h2 class="font-poppins font-bold text-[16px] text-[#0F172A]">Send notification</h2>
+                <p class="text-[12.5px] text-[#64748B] mt-0.5">To <span id="notif-modal-name" class="font-semibold text-[#334155]">—</span></p>
+            </div>
+            <button type="button" data-notif-close class="w-9 h-9 -mr-1 -mt-1 shrink-0 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#F1F5F9] transition-colors" aria-label="Close">
+                <i class="fa-solid fa-xmark text-[15px]"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{{ route('admin.push-notification.send') }}" class="flex flex-col gap-4">
+            @csrf
+            <input type="hidden" name="target" value="specific">
+            <input type="hidden" name="phone" id="notif-modal-phone-input" value="">
+
+            <div>
+                <label for="notif-modal-title" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Title</label>
+                <input type="text" id="notif-modal-title" name="title" maxlength="120" required
+                    class="w-full h-10 rounded-lg border border-[#CBD5E1] px-3 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15">
+            </div>
+            <div>
+                <label for="notif-modal-body" class="block text-[12.5px] font-semibold text-[#334155] mb-1.5">Message (optional)</label>
+                <textarea id="notif-modal-body" name="body" maxlength="500" rows="3"
+                    class="w-full rounded-lg border border-[#CBD5E1] px-3 py-2 text-[14px] text-[#0F172A] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-1">
+                <button type="button" data-notif-close class="h-10 px-4 rounded-lg border border-slate-200 text-slate-600 font-semibold text-[13.5px] hover:bg-slate-50 transition-colors">Cancel</button>
+                <button type="submit" class="h-10 px-5 rounded-lg bg-brand text-white font-semibold text-[13.5px] hover:bg-brand-light transition-colors active:scale-[0.99]">Send</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Hidden form used only for the one-click Unban path from the Actions
+     menu - Ban goes through #ban-modal (requires a reason), Unban doesn't
+     (nothing to justify about restoring access), so it just submits. --}}
+<form id="unban-quick-form" method="POST" action="" class="hidden">
+    @csrf
+</form>
+
+{{-- Actions dropdown menu (client item 1: "Actions -> View Profile, Wallet
+     Management, Transactions, Investments, Deposits, Withdrawals, Referral
+     Details, Send Notification, Ban / Unban" - each its own distinct
+     action). One shared panel, repositioned and repopulated with the
+     clicked row's data/URLs on open - see the note on .ad-item above for
+     why this isn't a per-row absolutely-positioned menu. --}}
+<div id="actions-dropdown" class="hidden fixed z-[550] w-56 bg-white rounded-xl border border-[#E5E9EB] shadow-lg py-1.5">
+    <a id="ad-view-profile" href="#" class="ad-item"><i class="fa-solid fa-user"></i> View Profile</a>
+    <button type="button" id="ad-wallet" data-adjust-wallet class="ad-item"><i class="fa-solid fa-wallet"></i> Wallet Management</button>
+    <a id="ad-transactions" href="#" class="ad-item"><i class="fa-solid fa-receipt"></i> Transactions</a>
+    <a id="ad-investments" href="#" class="ad-item"><i class="fa-solid fa-chart-line"></i> Investments</a>
+    <a id="ad-deposits" href="#" class="ad-item"><i class="fa-solid fa-money-bill-transfer"></i> Deposits</a>
+    <a id="ad-withdrawals" href="#" class="ad-item"><i class="fa-solid fa-money-bill-transfer fa-flip-horizontal"></i> Withdrawals</a>
+    <a id="ad-referrals" href="#" class="ad-item"><i class="fa-solid fa-user-group"></i> Referral Details</a>
+    <button type="button" id="ad-notify" data-send-notif class="ad-item"><i class="fa-solid fa-paper-plane"></i> Send Notification</button>
+    <div class="my-1 border-t border-[#F1F5F9]"></div>
+    <button type="button" id="ad-ban" class="ad-item is-danger">
+        <i id="ad-ban-icon" class="fa-solid fa-ban"></i> <span id="ad-ban-label">Ban user</span>
+    </button>
+</div>
+
 @if ($users->isNotEmpty())
     <script src="{{ asset('libs/simple-datatables/simple-datatables.js') }}"></script>
 @endif
@@ -364,6 +429,146 @@
         });
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && !banModal.classList.contains('hidden')) closeBanModal();
+        });
+
+        // Send-notification modal - same open/close pattern as the two above.
+        var notifModal = document.getElementById('notif-modal');
+        var notifNameEl = document.getElementById('notif-modal-name');
+        var notifPhoneInput = document.getElementById('notif-modal-phone-input');
+
+        function openNotifModal(btn) {
+            notifPhoneInput.value = btn.getAttribute('data-phone') || '';
+            notifNameEl.textContent = btn.getAttribute('data-name') || '—';
+            notifModal.classList.remove('hidden');
+            notifModal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeNotifModal() {
+            notifModal.classList.add('hidden');
+            notifModal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+        }
+        document.addEventListener('click', function (e) {
+            var notifBtn = e.target.closest('[data-send-notif]');
+            if (notifBtn) { openNotifModal(notifBtn); return; }
+            if (e.target.closest('[data-notif-close]')) closeNotifModal();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !notifModal.classList.contains('hidden')) closeNotifModal();
+        });
+
+        // Actions dropdown (client item 1's 9-item menu). One shared
+        // fixed-position panel - repositioned under the clicked row's
+        // "Actions" button and repopulated with that row's URLs/data every
+        // time it opens, rather than one dropdown per row (which would get
+        // clipped by the table's overflow-x-auto wrapper).
+        var actionsBtn = null; // the row's trigger button currently driving the open menu
+        var dropdown = document.getElementById('actions-dropdown');
+        var adViewProfile = document.getElementById('ad-view-profile');
+        var adWallet = document.getElementById('ad-wallet');
+        var adTransactions = document.getElementById('ad-transactions');
+        var adInvestments = document.getElementById('ad-investments');
+        var adDeposits = document.getElementById('ad-deposits');
+        var adWithdrawals = document.getElementById('ad-withdrawals');
+        var adReferrals = document.getElementById('ad-referrals');
+        var adNotify = document.getElementById('ad-notify');
+        var adBan = document.getElementById('ad-ban');
+        var adBanIcon = document.getElementById('ad-ban-icon');
+        var adBanLabel = document.getElementById('ad-ban-label');
+        var unbanForm = document.getElementById('unban-quick-form');
+
+        function setLink(el, url, disabled) {
+            el.href = url || '#';
+            el.classList.toggle('is-disabled', !!disabled);
+        }
+
+        function openActionsMenu(btn) {
+            actionsBtn = btn;
+            var phone = btn.getAttribute('data-phone') || '';
+            var name = btn.getAttribute('data-name') || '';
+            var banned = btn.getAttribute('data-banned') === '1';
+            var profileUrl = btn.getAttribute('data-profile-url') || '#';
+
+            setLink(adViewProfile, profileUrl, false);
+            setLink(adTransactions, btn.getAttribute('data-transactions-url'), !phone);
+            setLink(adInvestments, profileUrl + '#investments', false);
+            setLink(adDeposits, btn.getAttribute('data-deposits-url'), !phone);
+            setLink(adWithdrawals, btn.getAttribute('data-withdrawals-url'), !phone);
+            setLink(adReferrals, profileUrl + '#referrals', false);
+
+            adWallet.setAttribute('data-phone', phone);
+            adWallet.setAttribute('data-name', name);
+            adWallet.setAttribute('data-balance', btn.getAttribute('data-balance') || '0.00');
+            adWallet.classList.toggle('is-disabled', !phone);
+
+            adNotify.setAttribute('data-phone', phone);
+            adNotify.setAttribute('data-name', name);
+            adNotify.classList.toggle('is-disabled', !phone);
+
+            adBan.setAttribute('data-action', btn.getAttribute('data-toggle-ban-url') || '');
+            adBan.setAttribute('data-name', name);
+            adBan.setAttribute('data-banned', banned ? '1' : '0');
+            adBanLabel.textContent = banned ? 'Unban user' : 'Ban user';
+            adBanIcon.className = banned ? 'fa-solid fa-unlock' : 'fa-solid fa-ban';
+            adBan.classList.toggle('is-danger', !banned);
+            adBan.classList.toggle('is-success', banned);
+
+            dropdown.classList.remove('hidden');
+            // Position after it's visible so offsetWidth is real.
+            var rect = btn.getBoundingClientRect();
+            var menuWidth = dropdown.offsetWidth;
+            var left = Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8));
+            var top = rect.bottom + 6;
+            if (top + dropdown.offsetHeight > window.innerHeight - 8) {
+                top = Math.max(8, rect.top - dropdown.offsetHeight - 6);
+            }
+            dropdown.style.left = left + 'px';
+            dropdown.style.top = top + 'px';
+        }
+
+        function closeActionsMenu() {
+            dropdown.classList.add('hidden');
+            actionsBtn = null;
+        }
+
+        document.addEventListener('click', function (e) {
+            var toggleBtn = e.target.closest('[data-actions-toggle]');
+            if (toggleBtn) {
+                if (actionsBtn === toggleBtn) { closeActionsMenu(); return; }
+                openActionsMenu(toggleBtn);
+                return;
+            }
+            if (dropdown.contains(e.target)) {
+                // Let ad-wallet/ad-notify (handled by their own delegated
+                // listeners above) and ad-ban (below) do their thing, then
+                // close the menu - links navigate away on their own.
+                if (e.target.closest('#ad-wallet') || e.target.closest('#ad-notify') || e.target.closest('#ad-ban')) {
+                    closeActionsMenu();
+                }
+                return;
+            }
+            closeActionsMenu();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && actionsBtn) closeActionsMenu();
+        });
+        window.addEventListener('scroll', closeActionsMenu, true);
+        window.addEventListener('resize', closeActionsMenu);
+
+        // Ban/Unban from the Actions menu: Ban opens the reason modal
+        // (reuses openBanModal() above, passing #ad-ban itself since it now
+        // carries the same data-action/data-name attributes); Unban has
+        // nothing to justify, so it submits straight away behind a plain
+        // confirm(), same as the old per-row Unban button did.
+        adBan.addEventListener('click', function () {
+            var banned = adBan.getAttribute('data-banned') === '1';
+            if (banned) {
+                if (!confirm('Unban this user? They will be able to log in again.')) return;
+                unbanForm.action = adBan.getAttribute('data-action') || '';
+                unbanForm.submit();
+            } else {
+                openBanModal(adBan);
+            }
         });
     });
 </script>

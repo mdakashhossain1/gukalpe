@@ -1,5 +1,15 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Users list: rebuilt row actions as a real 9-item Actions dropdown
+
+User pushback: the client spec's item 1 explicitly asks for an "Actions ▾" dropdown on each Users row with 9 separate entries (View Profile, Wallet Management, Transactions, Investments, Deposits, Withdrawals, Referral Details, Send Notification, Ban/Unban) - the earlier implementation instead put a "Profile" link + a couple of buttons on the row and folded everything else into sections on the profile page. Rebuilt to match the literal spec.
+
+- Replaced the 3 per-row buttons (`Profile`/`Adjust`/`Ban`) with a single "Actions ▾" trigger per row (`app/Modules/Admin/Views/users.blade.php`).
+- The menu itself is **one shared, fixed-positioned panel**, not a per-row dropdown - a per-row absolutely-positioned menu would get clipped by the table's `overflow-x-auto` wrapper. Opening it repositions the panel under the clicked row's button (flips upward near the bottom of the viewport) and repopulates all 9 items' hrefs/data-attributes from that row's data, the same pattern the existing shared wallet-adjust and ban modals already used.
+- Each of the 9 items is a genuinely separate action: View Profile/Transactions/Deposits/Withdrawals link out (Deposits/Withdrawals/Transactions phone-filtered via `?phone=`); Investments/Referral Details anchor-link into the profile page's existing sections (`#investments`/`#referrals`, added as ids there); Wallet Management/Send Notification/Ban open their existing modals (Send Notification modal ported from the profile page onto this page too, since it didn't exist here before); Unban submits directly via a hidden form + `confirm()` (nothing to justify, unlike Ban which still requires a reason).
+- Verified via curl against a running `php artisan serve` instance with a real logged-in admin session + a temporary dev-DB user (cleaned up after) - confirmed the page returns 200, all `data-*` URLs render correctly for that user, the dropdown/modal markup appears exactly once (not duplicated per row), and the extracted inline `<script>` passes `node --check`. Browser automation (chrome-mcp) wasn't available in this environment to click-test interactively, so this was static+served-HTML verification, not a live click-through - flagged here in case a future session has working browser tooling and should double check interaction behavior directly.
+- Full suite: **126 passed (417 assertions)**, Pint clean.
+
 ## 2026-08-14 — Closed 4 gaps found in a follow-up audit of the Admin Panel spec work
 
 After the initial 11-item implementation (below), re-verified every item directly against the code (not memory) when the user asked for confirmation - found 4 real gaps and fixed all of them. Full suite: **126 passed (417 assertions)**, Pint clean.
