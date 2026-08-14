@@ -16,7 +16,7 @@
     #deposits-table-card .datatable-selector { height: 38px; border: 1px solid #E5E9EB; border-radius: 8px; padding: 0 8px; font-size: 13px; color: #334155; }
     #deposits-table-card .datatable-info { font-size: 12.5px; color: #64748B; }
     #deposits-table-card .datatable-container { overflow-x: auto; border: 0; }
-    #deposits-table-card table.datatable-table { min-width: 900px; }
+    #deposits-table-card table.datatable-table { min-width: 1020px; }
     #deposits-table-card .datatable-pagination a { border-radius: 8px; padding: 6px 11px; font-size: 12.5px; font-weight: 600; color: #334155; }
     #deposits-table-card .datatable-pagination a:hover { background: #F1F5F9; }
     #deposits-table-card .datatable-pagination .datatable-active a { background: #0A5C66; color: #fff; }
@@ -34,9 +34,16 @@
         <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-1">Deposit requests</h1>
         <p class="text-[13.5px] text-[#64748B] mb-6">Manual UPI "Add Money" submissions. Approving credits the user's wallet immediately; rejecting releases the UTR so it can be resubmitted.</p>
 
+        @if ($phone)
+            <div class="mb-4 flex items-center justify-between gap-3 bg-[#0A5C66]/[0.06] border border-[#0A5C66]/20 rounded-lg px-4 py-2.5">
+                <p class="text-[12.5px] font-semibold text-[#0A5C66]">Filtered to phone <span class="font-mono">{{ $phone }}</span></p>
+                <a href="{{ route('admin.deposits', ['status' => $status]) }}" class="text-[12px] font-bold text-[#0A5C66] hover:underline">Clear filter</a>
+            </div>
+        @endif
+
         <div class="flex gap-1.5 mb-4 bg-[#F1F5F9] rounded-lg p-1 w-fit">
             @foreach (['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'] as $key => $label)
-                <a href="{{ route('admin.deposits', ['status' => $key]) }}"
+                <a href="{{ route('admin.deposits', ['status' => $key] + ($phone ? ['phone' => $phone] : [])) }}"
                     class="h-8 px-4 rounded-md text-[12.5px] transition-colors flex items-center {{ $status === $key ? 'font-bold bg-white text-[#0F172A] shadow-sm' : 'font-semibold text-[#64748B]' }}">
                     {{ $label }}
                 </a>
@@ -45,13 +52,14 @@
 
         <div class="bg-white rounded-xl border border-[#E5E9EB] p-4" id="deposits-table-card">
             <div class="overflow-x-auto">
-                <table id="deposits-table" class="w-full text-left border-collapse min-w-[900px]">
+                <table id="deposits-table" class="w-full text-left border-collapse min-w-[1020px]">
                     <thead>
                         <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Amount</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Phone</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Method</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">UTR</th>
+                            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Proof</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Status</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B]">Submitted</th>
                             <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[#64748B] text-right">Actions</th>
@@ -72,17 +80,30 @@
                                 <td class="px-4 py-3 align-middle text-[13px] text-[#334155] whitespace-nowrap">{{ $deposit->method_label }}</td>
                                 <td class="px-4 py-3 align-middle text-[12.5px] font-mono text-[#334155]">{{ $deposit->utr }}</td>
                                 <td class="px-4 py-3 align-middle whitespace-nowrap">
+                                    @if ($deposit->paymentScreenshotUrl())
+                                        <button type="button" data-screenshot-preview data-image="{{ $deposit->paymentScreenshotUrl() }}" data-title="{{ $deposit->phone }} · ₹{{ number_format($deposit->amount, 2) }} · UTR {{ $deposit->utr }}"
+                                            class="h-9 px-2.5 rounded-lg border border-[#CBD5E1] hover:bg-[#F1F5F9] transition-colors flex items-center gap-1.5">
+                                            <img src="{{ $deposit->paymentScreenshotUrl() }}" alt="Payment proof" class="w-6 h-6 rounded object-cover">
+                                            <span class="text-[11px] font-semibold text-[#334155]">View</span>
+                                        </button>
+                                    @else
+                                        <span class="text-[11.5px] text-[#94A3B8] italic">None</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 align-middle whitespace-nowrap">
                                     <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border {{ $pillClasses }}">{{ $deposit->status }}</span>
                                 </td>
                                 <td class="px-4 py-3 align-middle text-[12px] text-[#64748B] whitespace-nowrap">{{ $deposit->submitted_at->format('d M Y, h:i A') }}</td>
                                 <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
                                     @if ($deposit->status === 'pending')
                                         <div class="inline-flex gap-2 justify-end">
-                                            <form method="POST" action="{{ route('admin.deposits.approve', $deposit) }}">
+                                            <form method="POST" action="{{ route('admin.deposits.approve', $deposit) }}"
+                                                onsubmit="return confirm('Approve this ₹{{ number_format($deposit->amount, 2) }} deposit for {{ $deposit->phone }}? This will credit the wallet immediately.');">
                                                 @csrf
                                                 <button type="submit" class="h-9 px-3.5 rounded-lg bg-emerald-600 text-white text-[12.5px] font-bold hover:bg-emerald-700 transition-colors active:scale-95">Approve</button>
                                             </form>
-                                            <form method="POST" action="{{ route('admin.deposits.reject', $deposit) }}" class="inline-flex items-center gap-1.5">
+                                            <form method="POST" action="{{ route('admin.deposits.reject', $deposit) }}" class="inline-flex items-center gap-1.5"
+                                                onsubmit="return confirm('Reject this deposit request? This cannot be undone.');">
                                                 @csrf
                                                 <input type="text" name="admin_note" maxlength="500" placeholder="Reason (optional)"
                                                     class="h-9 w-40 rounded-lg border border-[#CBD5E1] px-2.5 text-[12px] text-[#0F172A] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">
@@ -98,7 +119,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-[13.5px] text-[#94A3B8] italic">No {{ $status }} deposit requests.</td>
+                                <td colspan="8" class="px-4 py-8 text-center text-[13.5px] text-[#94A3B8] italic">No {{ $status }} deposit requests.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -108,6 +129,21 @@
 
         </div>
     </main>
+</div>
+
+{{-- Payment-proof preview modal - same client-side pattern as the Banner
+     preview modal (Admin::banners.index), no server round-trip. --}}
+<div id="screenshot-preview-modal" class="hidden fixed inset-0 z-[600] items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/70" data-screenshot-preview-close></div>
+    <div class="relative w-full max-w-lg bg-white rounded-2xl border border-[#E5E9EB] shadow-xl overflow-hidden">
+        <button type="button" data-screenshot-preview-close class="absolute top-3 right-3 z-10 w-9 h-9 rounded-lg bg-white/90 flex items-center justify-center text-[#64748B] hover:bg-white transition-colors" aria-label="Close">
+            <i class="fa-solid fa-xmark text-[15px]"></i>
+        </button>
+        <img id="screenshot-preview-image" src="" alt="" class="w-full h-auto">
+        <div class="p-4">
+            <p id="screenshot-preview-title" class="text-[13px] font-semibold text-[#334155]"></p>
+        </div>
+    </div>
 </div>
 
 @if ($deposits->isNotEmpty())
@@ -122,7 +158,7 @@
                 perPage: 15,
                 perPageSelect: [15, 25, 50, 100],
                 sortable: true,
-                columns: [{ select: 6, sortable: false }],
+                columns: [{ select: 4, sortable: false }, { select: 7, sortable: false }],
                 labels: {
                     placeholder: 'Search deposits...',
                     perPage: '{select} per page',
@@ -134,5 +170,34 @@
         });
     </script>
 @endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('screenshot-preview-modal');
+        if (!modal) return;
+        var imgEl = document.getElementById('screenshot-preview-image');
+        var titleEl = document.getElementById('screenshot-preview-title');
+
+        function open(btn) {
+            imgEl.src = btn.getAttribute('data-image') || '';
+            titleEl.textContent = btn.getAttribute('data-title') || '';
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        }
+        function close() {
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-screenshot-preview]');
+            if (btn) { open(btn); return; }
+            if (e.target.closest('[data-screenshot-preview-close]')) close();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) close();
+        });
+    });
+</script>
 
 @endsection

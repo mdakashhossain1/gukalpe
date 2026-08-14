@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminAuditLog;
 use App\Models\AdminUser;
 use App\Models\DepositRequest;
 use App\Models\WithdrawRequest;
@@ -46,29 +47,39 @@ class RoleController extends Controller
             'role' => ['required', Rule::in(array_keys(AdminRoles::ROLES))],
         ]);
 
-        AdminUser::create($validated);
+        $adminUser = AdminUser::create($validated);
 
         Log::channel('admin_security')->info('Admin user created', [
             'ip' => $request->ip(), 'username' => $validated['username'], 'role' => $validated['role'],
         ]);
+        AdminAuditLog::record($request, 'admin_user_created', $adminUser, null, ['username' => $validated['username'], 'role' => $validated['role']]);
 
         return redirect()->route('admin.roles')->with('success', 'Admin user created.');
     }
 
-    public function toggleActive(AdminUser $adminUser): RedirectResponse
+    public function toggleActive(Request $request, AdminUser $adminUser): RedirectResponse
     {
         $this->guard();
 
         $adminUser->update(['is_active' => ! $adminUser->is_active]);
 
+        Log::channel('admin_security')->info('Admin user toggled', [
+            'ip' => $request->ip(), 'admin_user_id' => $adminUser->id, 'is_active' => $adminUser->is_active,
+        ]);
+        AdminAuditLog::record($request, 'admin_user_toggled', $adminUser, null, ['is_active' => $adminUser->is_active]);
+
         return back()->with('success', $adminUser->is_active ? 'Admin activated.' : 'Admin deactivated.');
     }
 
-    public function destroy(AdminUser $adminUser): RedirectResponse
+    public function destroy(Request $request, AdminUser $adminUser): RedirectResponse
     {
         $this->guard();
 
+        $username = $adminUser->username;
+        AdminAuditLog::record($request, 'admin_user_deleted', $adminUser, null, ['username' => $username]);
         $adminUser->delete();
+
+        Log::channel('admin_security')->info('Admin user removed', ['ip' => $request->ip(), 'username' => $username]);
 
         return redirect()->route('admin.roles')->with('success', 'Admin user removed.');
     }

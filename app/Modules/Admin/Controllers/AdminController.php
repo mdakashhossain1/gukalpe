@@ -611,10 +611,17 @@ class AdminController extends Controller
         if (! in_array($status, [DepositRequest::STATUS_PENDING, DepositRequest::STATUS_APPROVED, DepositRequest::STATUS_REJECTED], true)) {
             $status = DepositRequest::STATUS_PENDING;
         }
+        $phone = trim((string) $request->query('phone', ''));
+
+        $query = DepositRequest::status($status)->latest('submitted_at');
+        if ($phone !== '') {
+            $query->where('phone', $phone);
+        }
 
         return view('Admin::deposits', [
             'status' => $status,
-            'deposits' => DepositRequest::status($status)->latest('submitted_at')->get(),
+            'phone' => $phone,
+            'deposits' => $query->get(),
             'pendingCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
             'pendingWithdrawalCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
         ]);
@@ -714,10 +721,17 @@ class AdminController extends Controller
         if (! in_array($status, [WithdrawRequest::STATUS_PENDING, WithdrawRequest::STATUS_APPROVED, WithdrawRequest::STATUS_REJECTED], true)) {
             $status = WithdrawRequest::STATUS_PENDING;
         }
+        $phone = trim((string) $request->query('phone', ''));
+
+        $query = WithdrawRequest::status($status)->latest('submitted_at');
+        if ($phone !== '') {
+            $query->where('phone', $phone);
+        }
 
         return view('Admin::withdrawals', [
             'status' => $status,
-            'withdrawals' => WithdrawRequest::status($status)->latest('submitted_at')->get(),
+            'phone' => $phone,
+            'withdrawals' => $query->get(),
             'pendingCount' => WithdrawRequest::status(WithdrawRequest::STATUS_PENDING)->count(),
             'pendingDepositCount' => DepositRequest::status(DepositRequest::STATUS_PENDING)->count(),
         ]);

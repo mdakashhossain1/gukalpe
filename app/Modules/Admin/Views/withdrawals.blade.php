@@ -34,9 +34,16 @@
         <h1 class="font-poppins font-bold text-[20px] text-[#0F172A] mb-1">Withdrawal requests</h1>
         <p class="text-[13.5px] text-[#64748B] mb-6">Manual cash-out requests (Bank / UPI / USDT). Approving debits the user's wallet immediately - pay out to the destination shown yourself, outside this system.</p>
 
+        @if ($phone)
+            <div class="mb-4 flex items-center justify-between gap-3 bg-[#0A5C66]/[0.06] border border-[#0A5C66]/20 rounded-lg px-4 py-2.5">
+                <p class="text-[12.5px] font-semibold text-[#0A5C66]">Filtered to phone <span class="font-mono">{{ $phone }}</span></p>
+                <a href="{{ route('admin.withdrawals', ['status' => $status]) }}" class="text-[12px] font-bold text-[#0A5C66] hover:underline">Clear filter</a>
+            </div>
+        @endif
+
         <div class="flex gap-1.5 mb-4 bg-[#F1F5F9] rounded-lg p-1 w-fit">
             @foreach (['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'] as $key => $label)
-                <a href="{{ route('admin.withdrawals', ['status' => $key]) }}"
+                <a href="{{ route('admin.withdrawals', ['status' => $key] + ($phone ? ['phone' => $phone] : [])) }}"
                     class="h-8 px-4 rounded-md text-[12.5px] transition-colors flex items-center {{ $status === $key ? 'font-bold bg-white text-[#0F172A] shadow-sm' : 'font-semibold text-[#64748B]' }}">
                     {{ $label }}
                 </a>
@@ -87,11 +94,13 @@
                                 <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
                                     @if ($withdraw->status === 'pending')
                                         <div class="inline-flex gap-2 justify-end">
-                                            <form method="POST" action="{{ route('admin.withdrawals.approve', $withdraw) }}">
+                                            <form method="POST" action="{{ route('admin.withdrawals.approve', $withdraw) }}"
+                                                onsubmit="return confirm('Approve this ₹{{ number_format($withdraw->amount, 2) }} withdrawal for {{ $withdraw->phone }}? This will debit the wallet immediately - you still need to pay out {{ $withdraw->destinationLabel() }} yourself.');">
                                                 @csrf
                                                 <button type="submit" class="h-9 px-3.5 rounded-lg bg-emerald-600 text-white text-[12.5px] font-bold hover:bg-emerald-700 transition-colors active:scale-95">Approve</button>
                                             </form>
-                                            <form method="POST" action="{{ route('admin.withdrawals.reject', $withdraw) }}" class="inline-flex items-center gap-1.5">
+                                            <form method="POST" action="{{ route('admin.withdrawals.reject', $withdraw) }}" class="inline-flex items-center gap-1.5"
+                                                onsubmit="return confirm('Reject this withdrawal request? This cannot be undone.');">
                                                 @csrf
                                                 <input type="text" name="admin_note" maxlength="500" placeholder="Reason (optional)"
                                                     class="h-9 w-40 rounded-lg border border-[#CBD5E1] px-2.5 text-[12px] text-[#0F172A] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15">

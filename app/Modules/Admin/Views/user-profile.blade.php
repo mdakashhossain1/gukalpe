@@ -148,7 +148,7 @@
             <div class="bg-white rounded-xl border border-[#E5E9EB] p-5">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A]">Recent deposits</h2>
-                    <a href="{{ route('admin.deposits') }}" class="text-[11.5px] font-bold text-[#0A5C66] hover:underline">All deposits</a>
+                    <a href="{{ route('admin.deposits', ['phone' => $user->phone]) }}" class="text-[11.5px] font-bold text-[#0A5C66] hover:underline">All deposits</a>
                 </div>
                 <div class="flex flex-col gap-2 max-h-[280px] overflow-y-auto">
                     @forelse ($recentDeposits as $d)
@@ -165,7 +165,7 @@
             <div class="bg-white rounded-xl border border-[#E5E9EB] p-5">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A]">Recent withdrawals</h2>
-                    <a href="{{ route('admin.withdrawals') }}" class="text-[11.5px] font-bold text-[#0A5C66] hover:underline">All withdrawals</a>
+                    <a href="{{ route('admin.withdrawals', ['phone' => $user->phone]) }}" class="text-[11.5px] font-bold text-[#0A5C66] hover:underline">All withdrawals</a>
                 </div>
                 <div class="flex flex-col gap-2 max-h-[280px] overflow-y-auto">
                     @forelse ($recentWithdrawals as $w)

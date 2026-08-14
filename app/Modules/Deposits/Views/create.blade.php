@@ -57,7 +57,7 @@
         <p class="text-[13.5px] text-slate-500 font-medium mt-1">Pay manually, then submit your reference number for verification.</p>
     </div>
 
-    <form method="POST" action="{{ route('deposits.store') }}" class="flex flex-col gap-5 pb-10">
+    <form method="POST" action="{{ route('deposits.store') }}" enctype="multipart/form-data" class="flex flex-col gap-5 pb-10">
         @csrf
         <input type="hidden" name="method" value="{{ $activeMethod }}">
         <input type="hidden" name="pay_to_label" value="{{ $payToLabel }}">
@@ -242,6 +242,19 @@
                 class="w-full h-12 rounded-[14px] border border-slate-200 px-4 text-[15px] font-bold tracking-wider text-slate-800 outline-none focus:border-[#0A5C66] focus:ring-1 focus:ring-[#0A5C66] transition-colors">
             <p class="text-[11.5px] text-slate-500 font-medium mt-1.5">Copy this from your {{ $activeMethod === 'upi' ? 'UPI app\'s' : 'bank\'s' }} payment confirmation, once you've paid the amount above.</p>
             @error('utr')
+                <p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <!-- Payment screenshot (optional) -->
+        <div>
+            <label for="payment_screenshot" class="block text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                Payment Screenshot <span class="normal-case font-medium text-slate-400">(optional, speeds up verification)</span>
+            </label>
+            <input type="file" id="payment_screenshot" name="payment_screenshot" accept="image/*"
+                class="w-full text-[13px] text-slate-600 file:mr-3 file:h-10 file:px-4 file:rounded-[12px] file:border-0 file:bg-[#0A5C66]/10 file:text-[#0A5C66] file:font-bold file:text-[12.5px] rounded-[14px] border border-slate-200 px-3 py-2.5 outline-none focus:border-[#0A5C66] focus:ring-1 focus:ring-[#0A5C66] transition-colors">
+            <p class="text-[11.5px] text-slate-500 font-medium mt-1.5">A screenshot of your payment confirmation - helps us verify and credit your wallet faster.</p>
+            @error('payment_screenshot')
                 <p class="text-[12px] font-semibold text-red-500 mt-1.5">{{ $message }}</p>
             @enderror
         </div>
