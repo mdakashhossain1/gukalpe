@@ -1,5 +1,18 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Auth login screen redesign matching mobile reference mockup
+
+User requested redesign of the phone login page (`/login`) to match a reference mobile design.
+- **Hero banner (`resources/views/components/auth-hero.blade.php`)**: Horizontally centered GullakPe brand lockup (rounded white logo container + bold brand typography with orange/gold "Pe") and top-left white rounded back button.
+- **Phone login sheet (`app/Modules/Auth/Views/phone.blade.php`)**:
+  - Distinct 2-box input structure: standalone `+91` country code box and styled phone input with "Enter Phone Number" placeholder (`rounded-2xl border border-slate-200`).
+  - Rounded communication consent checkbox.
+  - Centered legal disclaimer with highlighted green Terms of Use and Privacy Policy links.
+  - Reactive Continue button (`rounded-2xl`): starts disabled in slate-300, transitions automatically to active brand teal (`#0A5C66`) upon entering a valid 10-digit number.
+  - Subtle centered "or" divider with horizontal rules and rounded Google SSO button.
+- **Harmonized sibling auth views (`verify-otp`, `mpin`, `set-mpin`, `forgot-mpin`)**: Updated inputs and primary action buttons to `rounded-2xl` for consistent mobile visual language.
+- Added `tests/Feature/AuthViewsTest.php`, compiled Tailwind assets via `npm run build`, verified Pint styling, and visually confirmed via browser subagent recording.
+
 ## 2026-08-14 — Referral program overhaul: Pending→Paid commission workflow, deposit-source commission, admin management UI
 
 User handed over a 5-section spec (Commission / Referral Tracking / Referral History / Anti-Fraud / Commission Management). Prior state: commission was plan-purchase-only, credited to the wallet **instantly** on the referred user's first purchase, with no admin UI, no status field, and only one narrow anti-fraud check. Planned via EnterPlanMode with research agents auditing the existing code first; confirmed three load-bearing decisions with the user up front (AskUserQuestion): (1) ALL commissions - plan-purchase and the new deposit source - move to Pending-first, no more instant pay; (2) deposit-based commission ships now, not deferred; (3) "Active Referral" = a referred user with at least one qualifying transaction.

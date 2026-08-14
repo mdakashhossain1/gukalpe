@@ -86,7 +86,7 @@ body {
    panel (layouts/admin.blade.php, marked with .admin-body) has no bottom
    nav, so this must not apply there. It was unscoped and forced a 95px
    empty strip onto the bottom of every admin page regardless of content. */
-body:not(.admin-body) {
+body:not(.admin-body):not(.auth-body) {
   padding-bottom: 95px !important;
 }
 

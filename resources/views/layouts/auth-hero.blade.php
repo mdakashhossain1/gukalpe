@@ -17,8 +17,10 @@
          that generic chrome. --}}
     @vite(['resources/css/app.css'])
 </head>
-<body class="font-sans min-h-screen" data-lang-base="{{ asset('lang') }}">
-    @yield('content')
+<body class="auth-body font-sans min-h-screen bg-slate-900 sm:bg-slate-100 flex flex-col justify-center items-center p-0 sm:p-6" data-lang-base="{{ asset('lang') }}">
+    <div class="w-full max-w-[440px] h-screen sm:h-[844px] sm:max-h-[92vh] bg-white sm:rounded-[36px] sm:shadow-2xl overflow-hidden sm:border sm:border-slate-200/80 flex flex-col relative mx-auto" style="max-width: 440px;">
+        @yield('content')
+    </div>
 
     <x-i18n-engine />
 

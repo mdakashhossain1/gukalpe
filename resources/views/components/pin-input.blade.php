@@ -9,12 +9,12 @@
      [data-pin-group] ancestor. When autoSubmit is set, filling the last box
      pulses the group and submits its form automatically - used for MPIN/OTP
      entry where "type the last digit" IS the user's intent to proceed. --}}
-<div class="flex items-center gap-3" data-pin-group @if ($autoSubmit) data-auto-submit @endif role="group" @if ($ariaLabel) aria-label="{{ $ariaLabel }}" @endif>
+<div class="flex items-center gap-2" data-pin-group @if ($autoSubmit) data-auto-submit @endif role="group" @if ($ariaLabel) aria-label="{{ $ariaLabel }}" @endif>
     @for ($i = 0; $i < $length; $i++)
         <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1"
             data-pin-box
             @if ($autofocus && $i === 0) autofocus @endif
-            class="flex-1 min-w-0 h-[64px] rounded-[16px] border-none bg-slate-100 text-center text-[26px] font-black text-slate-800 outline-none focus:ring-2 focus:ring-[#0A5C66]/30 transition-all">
+            class="flex-1 min-w-0 h-[46px] rounded-[12px] border border-slate-200 bg-white text-center text-[17px] font-black text-slate-800 outline-none focus:border-[#0A5C66] focus:ring-2 focus:ring-[#0A5C66]/10 transition-all">
     @endfor
     <input type="hidden" name="{{ $name }}" data-pin-value>
 </div>
