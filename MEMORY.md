@@ -1,5 +1,15 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — User profile page: every data section now a real datatable (search/sort/paging)
+
+User pointed at the live profile page (`/users/{id}`) and asked for the same datatable treatment used elsewhere in the admin panel (Users, Deposits, Withdrawals, Plans, Activity Logs) to be applied to every data-listing section here too - previously most sections were plain scrollable `<div>` lists with a fixed max-height, not tables at all.
+
+- Converted all six data sections to `<table>` markup with a self-hosted `simpleDatatables.DataTable` instance each: Investment summary, Referral details, Transactions (already a table, just needed the id + init), Recent deposits, Recent withdrawals, Recent admin actions.
+- Added a shared `initMiniTable(id, options)` JS helper (searchable, sortable, paginated, 10/25/50 per page) instead of six near-identical inline configs - matches the empty-table guard (`tbody tr td:not([colspan])`) every other datatable-backed admin page already uses.
+- Deposits/withdrawals mini-tables reuse the same status-pill color convention (`$pillClasses` match on approved/rejected/pending) as the full Deposits/Withdrawals admin pages, so the styling is consistent app-wide. Caught and fixed one bug while doing this: withdrawals don't have a `method_label` column (that's a `DepositRequest`-only field) - used `strtoupper($w->method)` like `withdrawals.blade.php` already does, not a copy-pasted field that doesn't exist.
+- Smoke-tested with a real HTTP session against a locally seeded user (deposit/withdrawal/audit-log rows) rather than Tinker, per this repo's documented preference - confirmed HTTP 200, all six `-table`/`-mini-table` ids present, no PHP error markers, seeded data rendering, then deleted the seed data to leave the dev DB clean.
+- Full suite: **139 passed (486 assertions)**, Pint clean. No test changes needed - existing profile-page tests assert on content that's still present, just inside `<table>` markup now instead of `<div>` rows.
+
 ## 2026-08-14 — "Activity Logs" redefined: a per-user list with an "i" details button, not an audit trail (previous audit-table entries superseded)
 
 User rejected the entire admin-action audit-trail table (the last several entries below, all in service of it) after seeing it live: "the feature is supposed to be in the activity logs we can see all the users list and we can manually see all of the user's data by seeing on the I button in the details option." Confirmed via AskUserQuestion: replace the page's primary content with a plain list of every user; an "i" (circle-info) button per row opens that user's existing full profile page (`admin.users.show` - wallet, deposits, withdrawals, investments, referrals, recent admin actions all already live there). Not a chronological Admin+Action+Target+Reason+Date/Time table after all, despite that being the literal reading of the original client spec item 7 - this is what was actually wanted once seen in the browser.

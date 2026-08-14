@@ -4,6 +4,25 @@
 
 @section('content')
 
+{{-- Every data section on this page (investments, referrals, transactions,
+     deposits, withdrawals, admin actions) uses the same self-hosted
+     simple-datatables treatment as the Users/Deposits/Withdrawals/Plans
+     lists elsewhere in the admin panel - search + sort + pagination per
+     section instead of a plain scrollable list. --}}
+<link rel="stylesheet" href="{{ asset('libs/simple-datatables/style.css') }}">
+<style>
+    .mini-datatable-card .datatable-top { padding: 0 0 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    .mini-datatable-card .datatable-bottom { padding: 12px 0 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    .mini-datatable-card .datatable-search input { height: 34px; border: 1px solid #E5E9EB; border-radius: 8px; padding: 0 10px; font-size: 12.5px; color: #0F172A; outline: none; min-width: 160px; }
+    .mini-datatable-card .datatable-search input:focus { border-color: #0A5C66; box-shadow: 0 0 0 3px rgba(10,92,102,.12); }
+    .mini-datatable-card .datatable-selector { height: 34px; border: 1px solid #E5E9EB; border-radius: 8px; padding: 0 6px; font-size: 12.5px; color: #334155; }
+    .mini-datatable-card .datatable-info { font-size: 11.5px; color: #64748B; }
+    .mini-datatable-card .datatable-container { overflow-x: auto; border: 0; }
+    .mini-datatable-card .datatable-pagination a { border-radius: 8px; padding: 5px 9px; font-size: 12px; font-weight: 600; color: #334155; }
+    .mini-datatable-card .datatable-pagination a:hover { background: #F1F5F9; }
+    .mini-datatable-card .datatable-pagination .datatable-active a { background: #0A5C66; color: #fff; }
+</style>
+
 <div class="flex flex-col md:flex-row min-h-screen">
 
     <x-admin-sidebar active="users" :pending-deposit-count="$pendingDepositCount" :pending-withdrawal-count="$pendingWithdrawalCount" />
@@ -110,35 +129,60 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {{-- Investment summary --}}
-            <div id="investments" class="bg-white rounded-xl border border-[#E5E9EB] p-5 scroll-mt-6">
+            <div id="investments" class="bg-white rounded-xl border border-[#E5E9EB] p-5 scroll-mt-6 mini-datatable-card">
                 <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A] mb-3">Investment summary</h2>
-                <div class="flex flex-col gap-2 max-h-[360px] overflow-y-auto">
-                    @forelse ($holdings as $holding)
-                        <div class="flex items-center justify-between gap-2 border-b border-[#F1F5F9] last:border-0 pb-2 last:pb-0">
-                            <div class="min-w-0">
-                                <p class="text-[13px] font-semibold text-[#0F172A] truncate">{{ $holding->plan->title ?? 'Deleted plan' }}</p>
-                                <p class="text-[11.5px] text-[#94A3B8]">{{ $holding->purchased_at?->format('d M Y') }} · {{ ucfirst($holding->status) }}</p>
-                            </div>
-                            <span class="text-[13px] font-mono font-bold text-[#0F172A] shrink-0">₹{{ number_format($holding->invested_amount, 2) }}</span>
-                        </div>
-                    @empty
-                        <p class="text-[13px] text-[#94A3B8] italic">No plan holdings yet.</p>
-                    @endforelse
+                <div class="overflow-x-auto">
+                    <table id="investments-table" class="w-full text-left border-collapse min-w-[420px]">
+                        <thead>
+                            <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Plan</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Purchased</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Status</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8] text-right">Invested</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($holdings as $holding)
+                                <tr class="border-b border-[#F1F5F9] last:border-0">
+                                    <td class="px-3 py-2.5 text-[12.5px] font-semibold text-[#0F172A]">{{ $holding->plan->title ?? 'Deleted plan' }}</td>
+                                    <td class="px-3 py-2.5 text-[12px] text-[#64748B] whitespace-nowrap" data-order="{{ $holding->purchased_at?->timestamp }}">{{ $holding->purchased_at?->format('d M Y') }}</td>
+                                    <td class="px-3 py-2.5 whitespace-nowrap">
+                                        <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-slate-50 text-slate-600 border-slate-200">{{ ucfirst($holding->status) }}</span>
+                                    </td>
+                                    <td class="px-3 py-2.5 text-[13px] font-mono font-bold text-[#0F172A] text-right whitespace-nowrap">₹{{ number_format($holding->invested_amount, 2) }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" class="px-3 py-6 text-center text-[13px] text-[#94A3B8] italic">No plan holdings yet.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             {{-- Referral details --}}
-            <div id="referrals" class="bg-white rounded-xl border border-[#E5E9EB] p-5 scroll-mt-6">
+            <div id="referrals" class="bg-white rounded-xl border border-[#E5E9EB] p-5 scroll-mt-6 mini-datatable-card">
                 <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A] mb-3">Referral details ({{ $referrals->count() }})</h2>
-                <div class="flex flex-col gap-2 max-h-[360px] overflow-y-auto">
-                    @forelse ($referrals as $ref)
-                        <div class="flex items-center justify-between gap-2 border-b border-[#F1F5F9] last:border-0 pb-2 last:pb-0">
-                            <p class="text-[13px] font-semibold text-[#0F172A] truncate">{{ $ref->name ?: $ref->phone ?: '—' }}</p>
-                            <span class="text-[11.5px] text-[#94A3B8] shrink-0">{{ $ref->created_at?->format('d M Y') }}</span>
-                        </div>
-                    @empty
-                        <p class="text-[13px] text-[#94A3B8] italic">No referrals yet.</p>
-                    @endforelse
+                <div class="overflow-x-auto">
+                    <table id="referrals-table" class="w-full text-left border-collapse min-w-[380px]">
+                        <thead>
+                            <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Name</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Phone</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($referrals as $ref)
+                                <tr class="border-b border-[#F1F5F9] last:border-0">
+                                    <td class="px-3 py-2.5 text-[12.5px] font-semibold text-[#0F172A]">{{ $ref->name ?: '—' }}</td>
+                                    <td class="px-3 py-2.5 text-[12.5px] font-mono text-[#334155] whitespace-nowrap">{{ $ref->phone ?: '—' }}</td>
+                                    <td class="px-3 py-2.5 text-[12px] text-[#64748B] whitespace-nowrap" data-order="{{ $ref->created_at?->timestamp }}">{{ $ref->created_at?->format('d M Y') }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="3" class="px-3 py-6 text-center text-[13px] text-[#94A3B8] italic">No referrals yet.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -148,13 +192,13 @@
              deep-link out) - same Balance Before/After/Reason/Admin fields
              the Transactions page itself shows, so this view alone answers
              "what happened to this user's wallet and why". --}}
-        <div id="transactions" class="bg-white rounded-xl border border-[#E5E9EB] p-5 mb-6 scroll-mt-6">
+        <div id="transactions" class="bg-white rounded-xl border border-[#E5E9EB] p-5 mb-6 scroll-mt-6 mini-datatable-card">
             <div class="flex items-center justify-between mb-3">
                 <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A]">Transactions</h2>
                 <a href="{{ route('admin.transactions', ['phone' => $user->phone]) }}" class="text-[11.5px] font-bold text-[#0A5C66] hover:underline">All transactions</a>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse min-w-[640px]">
+                <table id="transactions-table" class="w-full text-left border-collapse min-w-[640px]">
                     <thead>
                         <tr class="border-b border-[#F1F5F9]">
                             <th class="py-2 pr-3 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Type</th>
@@ -175,7 +219,7 @@
                                 <td class="py-2 pr-3 text-[12.5px] text-[#334155] text-right whitespace-nowrap">{{ $t->balance_after !== null ? '₹'.number_format($t->balance_after, 2) : '—' }}</td>
                                 <td class="py-2 pr-3 text-[12px] text-[#64748B] max-w-[180px] truncate" title="{{ $t->meta['reason'] ?? '' }}">{{ $t->meta['reason'] ?? '—' }}</td>
                                 <td class="py-2 pr-3 text-[12px] text-[#64748B] whitespace-nowrap">{{ $t->meta['admin_label'] ?? '—' }}</td>
-                                <td class="py-2 text-[11.5px] text-[#94A3B8] whitespace-nowrap">{{ $t->created_at?->format('d M Y, h:i A') }}</td>
+                                <td class="py-2 text-[11.5px] text-[#94A3B8] whitespace-nowrap" data-order="{{ $t->created_at?->timestamp }}">{{ $t->created_at?->format('d M Y, h:i A') }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -189,37 +233,83 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {{-- Recent deposits/withdrawals --}}
-            <div class="bg-white rounded-xl border border-[#E5E9EB] p-5">
+            <div class="bg-white rounded-xl border border-[#E5E9EB] p-5 mini-datatable-card">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A]">Recent deposits</h2>
                     <a href="{{ route('admin.deposits', ['phone' => $user->phone]) }}" class="text-[11.5px] font-bold text-[#0A5C66] hover:underline">All deposits</a>
                 </div>
-                <div class="flex flex-col gap-2 max-h-[280px] overflow-y-auto">
-                    @forelse ($recentDeposits as $d)
-                        <div class="flex items-center justify-between gap-2 border-b border-[#F1F5F9] last:border-0 pb-2 last:pb-0">
-                            <p class="text-[12.5px] text-[#334155]">{{ $d->submitted_at?->format('d M, h:i A') }} · <span class="uppercase font-bold text-[10.5px]">{{ $d->status }}</span></p>
-                            <span class="text-[13px] font-mono font-bold text-[#0F172A]">₹{{ number_format($d->amount, 2) }}</span>
-                        </div>
-                    @empty
-                        <p class="text-[13px] text-[#94A3B8] italic">No deposits yet.</p>
-                    @endforelse
+                <div class="overflow-x-auto">
+                    <table id="deposits-mini-table" class="w-full text-left border-collapse min-w-[440px]">
+                        <thead>
+                            <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Amount</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Method</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Status</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($recentDeposits as $d)
+                                @php
+                                    $pillClasses = match ($d->status) {
+                                        'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        'rejected' => 'bg-red-50 text-red-700 border-red-200',
+                                        default => 'bg-amber-50 text-amber-700 border-amber-200',
+                                    };
+                                @endphp
+                                <tr class="border-b border-[#F1F5F9] last:border-0">
+                                    <td class="px-3 py-2.5 text-[13px] font-mono font-bold text-[#0F172A] whitespace-nowrap">₹{{ number_format($d->amount, 2) }}</td>
+                                    <td class="px-3 py-2.5 text-[12.5px] text-[#334155] whitespace-nowrap">{{ $d->method_label }}</td>
+                                    <td class="px-3 py-2.5 whitespace-nowrap">
+                                        <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border {{ $pillClasses }}">{{ $d->status }}</span>
+                                    </td>
+                                    <td class="px-3 py-2.5 text-[12px] text-[#64748B] whitespace-nowrap" data-order="{{ $d->submitted_at?->timestamp }}">{{ $d->submitted_at?->format('d M Y, h:i A') }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" class="px-3 py-6 text-center text-[13px] text-[#94A3B8] italic">No deposits yet.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl border border-[#E5E9EB] p-5">
+            <div class="bg-white rounded-xl border border-[#E5E9EB] p-5 mini-datatable-card">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A]">Recent withdrawals</h2>
                     <a href="{{ route('admin.withdrawals', ['phone' => $user->phone]) }}" class="text-[11.5px] font-bold text-[#0A5C66] hover:underline">All withdrawals</a>
                 </div>
-                <div class="flex flex-col gap-2 max-h-[280px] overflow-y-auto">
-                    @forelse ($recentWithdrawals as $w)
-                        <div class="flex items-center justify-between gap-2 border-b border-[#F1F5F9] last:border-0 pb-2 last:pb-0">
-                            <p class="text-[12.5px] text-[#334155]">{{ $w->submitted_at?->format('d M, h:i A') }} · <span class="uppercase font-bold text-[10.5px]">{{ $w->status }}</span></p>
-                            <span class="text-[13px] font-mono font-bold text-[#0F172A]">₹{{ number_format($w->amount, 2) }}</span>
-                        </div>
-                    @empty
-                        <p class="text-[13px] text-[#94A3B8] italic">No withdrawals yet.</p>
-                    @endforelse
+                <div class="overflow-x-auto">
+                    <table id="withdrawals-mini-table" class="w-full text-left border-collapse min-w-[440px]">
+                        <thead>
+                            <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Amount</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Method</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Status</th>
+                                <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($recentWithdrawals as $w)
+                                @php
+                                    $pillClasses = match ($w->status) {
+                                        'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        'rejected' => 'bg-red-50 text-red-700 border-red-200',
+                                        default => 'bg-amber-50 text-amber-700 border-amber-200',
+                                    };
+                                @endphp
+                                <tr class="border-b border-[#F1F5F9] last:border-0">
+                                    <td class="px-3 py-2.5 text-[13px] font-mono font-bold text-[#0F172A] whitespace-nowrap">₹{{ number_format($w->amount, 2) }}</td>
+                                    <td class="px-3 py-2.5 text-[12.5px] text-[#334155] whitespace-nowrap">{{ strtoupper($w->method) }}</td>
+                                    <td class="px-3 py-2.5 whitespace-nowrap">
+                                        <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border {{ $pillClasses }}">{{ $w->status }}</span>
+                                    </td>
+                                    <td class="px-3 py-2.5 text-[12px] text-[#64748B] whitespace-nowrap" data-order="{{ $w->submitted_at?->timestamp }}">{{ $w->submitted_at?->format('d M Y, h:i A') }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" class="px-3 py-6 text-center text-[13px] text-[#94A3B8] italic">No withdrawals yet.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -228,16 +318,33 @@
              etc.) - separate from the Transactions section above now that
              the ledger has its own dedicated table, so this is purely the
              audit trail, not a mix of both. --}}
-        <div class="bg-white rounded-xl border border-[#E5E9EB] p-5">
+        <div class="bg-white rounded-xl border border-[#E5E9EB] p-5 mini-datatable-card">
             <h2 class="font-poppins font-bold text-[14.5px] text-[#0F172A] mb-3">Recent admin actions</h2>
-            <div class="flex flex-col gap-2">
-                @forelse ($recentAudit as $a)
-                    <div class="flex items-center justify-between gap-2 border-b border-[#F1F5F9] last:border-0 pb-2 last:pb-0">
-                        <p class="text-[12.5px] text-[#334155]">{{ $a->created_at?->format('d M Y, h:i A') }} · {{ $a->actionLabel() }} by {{ $a->admin_label }}{{ $a->reason ? ' — '.$a->reason : '' }}</p>
-                    </div>
-                @empty
-                    <p class="text-[13px] text-[#94A3B8] italic">No admin actions recorded yet.</p>
-                @endforelse
+            <div class="overflow-x-auto">
+                <table id="audit-mini-table" class="w-full text-left border-collapse min-w-[560px]">
+                    <thead>
+                        <tr class="bg-[#F8FAFC] border-b border-[#E5E9EB]">
+                            <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Date</th>
+                            <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Action</th>
+                            <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Admin</th>
+                            <th class="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-[#94A3B8]">Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($recentAudit as $a)
+                            <tr class="border-b border-[#F1F5F9] last:border-0">
+                                <td class="px-3 py-2.5 text-[12px] text-[#64748B] whitespace-nowrap" data-order="{{ $a->created_at?->timestamp }}">{{ $a->created_at?->format('d M Y, h:i A') }}</td>
+                                <td class="px-3 py-2.5 whitespace-nowrap">
+                                    <span class="text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-slate-50 text-slate-600 border-slate-200">{{ $a->actionLabel() }}</span>
+                                </td>
+                                <td class="px-3 py-2.5 text-[12.5px] font-semibold text-[#0F172A] whitespace-nowrap">{{ $a->admin_label }}</td>
+                                <td class="px-3 py-2.5 text-[12.5px] text-[#334155]">{{ $a->reason ?: '—' }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4" class="px-3 py-6 text-center text-[13px] text-[#94A3B8] italic">No admin actions recorded yet.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -474,6 +581,43 @@
             if (banModal && !banModal.classList.contains('hidden')) closeBanModal();
             if (notifModal && !notifModal.classList.contains('hidden')) closeNotifModal();
         });
+    });
+</script>
+
+<script src="{{ asset('libs/simple-datatables/simple-datatables.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof simpleDatatables === 'undefined') return;
+
+        // One helper for every data section on this page - skips tables with
+        // no real rows (only the "No … yet." empty-state row), same guard
+        // every other datatable-backed admin page uses.
+        function initMiniTable(id, options) {
+            var table = document.getElementById(id);
+            if (!table || !table.querySelector('tbody tr td:not([colspan])')) return;
+
+            new simpleDatatables.DataTable('#' + id, Object.assign({
+                searchable: true,
+                paging: true,
+                perPage: 10,
+                perPageSelect: [10, 25, 50],
+                sortable: true,
+                labels: {
+                    placeholder: 'Search...',
+                    perPage: '{select} per page',
+                    noRows: 'No data found',
+                    noResults: 'No results match your search',
+                    info: 'Showing {start}–{end} of {rows}',
+                },
+            }, options || {}));
+        }
+
+        initMiniTable('investments-table');
+        initMiniTable('referrals-table');
+        initMiniTable('transactions-table');
+        initMiniTable('deposits-mini-table');
+        initMiniTable('withdrawals-mini-table');
+        initMiniTable('audit-mini-table');
     });
 </script>
 
