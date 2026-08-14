@@ -1,5 +1,14 @@
 # MEMORY.md — Project Log
 
+## 2026-08-14 — Scheduler: explicit IST timezone instead of pre-computed UTC clock times
+
+User asked to confirm the cron schedule runs on Indian time, not UTC, and that every notification-dependent scheduled job is actually present.
+
+- **Cron coverage confirmed complete**: of the 7 automatic notifications (item 8), 5 fire synchronously on a direct action (Deposit/Withdrawal Approved/Rejected, Plan Purchased - no cron involved at all) and exactly 2 depend on the scheduler (`plans:mature-holdings` → Plan Matured, `plans:notify-daily-profit` → Profit Credited) - both were already present in `bootstrap/app.php`'s `->withSchedule()`, nothing was missing.
+- **Timezone fix**: those entries (plus `plans:send-daily-returns-email`) were previously written as pre-computed UTC clock times with a comment explaining the IST equivalent (e.g. `dailyAt('18:30')` + "= midnight IST") - correct, but fragile: it silently depends on `config('app.timezone')` staying `'UTC'` (confirmed it currently is) and on nobody ever editing the number without redoing the math by hand. Rewrote all three as their actual intended IST clock time (`00:00`, `00:05`, `09:00`) with an explicit `->timezone('Asia/Kolkata')` - self-documenting and correct regardless of the app's own timezone setting.
+- **Verified zero behavior change**: `php artisan schedule:list` shows the identical underlying UTC cron expressions before and after (`30 18 * * *`, `35 18 * * *`, `30 3 * * *`) - the actual moment each job fires is unchanged, only how the time is expressed in code changed. Also confirmed the "already processed today" idempotency checks inside both commands (`UserPlan::scopeDueForDailyProfitNotification`/`scopeDueForDailyReturnEmail`, comparing `now()->toDateString()`) are unaffected - they compare against timestamps written by that same UTC `now()`, not against the scheduler's trigger time, so changing the scheduler's timezone doesn't touch that logic at all.
+- Full suite: **138 passed (480 assertions)**, Pint clean. No test changes needed (nothing tests the schedule's clock strings directly).
+
 ## 2026-08-14 — Added USDT as a full third deposit-collection method in Payment Gateway
 
 User asked "where is the USDT" on the Payment Gateway page - that page only ever managed UPI and Bank collection accounts (the client's own item 9.7 literally says "For UPI & Bank"), USDT only existed as a withdrawal *destination*, never as something a user could deposit *to*. Confirmed via AskUserQuestion the user wants full parity with UPI/Bank (multi-account CRUD + rotation), not a single shared address.
